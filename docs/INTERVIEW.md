@@ -21,9 +21,8 @@ The strongest application story is **Python support engineering with trading-dom
 **Desk Triager — Trading-Service Observability & Incident Recovery**  
 Python, FastAPI, SQLAlchemy, PostgreSQL/Neon configuration, scikit-learn, Gemini REST API
 
-- Built a Python observability application that detects stale market data, heartbeat silence, exchange throttling, execution-latency spikes, and NAV mismatches using operational rules and Isolation Forest.
-- Implemented evidence-based triage with scoped log inspection and read-only SQL reconciliation, followed by operator-approved simulated recovery and verification against fresh healthy telemetry.
-- Added idempotent event persistence, incident audit history, contextual metric explanations, behavioral regression tests, and GitHub Actions checks.
+- Built a Python/FastAPI trading-service observability platform backed by Neon PostgreSQL, using Isolation Forest and operational rules to detect stale market data, heartbeat gaps, exchange throttling, and execution-latency spikes.
+- Implemented Gemini-assisted log triage and SQL NAV reconciliation with operator-approved simulated recovery, fresh-telemetry verification, and auditable incident history; validated the workflow with 25 automated tests and live database/API integration checks.
 
 List Neon or live Gemini integration as verified only after configuring and exercising your own connections. Avoid invented uptime improvements, reduced MTTR, model accuracy, or trading performance.
 
