@@ -4,8 +4,6 @@
 
 A Python support platform that monitors execution telemetry, detects silent service failures, investigates logs and ledger differences, and proposes a recovery for trader approval.
 
-Built around the daily responsibilities of a **Junior Quant Developer — Support**: keep desk tools running, troubleshoot failures, communicate clearly with traders, and improve reliability.
-
 **Python · FastAPI · PostgreSQL / Neon · scikit-learn · Gemini REST API**
 
 ![Trading-service observatory](docs/desk-console.png)
@@ -80,43 +78,17 @@ See [architecture and tradeoffs](docs/ARCHITECTURE.md) and [operational runbooks
 
 ## Configuration
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `DATABASE_URL` | Empty → local SQLite | Neon/PostgreSQL connection string |
-| `DESK_TOKEN` | `local-access-token` | Shared localhost API access token |
-| `SIMULATOR_ENABLED` | `true` | Generate synthetic telemetry and enable simulated recovery |
-| `AI_PROVIDER` | `offline` | `offline` or `gemini` |
-| `GEMINI_API_KEY` | Empty | Backend-only Gemini API credential |
-| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Model available to your Gemini account |
-| `TICK_GAP_SECONDS` | `8` | Receipt-time silence threshold |
-
-The backend reads process environment variables first, then `.env.local`, then `.env`. Keep credentials in `.env`; configuration files containing secrets and local database files are excluded from Git.
-
-### Neon PostgreSQL
-
-Create a dedicated development database/branch in Neon and paste its connection string into `.env`:
+For Neon and Gemini, set these values in `.env` and restart the app:
 
 ```dotenv
 DATABASE_URL=postgresql://USER:PASSWORD@YOUR-ENDPOINT-pooler.REGION.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-```
-
-For a remote database, set `TICK_GAP_SECONDS=30` to tolerate network and cold-start jitter; retain a tighter threshold when measuring a local service. Restart the service. SQLAlchemy uses psycopg, connection pre-ping, and the connection string's TLS settings. Startup initializes missing tables and seeds a `desk-primary` account for simulation. SQLite history is not copied automatically. Tables: `telemetry`, `incidents`, `balances`, `service_watermarks`, and `audit`.
-
-[Neon SQLAlchemy documentation](https://neon.com/docs/guides/sqlalchemy).
-
-### Gemini REST API
-
-```dotenv
 AI_PROVIDER=gemini
 GEMINI_API_KEY=YOUR_KEY
 GEMINI_MODEL=gemini-3.5-flash-lite
+TICK_GAP_SECONDS=30
 ```
 
-The backend calls Gemini's HTTPS `generateContent` endpoint using `httpx` and an `x-goog-api-key` header. The browser never receives this key. Automatic incident diagnosis and explicit diagnosis refreshes can make billable API requests when Gemini is enabled.
-
-The model can request only `inspect_service_logs` and `reconcile_balances`. Service scope and queries are fixed by the server. Execution is bounded to four request rounds and four tool calls per round. Provider errors, missing keys, timeouts, and invalid responses return offline evidence. The agent cannot execute arbitrary Python, SQL, or shell commands.
-
-[Gemini REST documentation](https://ai.google.dev/api/generate-content).
+Without cloud credentials, the app uses SQLite and offline triage. See [.env.example](.env.example) for all settings. Keep credentials private; `.env` files are excluded from Git. Gemini requests may incur API charges.
 
 ## Build and run with npm
 
@@ -163,13 +135,3 @@ scripts/          Credential-safe connection check
 docs/             Architecture, runbooks, interview notes, publishing
 .github/          Continuous integration and pull request template
 ```
-
-## Scope and engineering tradeoffs
-
-This release is a portfolio application with a simulated exchange. It does not place trades, connect to a live exchange, or demonstrate production uptime. The Isolation Forest uses a frozen synthetic baseline; its margin is not a probability or a validated production accuracy measure. Simulated reconnect/backoff/resync handlers clear matching injected faults; ledger recovery copies the simulated exchange snapshot.
-
-SQL commits are durable and event IDs are idempotent, but direct ingestion has no durable buffer for samples that fail before commit. A shared deployment would need verified identity/role checks, schema migrations, retention, and real adapter preconditions. The current approver label is audit attribution, not authenticated trader identity. Keep the application bound to localhost.
-
-## Job application and GitHub
-
-See [interview talking points and résumé wording](docs/INTERVIEW.md), [publishing instructions](docs/PUBLISHING.md), and [contribution instructions](CONTRIBUTING.md).
