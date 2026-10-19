@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Desk — Trading service observatory</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <a class="brand" href="/">desk<span>.</span></a
+        ><span class="environment">Trading service observatory</span>
+        <details class="settings">
+          <summary>Settings</summary>
+          <div class="settings-content">
+            <label for="token">Desk access token</label
+            ><input
+              id="token"
+              type="password"
+              value="local-access-token"
+              autocomplete="off"
+            />
+            <p id="infrastructure">Connecting…</p>
+            <a href="/docs">API reference ↗</a>
+          </div>
+        </details>
+      </header>
+      <section class="heading">
+        <div>
+          <h1>A clear view of the desk.</h1>
+          <p>Spot a failure, understand it, and approve a recovery.</p>
+        </div>
+        <span class="live" id="session">Connecting</span>
+      </section>
+      <div class="error hidden" id="error" role="alert"></div>
+      <section class="metrics" aria-label="Key desk metrics">
+        <article
+          class="metric"
+          tabindex="0"
+          data-help="Unresolved incidents across the desk. Includes incidents waiting for approval and recoveries still being verified. Zero means no unresolved incidents; it does not guarantee every service is healthy."
+          aria-describedby="help-tooltip"
+        >
+          <div class="label">
+            Open incidents <span class="info" aria-hidden="true">?</span>
+          </div>
+          <div class="number" id="open">—</div>
+          <span class="metric-note" id="queue-status"
+            >Waiting for telemetry</span
+          >
+        </article>
+        <article
+          class="metric"
+          tabindex="0"
+          data-help="Fill latency is the time between submitting an order and receiving its fill, in milliseconds. This is the latest simulated execution-gateway sample, not an average. Above 350 ms triggers a latency incident."
+          aria-describedby="help-tooltip"
+        >
+          <div class="label">
+            Fill latency <span class="info" aria-hidden="true">?</span>
+          </div>
+          <div class="number" id="latency">—</div>
+          <span class="metric-note" id="latency-note"
+            >Latest gateway sample</span
+          >
+        </article>
+        <article
+          class="metric"
+          tabindex="0"
+          data-help="Local net asset value (NAV) minus the simulated exchange NAV, in US dollars. The display sums accounts; each account is checked separately so opposite differences cannot hide a mismatch. An absolute account difference above $0.01 triggers reconciliation review."
+          aria-describedby="help-tooltip"
+        >
+          <div class="label">
+            NAV difference <span class="info" aria-hidden="true">?</span>
+          </div>
+          <div class="number" id="difference">—</div>
+          <span class="metric-note" id="balance-note"
+            >Local ledger vs. exchange</span
+          >
+        </article>
+      </section>
+      <section class="workspace">
+        <article class="panel pulse">
+          <div class="panel-heading">
+            <h2>Execution pulse</h2>
+            <span class="subtle">Hover to explore</span>
+          </div>
+          <div class="chart">
+            <svg
+              id="chart"
+              viewBox="0 0 800 170"
+              preserveAspectRatio="none"
+              role="img"
+              aria-label="Recent fill latency; hover to inspect individual samples"
+              tabindex="0"
+              data-help="Recent execution-gateway fill latency samples. The dashed line marks 350 ms, the fixed latency alert threshold. Move over the chart to inspect a sample's time and latency."
+              aria-describedby="help-tooltip"
+            ></svg>
+          </div>
+          <div class="chart-caption">
+            <span
+              id="chart-start"
+              tabindex="0"
+              data-help="Time of the oldest gateway sample currently plotted. Times use your browser timezone."
+              aria-describedby="help-tooltip"
+              >Waiting for samples</span
+            ><span
+              tabindex="0"
+              data-help="The latency rule opens an incident when a fill takes more than 350 milliseconds. Isolation Forest can also flag other unusual feature combinations below this threshold."
+              aria-describedby="help-tooltip"
+              >350 ms alert threshold</span
+            ><span>Now</span>
+          </div>
+        </article>
+        <article class="panel scenario">
+          <div class="panel-heading">
+            <h2>Try a scenario</h2>
+            <span class="pill">Simulated</span>
+          </div>
+          <div class="scenario-controls">
+            <select id="fault" aria-label="Failure scenario">
+              <option value="tick_gap|market-feed">Stale market feed</option>
+              <option value="silence|market-feed">
+                Silent feed disconnect
+              </option>
+              <option value="rate_limit|execution-gateway">
+                Exchange rate limit
+              </option>
+              <option value="latency|execution-gateway">
+                Slow order fills
+              </option>
+              <option value="nav_mismatch|portfolio-ledger">
+                NAV mismatch
+              </option>
+              <option value="ml_degradation|execution-gateway">
+                Subtle feature drift
+              </option></select
+            ><button id="inject">Run scenario</button>
+          </div>
+          <p id="scenario-description">
+            Market ticks stop updating. The detector flags stale data while the
+            service still appears to be running.
+          </p>
+          <ol class="steps" aria-label="Recovery workflow">
+            <li id="step-detect">Detect</li>
+            <li id="step-review">Review</li>
+            <li id="step-recover">Recover</li>
+          </ol>
+          <p class="scenario-hint" id="scenario-hint" role="status">
+            Choose a failure to see how the desk responds.
+          </p>
+        </article>
+      </section>
+      <section class="service-strip" aria-label="Service health">
+        <span class="subtle">Services</span
+        ><span
+          id="service-market-feed"
+          class="service"
+          tabindex="0"
+          aria-describedby="help-tooltip"
+        ></span
+        ><span
+          id="service-execution-gateway"
+          class="service"
+          tabindex="0"
+          aria-describedby="help-tooltip"
+        ></span
+        ><span
+          id="service-portfolio-ledger"
+          class="service"
+          tabindex="0"
+          aria-describedby="help-tooltip"
+        ></span>
+      </section>
+      <section class="incidents">
+        <div class="section-heading">
+          <h2>Incidents</h2>
+          <label class="history-toggle"
+            ><input type="checkbox" id="show-history" /> Show resolved</label
+          >
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Signal</th>
+                <th>Service</th>
+                <th>Status</th>
+                <th><span class="sr-only">Action</span></th>
+              </tr>
+            </thead>
+            <tbody id="incident-rows"></tbody>
+          </table>
+        </div>
+      </section>
+      <details class="support-details">
+        <summary>
+          Activity & balances <span>View supporting evidence</span>
+        </summary>
+        <div class="support-grid">
+          <section>
+            <h2>Ledger balances <span class="subtle">USD</span></h2>
+            <div id="balances"></div>
+          </section>
+          <section>
+            <h2>Activity</h2>
+            <div id="journal"></div>
+          </section>
+        </div>
+        <p class="event-total">
+          <span
+            id="events"
+            tabindex="0"
+            data-help="Total unique telemetry events persisted in the database since this database was created. Duplicate event IDs are counted once. This is an event count, not an order count or a throughput rate."
+            aria-describedby="help-tooltip"
+            >—</span
+          >
+          unique telemetry events stored
+        </p>
+      </details>
+      <footer>
+        <span>Simulated exchange · Human-approved recovery</span
+        ><span
+          id="updated"
+          tabindex="0"
+          data-help="Local time when the backend last persisted a new telemetry event. Check service health separately; one active service can keep this time updating while another is silent."
+          aria-describedby="help-tooltip"
+          >Waiting for telemetry</span
+        >
+      </footer>
+    </main>
+    <dialog id="detail">
+      <div class="modal-head">
+        <span class="subtle">Incident review</span
+        ><button class="quiet" id="close" aria-label="Close incident">
+          Close ×
+        </button>
+      </div>
+      <h2 id="detail-title"></h2>
+      <p id="detail-service"></p>
+      <span class="badge" id="detail-status"></span>
+      <h3>What happened</h3>
+      <p id="diagnosis"></p>
+      <section class="assessment">
+        <div class="section-heading">
+          <h3>Investigation</h3>
+          <button class="text-button" id="triage">Refresh diagnosis ↗</button>
+        </div>
+        <p id="report">Collecting evidence…</p>
+      </section>
+      <h3>Recommended action</h3>
+      <p id="action"></p>
+      <details>
+        <summary>Technical evidence & recovery script</summary>
+        <p class="subtle">
+          This script calls the fixed recovery handler. No model-generated code
+          is executed.
+        </p>
+        <pre id="script"></pre>
+        <pre id="evidence"></pre>
+      </details>
+      <label class="actor" for="actor"
+        >Approving trader
+        <input id="actor" value="desk-operator" maxlength="80"
+      /></label>
+      <p class="small-note">
+        Recovery affects the simulator. A fresh healthy sample must confirm
+        success.
+      </p>
+      <button id="approve">Approve recovery</button>
+      <p id="modal-message" role="status"></p>
+    </dialog>
+    <div id="help-tooltip" role="tooltip" hidden></div>
+  </body>
+</html>

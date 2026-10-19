@@ -1,0 +1,13 @@
+{
+  "name": "desk-triager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Build and run the Python trading-service observatory",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "node scripts/project.mjs build",
+    "start": "node scripts/project.mjs start",
+    "test": "node scripts/project.mjs test",
+    "verify:services": "node scripts/project.mjs verify"
+  }
+}
