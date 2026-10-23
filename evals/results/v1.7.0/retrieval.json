@@ -1,0 +1,17 @@
+{
+  "benchmark": "runbook-seed-1",
+  "embedding": "hash-word12-768-v1",
+  "root_cause_gain": null,
+  "results": {
+    "keyword": {
+      "queries": 7,
+      "recall_at_3": 1.0,
+      "mrr": 1.0
+    },
+    "vector": {
+      "queries": 7,
+      "recall_at_3": 1.0,
+      "mrr": 1.0
+    }
+  }
+}

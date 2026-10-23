@@ -71,3 +71,24 @@ def test_expanded_offline_regression_gate():
     assert scores["category_macro_f1"] >= 0.29
     assert scores["extract_check_pass_rate"] == 1
     assert scores["provider_error_or_fallback_rate"] == 0
+
+
+def test_comparison_excludes_failed_cases_from_matched_subset():
+    from evals.report import analyze
+
+    cases = json.loads(CORPUS.read_text())["cases"][:2]
+    report = evaluate(cases, ["rules"], Settings(ai_provider="offline"))
+    original = report["rows"]
+    report["rows"] = original + [
+        {
+            **r,
+            "mode": "graph",
+            "fallback_reason": "HTTPStatusError" if r["id"] == cases[0]["id"] else None,
+        }
+        for r in original
+    ]
+    report["summaries"]["graph"] = {}
+    result = analyze(report)
+    assert result["matched_case_ids"] == [cases[1]["id"]]
+    assert result["comparisons"]["all_attempts_including_fallback"]["graph"]["cases"] == 2
+    assert result["comparisons"]["matched_successful_cases"]["graph"]["cases"] == 1

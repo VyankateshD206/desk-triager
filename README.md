@@ -4,7 +4,7 @@
 
 A Python support platform that monitors execution telemetry, detects silent service failures, investigates logs and ledger differences, and proposes a recovery for trader approval.
 
-**Python · FastAPI · LangGraph · PostgreSQL / Neon · scikit-learn · Gemini REST API**
+**Python · FastAPI · LangGraph · PostgreSQL / pgvector · Prometheus · Loki · Gemini / OpenAI REST**
 
 ![Trading-service observatory](docs/desk-console.png)
 
@@ -18,6 +18,9 @@ A Python support platform that monitors execution telemetry, detects silent serv
 - Requires approval for fixed recovery actions, then verifies a fresh healthy sample before closing the incident.
 - Preserves events, incident history, service watermarks, and an approval audit trail in SQL.
 - Uses native LangGraph approval interrupts, an idempotent SQL recovery outbox, and consecutive-sample verification.
+- Retrieves versioned, reviewed runbooks and past incidents with scoped pgvector or local vectors.
+- Checks quoted and numeric evidence, supports an optional causal critic, and records node usage/cost traces.
+- Compares a strong one-prompt baseline with the graph and retrieval on 40 labeled incidents.
 
 The interface stays focused on three metrics and the incident queue. Hover, focus, or tap a number for its definition, units, and threshold. Technical evidence, scripts, balances, and audit history are available on demand.
 
@@ -77,34 +80,64 @@ flowchart LR
     R --> S
 ```
 
-Events move directly through Python background workers. SQL is authoritative for durable state and idempotency. There is no message broker, external cache, or AI provider SDK.
+Events move directly through Python background workers. SQL is authoritative for durable state and idempotency. There is no message broker, external cache, or AI provider SDK. An optional OTLP collector receives node traces.
 
 See [architecture and tradeoffs](docs/ARCHITECTURE.md) and [operational runbooks](docs/RUNBOOKS.md).
 
-## Agent evaluation foundation (v1.1.0)
+## Evaluation and demo
 
-Provider-independent diagnosis schemas validate confidence, abstention, and evidence
-references. Evidence IDs bind content to its source, service, and timestamp. Since v1.2.0,
-the running agent uses a bounded LangGraph investigation loop with SQLite checkpoints.
-Gemini uses REST inside the reasoning node; offline mode uses the shared symptom baseline.
-See [the graph workflow](docs/AGENT_WORKFLOW.md).
+[Watch the console walkthrough](docs/media/desk-demo.webm): detect a simulated incident,
+inspect grounded evidence, approve the fixed recovery, and wait for verified health.
+The recording uses offline reasoning. [Review screenshot](docs/media/incident-review.png).
 
-Run the credential-free seed evaluation from the repository root:
+The 40-case benchmark includes 20 demo fault variants, ten public-postmortem-inspired
+reconstructions and ten ambiguous cases. It measures severity, category macro F1, literal
+evidence grounding, abstention, confidence/Brier score, latency, tokens and estimated cost.
+A strong single prompt receives all fixed tool context; the graph must collect it through
+scoped tools. The retrieval ablation adds only packaged runbooks. Family-level splits and
+corpus hashes help prevent leakage. Labels remain agent-authored pending human review.
 
 ```bash
-python -m evals.run --output /tmp/desk-eval-results.json
+python -m evals.benchmark --output /tmp/rules.json
+python -m evals.benchmark --provider gemini --live \
+  --modes prompt,graph,graph_retrieval --request-interval 6 --output /tmp/gemini.json
+python -m evals.security --output /tmp/security.json
+python -m evals.retrieval
 ```
 
-The 10 hand-authored synthetic fixtures cover five known symptoms and five cases requiring
-abstention. The rules baseline scores category macro F1 1.00, severity accuracy 1.00, and
-citation validity 1.00 with 50% answer coverage on these fixtures. These are smoke-test
-results on deliberately simple examples, not evidence of LLM accuracy or generalization.
-CI runs the evaluation and retains its JSON report. See [evaluation scope](docs/EVALUATION.md).
+Paid Gemini runs require explicit `--live`. OpenAI adapter behavior is mock-tested; this
+release's live measurements use Gemini only. A separate Gemini judge and deterministic
+manual-review export are available. Regex root-cause matches and judge opinions do not
+establish independently validated causal accuracy. Provider failures and offline fallback
+are reported separately. See [benchmark methodology](docs/BENCHMARK.md),
+[security scope](docs/SECURITY.md) and [provider/trace configuration](docs/OBSERVABILITY.md).
 
-Version 1.4.0 adds evidence redaction, independent quote/numeric checks, a typed recovery
-policy, and 28 deterministic security cases. Run `python -m evals.security` or see
-[security boundaries and results](docs/SECURITY.md). Live-model attack success and semantic
-causal support remain unmeasured.
+CI gates the offline corpus, negative-control scorer tests, 28 security fixtures and Docker
+integration. The original ten deliberately simple seed fixtures remain a smoke test.
+Keyword and hashed-vector retrieval both achieved recall@3 and MRR 1.00 on seven authored
+runbook queries; this establishes no advantage for vectors or improvement in diagnosis.
+
+### Gemini live results — v1.7.0
+
+Paced run, `gemini-3.5-flash-lite`, 40 cases per mode, 23 October 2026:
+
+| Mode | Severity accuracy | Category macro F1 | Error/fallback rate | Median latency | Median known run cost |
+|---|---:|---:|---:|---:|---:|
+| One prompt | 72.5% | 0.448 | 15% | 6.49 s | $0.00162 (33 runs) |
+| Graph | 80.0% | 0.433 | 10% | 12.02 s | $0.00238 (36 runs) |
+| Graph + retrieval | 77.5% | 0.429 | 20% | 13.56 s | $0.00261 (32 runs) |
+
+These all-attempt scores include failed requests and conservative fallback. Of the 40 cases,
+30 succeeded in all three modes. On that matched subset, category F1 was 0.484 / 0.478 /
+0.478, and literal extract checks passed for 90.5% / 100% / 100% of answered predictions.
+The graph enforces extract checks; passing them does not establish causal truth. Retrieval
+increased the regex root-cause proxy from 19/20 to 20/20 causal cases in this selected subset,
+but held-out all-attempt category F1 decreased. **No broad accuracy or retrieval advantage is
+established.** Latency includes request pacing. Costs use dated standard-text prices, exclude
+unknown runs, and are estimates; complete billed totals are unknown.
+
+[Full results and caveats](docs/RESULTS.md) · [Raw runs and matched/split analysis](evals/results/v1.7.0/) ·
+[Human review rubric](docs/REVIEW_RUBRIC.md)
 
 ## Configuration
 
@@ -155,7 +188,7 @@ triager/
   app.py          Authenticated FastAPI routes and worker lifecycle
   runtime.py      Ingestion, incidents, approvals, and verification
   detector.py     Rule thresholds and Isolation Forest baseline
-  agent.py        Scoped tools, Gemini REST provider, checkpoint lifecycle
+  agent.py        Scoped tools, Scoped tools and checkpoint lifecycle
   workflow.py     Bounded LangGraph investigation and citation validation
   contracts.py    Diagnosis and evidence schemas
   baseline.py     Conservative offline symptom classification
@@ -168,3 +201,10 @@ scripts/          Credential-safe connection check
 docs/             Architecture, runbooks, interview notes, publishing
 .github/          Continuous integration and pull request template
 ```
+
+## Inspiration
+
+The agentic incident-triage direction was inspired by
+[auto-triage-agent](https://github.com/kh-arash/auto-triage-agent). This project applies that
+idea to simulated trading telemetry, with an independent evaluation harness, bounded tools,
+evidence checks and durable approval-gated recovery. See [implementation progress and limits](docs/ROADMAP.md).

@@ -51,3 +51,11 @@ the scorer detects failures. The workflow uploads the baseline report for inspec
 Keep held-out labels and answer-bearing incident documents out of retrieval. Version case
 sets, prompts, models, and policy alongside results. Establish paid-evaluation regression
 thresholds only after collecting representative baseline measurements.
+
+## Expanded release benchmark
+
+The original ten fixtures remain a smoke regression. The new 40-case benchmark, strong
+single-prompt baseline, graph/retrieval ablation, optional Gemini judge, manual review export
+and measurement caveats are documented in [BENCHMARK.md](BENCHMARK.md). See the README
+results section for measured release outcomes. Provider failures and offline fallback are
+reported explicitly; they must not be credited as live-model success.

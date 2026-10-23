@@ -10,6 +10,7 @@ Development has 25 cases; test has 15. Related incident families cannot cross th
 python -m evals.benchmark --output /tmp/rules.json
 python -m evals.benchmark --provider gemini --live \
   --modes prompt,graph,graph_retrieval --request-interval 6 --output /tmp/gemini.json
+python -m evals.report /tmp/gemini.json --output /tmp/comparison.json
 python -m evals.review /tmp/gemini.json --count 12 --output /tmp/review.json
 python -m evals.review /tmp/gemini.json --count 6 --live-judge --output /tmp/judge.json
 python -m evals.injection_live --live --output /tmp/injection.json
@@ -38,3 +39,7 @@ scorer tests, deterministic security tests and the actual Docker evidence/recove
 Paid evaluations remain explicit operator actions. Do not gate CI on noisy unreviewed live
 accuracy numbers. Use the versioned reports in `evals/results/` to inspect release measurements
 and failure rates; compare matched successful runs before attributing a difference to retrieval.
+
+The [human review rubric](REVIEW_RUBRIC.md) defines severity, symptom category and causal
+support checks. The matched comparison excludes any case with a failed/fallback run in any
+mode; this avoids counting offline rules as LLM success but introduces a reliability selection bias.

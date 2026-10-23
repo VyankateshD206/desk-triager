@@ -1,0 +1,1918 @@
+{
+  "summaries": {
+    "rules": {
+      "cases": 40,
+      "severity_accuracy": 0.625,
+      "category_macro_f1": 0.29642857142857143,
+      "root_cause_regex_proxy_hit_rate": 0.16666666666666666,
+      "answer_coverage": 0.375,
+      "answered_category_accuracy": 1,
+      "confidence_brier_on_answered_categories": 0.25,
+      "extract_check_pass_rate": 1,
+      "abstention_accuracy": 0.625,
+      "provider_error_or_fallback_rate": 0,
+      "successful_provider_cases": 40,
+      "median_latency_ms": 0.18531649766373448,
+      "p95_latency_ms": 0.4644129985535983,
+      "known_cost_runs": 40,
+      "median_known_run_cost_usd": 0.0,
+      "estimated_total_cost_usd": 0.0,
+      "input_tokens": 0,
+      "output_tokens": 0
+    }
+  },
+  "rows": [
+    {
+      "id": "sql-0",
+      "family": "demo-slow-sql",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "e1b77f90acb8d100d410f7e1d13bbd67cc4574a975b487d9aa4526fc0649d5f7"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "e1b77f90acb8d100d410f7e1d13bbd67cc4574a975b487d9aa4526fc0649d5f7",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.4644129985535983,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "memory-0",
+      "family": "demo-retained-buffers",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "a22d371b523dd2e13025e8e8926d35e07b2fe59437f84eb777c0090daf3b1465"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "a22d371b523dd2e13025e8e8926d35e07b2fe59437f84eb777c0090daf3b1465",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.44458400225266814,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "deploy-0",
+      "family": "demo-routing-deploy",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.35183600266464055,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "throttle-0",
+      "family": "demo-retry-throttle",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "medium",
+        "category": "rate_limit",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: http 429; retry-after",
+            "evidence_ids": [
+              "88d95f1d71b79e23f22ff24d24fcacb7728ecce5929a4d225086eb7ffa948f35"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "88d95f1d71b79e23f22ff24d24fcacb7728ecce5929a4d225086eb7ffa948f35",
+                "quote": "HTTP 429; Retry-After"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": true,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.4838599998038262,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "sql-1",
+      "family": "demo-slow-sql",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "41447f3cb69f44c5bcbe078022bc1d33e8eceb3dbbd484209779ebe8896ab9ab"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "41447f3cb69f44c5bcbe078022bc1d33e8eceb3dbbd484209779ebe8896ab9ab",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.514830000611255,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "memory-1",
+      "family": "demo-retained-buffers",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "54202eabd66a9faec47eb7db2671eae6944e9304738dd34de665a1883700701d"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "54202eabd66a9faec47eb7db2671eae6944e9304738dd34de665a1883700701d",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.37444999907165766,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "deploy-1",
+      "family": "demo-routing-deploy",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.34159599817940034,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "throttle-1",
+      "family": "demo-retry-throttle",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "medium",
+        "category": "rate_limit",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: http 429; retry-after",
+            "evidence_ids": [
+              "b151b4fcda800e11ffb58423746b807f2b251974142379703119f543be864410"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "b151b4fcda800e11ffb58423746b807f2b251974142379703119f543be864410",
+                "quote": "HTTP 429; Retry-After"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": true,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.2550410026742611,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "sql-2",
+      "family": "demo-slow-sql",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "735b1901ba16df09900bc190c4dfe961831cd950310ef7d2f1a9245a874eb571"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "735b1901ba16df09900bc190c4dfe961831cd950310ef7d2f1a9245a874eb571",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.18446399917593226,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "memory-2",
+      "family": "demo-retained-buffers",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "8f7cbb608f70a7b8b4843ecb5686e4e4ebdfe832e877e72d5fc5189582d38ed2"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "8f7cbb608f70a7b8b4843ecb5686e4e4ebdfe832e877e72d5fc5189582d38ed2",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.18505599655327387,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "deploy-2",
+      "family": "demo-routing-deploy",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.15314399934140965,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "throttle-2",
+      "family": "demo-retry-throttle",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "medium",
+        "category": "rate_limit",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: http 429; retry-after",
+            "evidence_ids": [
+              "e2e7141de3608aeda6b6352621428eb459dac2ec8446d10771293d340be3f2b0"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "e2e7141de3608aeda6b6352621428eb459dac2ec8446d10771293d340be3f2b0",
+                "quote": "HTTP 429; Retry-After"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": true,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.17977599782170728,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "sql-3",
+      "family": "demo-slow-sql",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "6f8e838f142eae328cf6be86979801ad28d9e28a6d8984f87a339772a4d1e473"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "6f8e838f142eae328cf6be86979801ad28d9e28a6d8984f87a339772a4d1e473",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.1916780020110309,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "memory-3",
+      "family": "demo-retained-buffers",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "ff42db5e402749e489bac8bd799ef77ab76b6495888500e81d9f1f956aa0748a"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "ff42db5e402749e489bac8bd799ef77ab76b6495888500e81d9f1f956aa0748a",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.17016700076055713,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "deploy-3",
+      "family": "demo-routing-deploy",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.14877599824103527,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "throttle-3",
+      "family": "demo-retry-throttle",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "medium",
+        "category": "rate_limit",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: http 429; retry-after",
+            "evidence_ids": [
+              "e1d220321df8b17907116e3ca6f804542e6cf00a9d429f5875fda81fc45c4d58"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "e1d220321df8b17907116e3ca6f804542e6cf00a9d429f5875fda81fc45c4d58",
+                "quote": "HTTP 429; Retry-After"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": true,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.1855769987741951,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "sql-4",
+      "family": "demo-slow-sql",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "ff8be31deaecd49ffa6cd147c6e1cd258f2009998d4f96f9158703ac4519c646"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "ff8be31deaecd49ffa6cd147c6e1cd258f2009998d4f96f9158703ac4519c646",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.1972900026885327,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "memory-4",
+      "family": "demo-retained-buffers",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "1109fdc9d6b54f3b3d583d4e6ffabe519c5066e7370ee56bd49f1d3db4f4e925"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "1109fdc9d6b54f3b3d583d4e6ffabe519c5066e7370ee56bd49f1d3db4f4e925",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.17499600289738737,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "deploy-4",
+      "family": "demo-routing-deploy",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.1499680001870729,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "throttle-4",
+      "family": "demo-retry-throttle",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "medium",
+        "category": "rate_limit",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: http 429; retry-after",
+            "evidence_ids": [
+              "9525d08a2e43373667f1845c2465be01a3b470c3f8c4f10fcb26c4c93645ffb2"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "9525d08a2e43373667f1845c2465be01a3b470c3f8c4f10fcb26c4c93645ffb2",
+                "quote": "HTTP 429; Retry-After"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": true,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.17470600141678005,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "cf-regex-2019",
+      "family": "cf-regex-2019",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "resource",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "regex",
+            "regular expression"
+          ],
+          [
+            "cpu",
+            "backtrack"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.14319500041892752,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "gitlab-db-2017",
+      "family": "gitlab-db-2017",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "database",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "delet",
+            "remov"
+          ],
+          [
+            "primary",
+            "database",
+            "data"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.17365299936500378,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "github-partition-2018",
+      "family": "github-partition-2018",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "network",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "partition",
+            "network"
+          ],
+          [
+            "database",
+            "mysql",
+            "leader",
+            "replic"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.17076900257961825,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "cf-bgp-2022",
+      "family": "cf-bgp-2022",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "network",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "bgp",
+            "route",
+            "routing"
+          ],
+          [
+            "policy",
+            "config",
+            "order",
+            "withdraw"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.1503790008428041,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "meta-backbone-2021",
+      "family": "meta-backbone-2021",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "network",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "backbone",
+            "network"
+          ],
+          [
+            "command",
+            "maintenance",
+            "disconnect"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.1494069983891677,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "cf-router-2020",
+      "family": "cf-router-2020",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "network",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "route",
+            "router",
+            "routing"
+          ],
+          [
+            "config",
+            "traffic",
+            "leak"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.1433750003343448,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "cf-power-2023",
+      "family": "cf-power-2023",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "infrastructure",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "power",
+            "facility"
+          ],
+          [
+            "backup",
+            "fail",
+            "outage"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.1559289994474966,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "aws-s3-2017",
+      "family": "aws-s3-2017",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "resource",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "capacity",
+            "server",
+            "subsystem"
+          ],
+          [
+            "remov",
+            "command"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.13921800200478174,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "fastly-config-2021",
+      "family": "fastly-config-2021",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "application",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "bug",
+            "defect"
+          ],
+          [
+            "config",
+            "latent",
+            "software"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.1500489997852128,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "slack-config-2020",
+      "family": "slack-config-2020",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "database",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "config",
+            "flag",
+            "rollout"
+          ],
+          [
+            "database",
+            "performance",
+            "bug"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": false,
+      "category_correct": false,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.165328001457965,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "unknown-empty",
+      "family": "ambiguous-empty",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.24435999876004644,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "unknown-generic-error",
+      "family": "ambiguous-generic-error",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.41136000072583556,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "unknown-healthy",
+      "family": "ambiguous-healthy",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.26218399943900295,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "unknown-old-throttle",
+      "family": "ambiguous-old-throttle",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.2905080000346061,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "unknown-unknown-impact",
+      "family": "ambiguous-unknown-impact",
+      "split": "dev",
+      "mode": "rules",
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.30332299866131507,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "unknown-conflicting",
+      "family": "ambiguous-conflicting",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.34051399779855274,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "unknown-missing-source",
+      "family": "ambiguous-missing-source",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.2639170015754644,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "unknown-no-deployment",
+      "family": "ambiguous-no-deployment",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.19574599718907848,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "unknown-unexplained-drift",
+      "family": "ambiguous-unexplained-drift",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.18840300253941678,
+      "cost_estimate_usd": 0.0
+    },
+    {
+      "id": "unknown-untrusted-claim",
+      "family": "ambiguous-untrusted-claim",
+      "split": "test",
+      "mode": "rules",
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No recognized current symptom; investigate further"
+        ],
+        "abstained": true
+      },
+      "annotation_status": "agent_authored_pending_human_review",
+      "severity_correct": true,
+      "category_correct": true,
+      "root_cause_proxy_hit": false,
+      "verification_issues": [],
+      "model_calls": [],
+      "fallback_reason": null,
+      "tool_trace": [],
+      "node_trace": [],
+      "latency_ms": 0.14059999739401974,
+      "cost_estimate_usd": 0.0
+    }
+  ],
+  "human_validated_labels": 0,
+  "root_cause_scoring": "regex proxy; requires judge and manual review for causal accuracy",
+  "benchmark_version": "incidents-1",
+  "provider": "offline",
+  "model": "gemini-3.5-flash-lite",
+  "corpus_sha256": "d75dd8c235ff444f4321b95adbd7b1351dd0b76ea32d0107f26835ec64deec97",
+  "execution_settings": {
+    "workers": 1,
+    "request_interval_seconds": 0
+  },
+  "report_notes": {
+    "raw_report_sha256": "3465a3c9803b17faba449cdb4b0e629e495e6094f76859c828f3d76ca11d0480",
+    "cost_accounting": "Unknown cost for failed/fallback requests; aggregate medians exclude unknown costs",
+    "date": "2026-10-23",
+    "embedding": "hash-word12-768-v1",
+    "critic_enabled": false,
+    "labels": "agent authored; no independent human validation"
+  }
+}

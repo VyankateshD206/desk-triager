@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import math
 import re
 import statistics
 import tempfile
@@ -205,7 +206,11 @@ def summarize(rows):
         ),
         "successful_provider_cases": sum(not r["fallback_reason"] for r in rows),
         "median_latency_ms": statistics.median(latency),
-        "p95_latency_ms": latency[max(0, int(0.95 * len(latency)) - 1)],
+        "p95_latency_ms": latency[max(0, math.ceil(0.95 * len(latency)) - 1)],
+        "known_cost_runs": sum(c is not None for c in costs),
+        "median_known_run_cost_usd": statistics.median(c for c in costs if c is not None)
+        if any(c is not None for c in costs)
+        else None,
         "estimated_total_cost_usd": sum(costs) if all(c is not None for c in costs) else None,
         "input_tokens": sum(
             call.get("input_tokens") or 0 for r in rows for call in r["model_calls"]

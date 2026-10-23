@@ -1,22 +1,33 @@
 # Implementation progress
 
-Follow the agreed evidence-first plan. Version tags describe shipped milestones, not
-claims that the entire research evaluation or production hardening is complete.
+The implementation follows the original three-tier plan. Tags identify shipped milestones;
+research limitations and uncompleted human review remain explicit.
 
-| Phase | Status | Evidence / remaining work |
-|---|---|---|
-| 1. Contracts and evaluation foundation | Foundation shipped in v1.1.0 | Ten synthetic cases, isolated labels, offline scorer. Still expand to 40 reviewed cases, add single-prompt and existing-agent comparisons, and create a held-out split. |
-| 2. LangGraph investigation | Shipped in v1.2.0 | Bounded tools, checkpoints, restart/resume, schema repair, citation membership, budget abstention. Confidence calibration and semantic support checks remain. |
-| 3. Realistic evidence sources | v1.3.0 milestone | Docker demo, controlled faults, Loki, Prometheus, deployment registry, scoped read tools, integration CI. |
-| 4. Verification and injection defenses | Guardrails shipped in v1.4.0 | Redaction, quote/numeric checks, independent typed policy, and 28 deterministic adversarial cases. Semantic verification and live-model before/after attack measurements remain pending. |
-| 5. Durable approval and execution | v1.5.0 milestone | Native approval interrupts, bound proposals, idempotency keys, transactional outbox, lease claims, rejection feedback, consecutive-sample verification and deadlines. See RECOVERY.md. |
-| 6. Retrieval and ablation | Retrieval shipped in v1.6.0 | Immutable reviewed knowledge, pgvector/local vectors, keyword comparison, leakage controls. Live diagnosis ablation is in progress. |
-| 7. Complete evaluation and presentation | Planned | Root-cause rubrics, calibration, multi-provider comparisons, node usage/cost traces, UI timeline, video and release results. |
+| Requested capability | Delivered |
+|---|---|
+| Evaluation harness | 40 labeled cases, public-source links, family-level dev/test split, label-blind predictors, single-prompt/graph/retrieval ablation, severity/category/abstention/grounding/calibration/latency/usage metrics, CI regression gates |
+| Agentic tools and loop | Bounded checkpointed LangGraph loop, five scoped external tools, Docker fault app, Prometheus and Loki; v1.2–1.3 |
+| Log injection defenses | Untrusted-evidence delimiters, redaction, literal quote/numeric checks, independent typed recovery policy, deterministic adversarial CI and optional live probes; v1.4 |
+| Retrieval | Immutable reviewed runbooks or operator-imported past incidents, pgvector/local vectors, optional Gemini embeddings, keyword comparison and diagnosis ablation; v1.6 |
+| Critic and abstention | Optional causal critic, explicit insufficient evidence, confidence/Brier reporting and coverage |
+| Approval and feedback | Native interrupt/resume, durable approve/reject reasons, proposal binding, idempotent transactional outbox, leased worker, verification deadlines, approval rate and unlabeled feedback export; v1.5 |
+| Models and reliability | Gemini and OpenAI REST adapters, schema repair, bounded transport retries/timeouts, configurable model fallback; live results are Gemini-only by user choice |
+| Observability | Per-node timings/tokens/cost estimates, optional OTLP export, SQL audit and evidence review |
+| Production polish | PostgreSQL migrations, background recovery worker, token auth, in-process rate limits, review console, tagged releases, recorded demo and published evaluation artifacts |
 
-The demo integration uses scripted reasoning to verify real tool plumbing without paid
-model calls. It must not be reported as LLM accuracy. The public-postmortem corpus, unsafe
-action recall, attack success comparisons, and retrieval gains have not yet been measured.
+## Research and deployment limits
 
-Keep changes in small functional commits, run appropriate checks, and tag only verified
-milestones. Close the outstanding evaluation work as security and retrieval are introduced;
-those comparisons depend on the real sources and policy under test.
+All 40 labels are agent-authored and pending independent human review. Public cases are
+reconstructions, not original incident logs. Root-cause regex matches are proxies; model
+judge opinions and nullable human-review exports are supplied separately. Actual human
+spot checks must be completed before claiming independently validated causal accuracy.
+
+Live provider failures are retained in reports and excluded from successful-model comparisons.
+The presence of a retrieval module or critic does not establish an accuracy gain. Security
+fixtures and narrow live probes do not establish universal injection resistance or real-world
+unsafe-action recall. Read the release results before making CV performance claims.
+
+The deployment remains a single-process, simulated trading desk. Exchange execution adapters,
+multi-user identity/RBAC, distributed ingestion ownership and coordinated rate limiting require
+separate production engineering. The Docker integration uses scripted reasoning to verify
+actual evidence and recovery plumbing without charging for model calls.

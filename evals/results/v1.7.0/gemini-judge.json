@@ -1,0 +1,551 @@
+{
+  "seed": 42,
+  "human_reviews_completed": 0,
+  "judge_caveat": "Same-provider model opinion; not independent human validation",
+  "checks": [
+    {
+      "id": "aws-s3-2017",
+      "mode": "prompt",
+      "source_url": "https://aws.amazon.com/message/41926/",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:aws-s3-2017:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Regional object APIs broadly unavailable after maintenance; dependent services also fail."
+          }
+        ],
+        "tools": {
+          "query_logs": {
+            "lines": [
+              "maintenance command removed more subsystem servers than intended; index and placement systems require restart"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "resource",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "capacity",
+            "server",
+            "subsystem"
+          ],
+          [
+            "remov",
+            "command"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "critical",
+        "category": "infrastructure",
+        "confidence": 0.8,
+        "hypotheses": [
+          {
+            "cause": "Regional object APIs and dependent services broad total outage following maintenance removing subsystem servers",
+            "evidence_ids": [
+              "2bc7981ddfa1f9d1dbeef5696d8e33f101397e58ce955241b1c04d8025af56f1",
+              "d9d3c08fa552111183bfed85642b17df678b02851dd946bded2c12cca14a9167"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "2bc7981ddfa1f9d1dbeef5696d8e33f101397e58ce955241b1c04d8025af56f1",
+                "quote": "Regional object APIs broadly unavailable after maintenance; dependent services also fail."
+              },
+              {
+                "evidence_id": "d9d3c08fa552111183bfed85642b17df678b02851dd946bded2c12cca14a9167",
+                "quote": "{\"lines\": [\"maintenance command removed more subsystem servers than intended; index and placement systems require restart\"]}"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "human_reviewer": null,
+      "human_root_cause_supported": null,
+      "human_label_correct": null,
+      "human_notes": null,
+      "gemini_judge": {
+        "root_cause_supported": true,
+        "consistent_with_reference": true,
+        "rationale": "The candidate correctly identifies that a maintenance command removed more subsystem servers than intended, leading to the failure of index and placement systems and causing the broad outage. This directly aligns with both the telemetry logs and the reference terms regarding server removal and subsystem capacity."
+      },
+      "judge_usage": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "input_tokens": 750,
+        "output_tokens": 86,
+        "latency_ms": 6971.785384997929,
+        "prior_failed_attempts": 0
+      },
+      "judge_estimated_cost_usd": 0.00044
+    },
+    {
+      "id": "sql-1",
+      "mode": "graph_retrieval",
+      "source_url": null,
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:sql-1:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 675ms; order queue backlog. Sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 635,
+            "memory_growth_bytes": 0,
+            "fill_latency_ms": 675
+          },
+          "query_logs": {
+            "lines": [
+              "database SELECT demo_delay blocks order handling; query duration elevated"
+            ],
+            "deployment": "unchanged"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 0.5,
+        "hypotheses": [
+          {
+            "cause": "Observed symptom: order queue backlog",
+            "evidence_ids": [
+              "41447f3cb69f44c5bcbe078022bc1d33e8eceb3dbbd484209779ebe8896ab9ab"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "41447f3cb69f44c5bcbe078022bc1d33e8eceb3dbbd484209779ebe8896ab9ab",
+                "quote": "order queue backlog"
+              }
+            ],
+            "numeric_claims": []
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "human_reviewer": null,
+      "human_root_cause_supported": null,
+      "human_label_correct": null,
+      "human_notes": null,
+      "gemini_judge": {
+        "root_cause_supported": false,
+        "consistent_with_reference": false,
+        "rationale": "The candidate prediction lists an observed symptom ('order queue backlog') as the root cause rather than identifying the underlying database query delay / slow SQL issue demonstrated by the metrics (sql_duration_ms: 635) and logs ('database SELECT demo_delay blocks order handling'). Therefore, it is neither supported by telemetry as a root cause nor consistent with the expected terms."
+      },
+      "judge_usage": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "input_tokens": 610,
+        "output_tokens": 112,
+        "latency_ms": 1368.0045569999493,
+        "prior_failed_attempts": 0
+      },
+      "judge_estimated_cost_usd": 0.000463
+    },
+    {
+      "id": "memory-0",
+      "mode": "prompt",
+      "source_url": null,
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:memory-0:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 550ms; sustained order queue backlog."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 2,
+            "retained_buffer_bytes": 1048576,
+            "memory_growth_bytes": 1048576
+          },
+          "query_logs": {
+            "lines": [
+              "retained buffer count grows each request; SQL timing normal"
+            ]
+          },
+          "get_deploy_diff": {
+            "change": "none"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "medium",
+        "category": "latency",
+        "confidence": 0.9,
+        "hypotheses": [
+          {
+            "cause": "Fill latency and order queue backlog caused by retained buffer memory growth during requests.",
+            "evidence_ids": [
+              "a22d371b523dd2e13025e8e8926d35e07b2fe59437f84eb777c0090daf3b1465",
+              "aa265ac3bbf5e614afb6509876dd3c46c71dc61f187604075ca1a3beaebf93f6",
+              "599d30dcf35f92ef0c06286b7bee634626f3273009df1c115463b3f7b3f3e5e9"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "a22d371b523dd2e13025e8e8926d35e07b2fe59437f84eb777c0090daf3b1465",
+                "quote": "WARN fill latency 550ms; sustained order queue backlog."
+              },
+              {
+                "evidence_id": "599d30dcf35f92ef0c06286b7bee634626f3273009df1c115463b3f7b3f3e5e9",
+                "quote": "{\"lines\": [\"retained buffer count grows each request; SQL timing normal\"]}"
+              }
+            ],
+            "numeric_claims": [
+              {
+                "evidence_id": "aa265ac3bbf5e614afb6509876dd3c46c71dc61f187604075ca1a3beaebf93f6",
+                "pointer": "/retained_buffer_bytes",
+                "value": 1048576.0
+              }
+            ]
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "human_reviewer": null,
+      "human_root_cause_supported": null,
+      "human_label_correct": null,
+      "human_notes": null,
+      "gemini_judge": {
+        "root_cause_supported": true,
+        "consistent_with_reference": true,
+        "rationale": "The telemetry data clearly supports the candidate's diagnosis: logs show that retained buffer count grows with each request while SQL timing remains normal, and metrics report growing retained buffer memory bytes, leading to fill latency and queue backlog."
+      },
+      "judge_usage": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "input_tokens": 935,
+        "output_tokens": 81,
+        "latency_ms": 1322.9448730016884,
+        "prior_failed_attempts": 0
+      },
+      "judge_estimated_cost_usd": 0.000483
+    },
+    {
+      "id": "unknown-generic-error",
+      "mode": "graph",
+      "source_url": null,
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-generic-error:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "ERROR request failed; no impact, metrics, or deployment details."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "unknown",
+        "category": "unknown",
+        "confidence": 0.0,
+        "hypotheses": [],
+        "missing_information": [
+          "No telemetry, metrics, logs, or valid trading symptoms are available in the untrusted evidence to investigate the simulated trading service."
+        ],
+        "abstained": true
+      },
+      "human_reviewer": null,
+      "human_root_cause_supported": null,
+      "human_label_correct": null,
+      "human_notes": null,
+      "gemini_judge": {
+        "root_cause_supported": true,
+        "consistent_with_reference": true,
+        "rationale": "The evidence contains only a generic error string without any telemetry, metrics, or deployment details. The prediction correctly abstains due to the lack of verifiable information, which matches the expected outcome."
+      },
+      "judge_usage": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "input_tokens": 392,
+        "output_tokens": 74,
+        "latency_ms": 1342.1340120003151,
+        "prior_failed_attempts": 0
+      },
+      "judge_estimated_cost_usd": 0.00030260000000000004
+    },
+    {
+      "id": "throttle-2",
+      "mode": "graph_retrieval",
+      "source_url": null,
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:throttle-2:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN HTTP 429; Retry-After 3s. Retriable exchange throttling, no data loss."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "reject_code": "429",
+            "retry_attempts": 4
+          },
+          "query_logs": {
+            "lines": [
+              "exchange rejects excess requests; retry pacing ignores Retry-After"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "medium",
+        "category": "rate_limit",
+        "confidence": 0.95,
+        "hypotheses": [
+          {
+            "cause": "Exchange rate limiting (HTTP 429) due to high request volume and retry pacing ignoring Retry-After",
+            "evidence_ids": [
+              "e2e7141de3608aeda6b6352621428eb459dac2ec8446d10771293d340be3f2b0",
+              "589bab702a0ca7ddf12d1039da12205a1fbb1d642229e5cdd18a22e538392119",
+              "8fb466b7aab9cfd3925593ad23cda1754a5f34cb436a0f33f37c8a683ac93f99"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "e2e7141de3608aeda6b6352621428eb459dac2ec8446d10771293d340be3f2b0",
+                "quote": "WARN HTTP 429; Retry-After 3s. Retriable exchange throttling, no data loss."
+              },
+              {
+                "evidence_id": "589bab702a0ca7ddf12d1039da12205a1fbb1d642229e5cdd18a22e538392119",
+                "quote": "{\"reject_code\": \"429\", \"retry_attempts\": 4}"
+              },
+              {
+                "evidence_id": "8fb466b7aab9cfd3925593ad23cda1754a5f34cb436a0f33f37c8a683ac93f99",
+                "quote": "exchange rejects excess requests; retry pacing ignores Retry-After"
+              }
+            ],
+            "numeric_claims": [
+              {
+                "evidence_id": "589bab702a0ca7ddf12d1039da12205a1fbb1d642229e5cdd18a22e538392119",
+                "pointer": "/retry_attempts",
+                "value": 4.0
+              }
+            ]
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "human_reviewer": null,
+      "human_root_cause_supported": null,
+      "human_label_correct": null,
+      "human_notes": null,
+      "gemini_judge": {
+        "root_cause_supported": true,
+        "consistent_with_reference": true,
+        "rationale": "The telemetry explicitly shows HTTP 429 throttling errors from the exchange and logs state that the retry pacing ignores the Retry-After header while generating excess requests. The prediction correctly identifies this rate limiting and retry behavior as the root cause, matching both the evidence and the expected root cause terms."
+      },
+      "judge_usage": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "input_tokens": 1007,
+        "output_tokens": 95,
+        "latency_ms": 1555.8588790008798,
+        "prior_failed_attempts": 0
+      },
+      "judge_estimated_cost_usd": 0.0005395999999999999
+    },
+    {
+      "id": "deploy-2",
+      "mode": "graph",
+      "source_url": null,
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:deploy-2:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 740ms; sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 1,
+            "retained_buffer_bytes": 0,
+            "fill_latency_ms": 740
+          },
+          "list_deployments": {
+            "version": "1.1-bad",
+            "at": "2026-10-23T00:00:00Z"
+          },
+          "get_deploy_diff": {
+            "change": "order routing retry delay 0ms -> 650ms"
+          },
+          "query_logs": {
+            "lines": [
+              "routing latency increased immediately after version 1.1-bad"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      },
+      "prediction": {
+        "schema_version": "1",
+        "severity": "high",
+        "category": "latency",
+        "confidence": 1.0,
+        "hypotheses": [
+          {
+            "cause": "Deployment of version 1.1-bad introduced an order routing retry delay of 650ms, causing slow order fills and sustained service impairment.",
+            "evidence_ids": [
+              "76494c924d31c2d2ba2425491c700f25360991ea8a84f556e26b625bc5e2fbfe",
+              "7b68aa6aa345573d9759968bc200b2e73de69c64acc6292e42cbba53a62664b2",
+              "fb5db22addf788e23b815aaa84d9388d439eaba442d86cfaf1b671dc8ff6234a",
+              "d83cd2496ea8c3224d23e01375059069e950ee40aef85785cd6ceaff271fe4c5",
+              "7fda25809044e6a88940152d6de97e542f06a9b792e891f56bd55a5ff278a8ca"
+            ],
+            "supporting_quotes": [
+              {
+                "evidence_id": "76494c924d31c2d2ba2425491c700f25360991ea8a84f556e26b625bc5e2fbfe",
+                "quote": "WARN fill latency 740ms; sustained service impairment."
+              },
+              {
+                "evidence_id": "fb5db22addf788e23b815aaa84d9388d439eaba442d86cfaf1b671dc8ff6234a",
+                "quote": "routing latency increased immediately after version 1.1-bad"
+              },
+              {
+                "evidence_id": "d83cd2496ea8c3224d23e01375059069e950ee40aef85785cd6ceaff271fe4c5",
+                "quote": "{\"at\": \"2026-10-23T00:00:00Z\", \"version\": \"1.1-bad\"}"
+              },
+              {
+                "evidence_id": "7fda25809044e6a88940152d6de97e542f06a9b792e891f56bd55a5ff278a8ca",
+                "quote": "{\"change\": \"order routing retry delay 0ms -> 650ms\"}"
+              }
+            ],
+            "numeric_claims": [
+              {
+                "evidence_id": "7b68aa6aa345573d9759968bc200b2e73de69c64acc6292e42cbba53a62664b2",
+                "pointer": "/fill_latency_ms",
+                "value": 740.0
+              }
+            ]
+          }
+        ],
+        "missing_information": [],
+        "abstained": false
+      },
+      "human_reviewer": null,
+      "human_root_cause_supported": null,
+      "human_label_correct": null,
+      "human_notes": null,
+      "gemini_judge": {
+        "root_cause_supported": true,
+        "consistent_with_reference": true,
+        "rationale": "The telemetry and deployment diff clearly show that the deployment of version 1.1-bad introduced a 650ms order routing retry delay, directly correlating with the increased fill latency (740ms) and service impairment. The candidate's prediction is fully supported by the evidence and aligns with the expected root cause terms."
+      },
+      "judge_usage": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "input_tokens": 1283,
+        "output_tokens": 104,
+        "latency_ms": 1323.7841810005193,
+        "prior_failed_attempts": 0
+      },
+      "judge_estimated_cost_usd": 0.0006449
+    }
+  ],
+  "report_sha256": "7c216cc9ed50c0c2bb8b5aa693fa0aee4f68e060accd789048ad9777e82eb6ae"
+}
