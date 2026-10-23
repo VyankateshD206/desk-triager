@@ -1,0 +1,5321 @@
+{
+  "version": "detection-1",
+  "synthetic": {
+    "training": "Frozen production forest; synthetic baseline seed 42",
+    "test": "Independent shifted service regimes; synthetic evidence only",
+    "seeds": 20,
+    "summaries": {
+      "rules": {
+        "point_precision": 1.0,
+        "point_recall": 0.8241180885664248,
+        "service_hours": 60.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      "forest": {
+        "point_precision": 0.10794070937003705,
+        "point_recall": 0.2550662997247936,
+        "service_hours": 60.0,
+        "false_alarm_episodes_per_service_hour": 234.2
+      },
+      "combined": {
+        "point_precision": 0.3148328860697731,
+        "point_recall": 0.9686014510883162,
+        "service_hours": 60.0,
+        "false_alarm_episodes_per_service_hour": 234.2
+      }
+    },
+    "rows": [
+      {
+        "seed": 0,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 783,
+            "end": 846
+          },
+          {
+            "kind": "silence",
+            "start": 1545,
+            "end": 1640
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 150,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9493670886075949,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 0,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 783,
+            "end": 846
+          },
+          {
+            "kind": "silence",
+            "start": 1545,
+            "end": 1640
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 3,
+        "false_positive_points": 404,
+        "false_negative_points": 155,
+        "point_precision": 0.007371007371007371,
+        "point_recall": 0.0189873417721519,
+        "normal_point_false_positive_rate": 0.11737361998837885,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 336,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 336.0
+      },
+      {
+        "seed": 0,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 783,
+            "end": 846
+          },
+          {
+            "kind": "silence",
+            "start": 1545,
+            "end": 1640
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 150,
+        "false_positive_points": 404,
+        "false_negative_points": 8,
+        "point_precision": 0.27075812274368233,
+        "point_recall": 0.9493670886075949,
+        "normal_point_false_positive_rate": 0.11737361998837885,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 336,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 336.0
+      },
+      {
+        "seed": 0,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 748,
+            "end": 778
+          },
+          {
+            "kind": "latency",
+            "start": 1677,
+            "end": 1726
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2343,
+            "end": 2410
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 79,
+        "false_positive_points": 0,
+        "false_negative_points": 67,
+        "point_precision": 1.0,
+        "point_recall": 0.541095890410959,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 0,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 748,
+            "end": 778
+          },
+          {
+            "kind": "latency",
+            "start": 1677,
+            "end": 1726
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2343,
+            "end": 2410
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 95,
+        "false_positive_points": 461,
+        "false_negative_points": 51,
+        "point_precision": 0.17086330935251798,
+        "point_recall": 0.6506849315068494,
+        "normal_point_false_positive_rate": 0.13346844238563985,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 366,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 366.0
+      },
+      {
+        "seed": 0,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 748,
+            "end": 778
+          },
+          {
+            "kind": "latency",
+            "start": 1677,
+            "end": 1726
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2343,
+            "end": 2410
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 142,
+        "false_positive_points": 461,
+        "false_negative_points": 4,
+        "point_precision": 0.23548922056384744,
+        "point_recall": 0.9726027397260274,
+        "normal_point_false_positive_rate": 0.13346844238563985,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 366,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 366.0
+      },
+      {
+        "seed": 0,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 727,
+            "end": 783
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 56,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 0,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 727,
+            "end": 783
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 0,
+        "false_positive_points": 107,
+        "false_negative_points": 56,
+        "point_precision": 0.0,
+        "point_recall": 0.0,
+        "normal_point_false_positive_rate": 0.030191873589164784,
+        "anomaly_windows": 1,
+        "windows_detected": 0,
+        "false_alarm_episodes": 103,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 103.0
+      },
+      {
+        "seed": 0,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 727,
+            "end": 783
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 56,
+        "false_positive_points": 107,
+        "false_negative_points": 0,
+        "point_precision": 0.34355828220858897,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.030191873589164784,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 103,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 103.0
+      },
+      {
+        "seed": 1,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 877,
+            "end": 936
+          },
+          {
+            "kind": "silence",
+            "start": 1676,
+            "end": 1745
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 120,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9375,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 1,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 877,
+            "end": 936
+          },
+          {
+            "kind": "silence",
+            "start": 1676,
+            "end": 1745
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 0,
+        "false_positive_points": 101,
+        "false_negative_points": 128,
+        "point_precision": 0.0,
+        "point_recall": 0.0,
+        "normal_point_false_positive_rate": 0.029089861751152073,
+        "anomaly_windows": 2,
+        "windows_detected": 0,
+        "false_alarm_episodes": 97,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 97.0
+      },
+      {
+        "seed": 1,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 877,
+            "end": 936
+          },
+          {
+            "kind": "silence",
+            "start": 1676,
+            "end": 1745
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 120,
+        "false_positive_points": 101,
+        "false_negative_points": 8,
+        "point_precision": 0.5429864253393665,
+        "point_recall": 0.9375,
+        "normal_point_false_positive_rate": 0.029089861751152073,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 97,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 97.0
+      },
+      {
+        "seed": 1,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 777,
+            "end": 819
+          },
+          {
+            "kind": "latency",
+            "start": 1623,
+            "end": 1667
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2458,
+            "end": 2491
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 86,
+        "false_positive_points": 0,
+        "false_negative_points": 33,
+        "point_precision": 1.0,
+        "point_recall": 0.7226890756302521,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 1,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 777,
+            "end": 819
+          },
+          {
+            "kind": "latency",
+            "start": 1623,
+            "end": 1667
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2458,
+            "end": 2491
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 60,
+        "false_positive_points": 96,
+        "false_negative_points": 59,
+        "point_precision": 0.38461538461538464,
+        "point_recall": 0.5042016806722689,
+        "normal_point_false_positive_rate": 0.02757828210284401,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 93,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 93.0
+      },
+      {
+        "seed": 1,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 777,
+            "end": 819
+          },
+          {
+            "kind": "latency",
+            "start": 1623,
+            "end": 1667
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2458,
+            "end": 2491
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 115,
+        "false_positive_points": 96,
+        "false_negative_points": 4,
+        "point_precision": 0.5450236966824644,
+        "point_recall": 0.9663865546218487,
+        "normal_point_false_positive_rate": 0.02757828210284401,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 93,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 93.0
+      },
+      {
+        "seed": 1,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 755,
+            "end": 826
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 71,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 1,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 755,
+            "end": 826
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 6,
+        "false_positive_points": 491,
+        "false_negative_points": 65,
+        "point_precision": 0.012072434607645875,
+        "point_recall": 0.08450704225352113,
+        "normal_point_false_positive_rate": 0.1391328988381978,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 374,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 374.0
+      },
+      {
+        "seed": 1,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 755,
+            "end": 826
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 71,
+        "false_positive_points": 491,
+        "false_negative_points": 0,
+        "point_precision": 0.12633451957295375,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.1391328988381978,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 374,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 374.0
+      },
+      {
+        "seed": 2,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 802,
+            "end": 889
+          },
+          {
+            "kind": "silence",
+            "start": 1677,
+            "end": 1755
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 157,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9515151515151515,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 2,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 802,
+            "end": 889
+          },
+          {
+            "kind": "silence",
+            "start": 1677,
+            "end": 1755
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 2,
+        "false_positive_points": 207,
+        "false_negative_points": 163,
+        "point_precision": 0.009569377990430622,
+        "point_recall": 0.012121212121212121,
+        "normal_point_false_positive_rate": 0.06026200873362445,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 184,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 184.0
+      },
+      {
+        "seed": 2,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 802,
+            "end": 889
+          },
+          {
+            "kind": "silence",
+            "start": 1677,
+            "end": 1755
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 157,
+        "false_positive_points": 207,
+        "false_negative_points": 8,
+        "point_precision": 0.43131868131868134,
+        "point_recall": 0.9515151515151515,
+        "normal_point_false_positive_rate": 0.06026200873362445,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 184,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 184.0
+      },
+      {
+        "seed": 2,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 738,
+            "end": 822
+          },
+          {
+            "kind": "latency",
+            "start": 1626,
+            "end": 1720
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2342,
+            "end": 2439
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 178,
+        "false_positive_points": 0,
+        "false_negative_points": 97,
+        "point_precision": 1.0,
+        "point_recall": 0.6472727272727272,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 2,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 738,
+            "end": 822
+          },
+          {
+            "kind": "latency",
+            "start": 1626,
+            "end": 1720
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2342,
+            "end": 2439
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 148,
+        "false_positive_points": 113,
+        "false_negative_points": 127,
+        "point_precision": 0.5670498084291188,
+        "point_recall": 0.5381818181818182,
+        "normal_point_false_positive_rate": 0.033984962406015035,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 107,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 107.0
+      },
+      {
+        "seed": 2,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 738,
+            "end": 822
+          },
+          {
+            "kind": "latency",
+            "start": 1626,
+            "end": 1720
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2342,
+            "end": 2439
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 270,
+        "false_positive_points": 113,
+        "false_negative_points": 5,
+        "point_precision": 0.7049608355091384,
+        "point_recall": 0.9818181818181818,
+        "normal_point_false_positive_rate": 0.033984962406015035,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 107,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 107.0
+      },
+      {
+        "seed": 2,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 792,
+            "end": 858
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 66,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 2,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 792,
+            "end": 858
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 131,
+        "false_negative_points": 65,
+        "point_precision": 0.007575757575757576,
+        "point_recall": 0.015151515151515152,
+        "normal_point_false_positive_rate": 0.037068477645727224,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 128,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 128.0
+      },
+      {
+        "seed": 2,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 792,
+            "end": 858
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 66,
+        "false_positive_points": 131,
+        "false_negative_points": 0,
+        "point_precision": 0.3350253807106599,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.037068477645727224,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 128,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 128.0
+      },
+      {
+        "seed": 3,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 877,
+            "end": 956
+          },
+          {
+            "kind": "silence",
+            "start": 1610,
+            "end": 1706
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 167,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9542857142857143,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 3,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 877,
+            "end": 956
+          },
+          {
+            "kind": "silence",
+            "start": 1610,
+            "end": 1706
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 3,
+        "false_positive_points": 336,
+        "false_negative_points": 172,
+        "point_precision": 0.008849557522123894,
+        "point_recall": 0.017142857142857144,
+        "normal_point_false_positive_rate": 0.09810218978102189,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 289,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 289.0
+      },
+      {
+        "seed": 3,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 877,
+            "end": 956
+          },
+          {
+            "kind": "silence",
+            "start": 1610,
+            "end": 1706
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 167,
+        "false_positive_points": 336,
+        "false_negative_points": 8,
+        "point_precision": 0.3320079522862823,
+        "point_recall": 0.9542857142857143,
+        "normal_point_false_positive_rate": 0.09810218978102189,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 289,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 289.0
+      },
+      {
+        "seed": 3,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 818,
+            "end": 910
+          },
+          {
+            "kind": "latency",
+            "start": 1637,
+            "end": 1697
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2471,
+            "end": 2552
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 152,
+        "false_positive_points": 0,
+        "false_negative_points": 81,
+        "point_precision": 1.0,
+        "point_recall": 0.6523605150214592,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 3,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 818,
+            "end": 910
+          },
+          {
+            "kind": "latency",
+            "start": 1637,
+            "end": 1697
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2471,
+            "end": 2552
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 115,
+        "false_positive_points": 296,
+        "false_negative_points": 118,
+        "point_precision": 0.2798053527980535,
+        "point_recall": 0.49356223175965663,
+        "normal_point_false_positive_rate": 0.08791208791208792,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 259,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 259.0
+      },
+      {
+        "seed": 3,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 818,
+            "end": 910
+          },
+          {
+            "kind": "latency",
+            "start": 1637,
+            "end": 1697
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2471,
+            "end": 2552
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 229,
+        "false_positive_points": 296,
+        "false_negative_points": 4,
+        "point_precision": 0.4361904761904762,
+        "point_recall": 0.9828326180257511,
+        "normal_point_false_positive_rate": 0.08791208791208792,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 259,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 259.0
+      },
+      {
+        "seed": 3,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 858,
+            "end": 908
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 50,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 3,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 858,
+            "end": 908
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 0,
+        "false_positive_points": 112,
+        "false_negative_points": 50,
+        "point_precision": 0.0,
+        "point_recall": 0.0,
+        "normal_point_false_positive_rate": 0.031549295774647886,
+        "anomaly_windows": 1,
+        "windows_detected": 0,
+        "false_alarm_episodes": 110,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 110.0
+      },
+      {
+        "seed": 3,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 858,
+            "end": 908
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 50,
+        "false_positive_points": 112,
+        "false_negative_points": 0,
+        "point_precision": 0.30864197530864196,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.031549295774647886,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 110,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 110.0
+      },
+      {
+        "seed": 4,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 815,
+            "end": 853
+          },
+          {
+            "kind": "silence",
+            "start": 1650,
+            "end": 1708
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 88,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9166666666666666,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 4,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 815,
+            "end": 853
+          },
+          {
+            "kind": "silence",
+            "start": 1650,
+            "end": 1708
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 340,
+        "false_negative_points": 95,
+        "point_precision": 0.002932551319648094,
+        "point_recall": 0.010416666666666666,
+        "normal_point_false_positive_rate": 0.09703196347031963,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 305,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 305.0
+      },
+      {
+        "seed": 4,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 815,
+            "end": 853
+          },
+          {
+            "kind": "silence",
+            "start": 1650,
+            "end": 1708
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 88,
+        "false_positive_points": 340,
+        "false_negative_points": 8,
+        "point_precision": 0.205607476635514,
+        "point_recall": 0.9166666666666666,
+        "normal_point_false_positive_rate": 0.09703196347031963,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 305,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 305.0
+      },
+      {
+        "seed": 4,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 730,
+            "end": 796
+          },
+          {
+            "kind": "latency",
+            "start": 1628,
+            "end": 1664
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2444,
+            "end": 2509
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 102,
+        "false_positive_points": 0,
+        "false_negative_points": 65,
+        "point_precision": 1.0,
+        "point_recall": 0.6107784431137725,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 4,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 730,
+            "end": 796
+          },
+          {
+            "kind": "latency",
+            "start": 1628,
+            "end": 1664
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2444,
+            "end": 2509
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 88,
+        "false_positive_points": 403,
+        "false_negative_points": 79,
+        "point_precision": 0.17922606924643583,
+        "point_recall": 0.5269461077844312,
+        "normal_point_false_positive_rate": 0.11739003786775415,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 334,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 334.0
+      },
+      {
+        "seed": 4,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 730,
+            "end": 796
+          },
+          {
+            "kind": "latency",
+            "start": 1628,
+            "end": 1664
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2444,
+            "end": 2509
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 164,
+        "false_positive_points": 403,
+        "false_negative_points": 3,
+        "point_precision": 0.2892416225749559,
+        "point_recall": 0.9820359281437125,
+        "normal_point_false_positive_rate": 0.11739003786775415,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 334,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 334.0
+      },
+      {
+        "seed": 4,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 773,
+            "end": 848
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 75,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 4,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 773,
+            "end": 848
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 4,
+        "false_positive_points": 632,
+        "false_negative_points": 71,
+        "point_precision": 0.006289308176100629,
+        "point_recall": 0.05333333333333334,
+        "normal_point_false_positive_rate": 0.17929078014184396,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 476,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 476.0
+      },
+      {
+        "seed": 4,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 773,
+            "end": 848
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 75,
+        "false_positive_points": 632,
+        "false_negative_points": 0,
+        "point_precision": 0.10608203677510608,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.17929078014184396,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 476,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 476.0
+      },
+      {
+        "seed": 5,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 755,
+            "end": 789
+          },
+          {
+            "kind": "silence",
+            "start": 1529,
+            "end": 1573
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 70,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.8974358974358975,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 5,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 755,
+            "end": 789
+          },
+          {
+            "kind": "silence",
+            "start": 1529,
+            "end": 1573
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 4,
+        "false_positive_points": 627,
+        "false_negative_points": 74,
+        "point_precision": 0.006339144215530904,
+        "point_recall": 0.05128205128205128,
+        "normal_point_false_positive_rate": 0.17802385008517888,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 480,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 480.0
+      },
+      {
+        "seed": 5,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 755,
+            "end": 789
+          },
+          {
+            "kind": "silence",
+            "start": 1529,
+            "end": 1573
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 70,
+        "false_positive_points": 627,
+        "false_negative_points": 8,
+        "point_precision": 0.10043041606886657,
+        "point_recall": 0.8974358974358975,
+        "normal_point_false_positive_rate": 0.17802385008517888,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 480,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 480.0
+      },
+      {
+        "seed": 5,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 855,
+            "end": 941
+          },
+          {
+            "kind": "latency",
+            "start": 1641,
+            "end": 1673
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2434,
+            "end": 2469
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 118,
+        "false_positive_points": 0,
+        "false_negative_points": 35,
+        "point_precision": 1.0,
+        "point_recall": 0.7712418300653595,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 5,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 855,
+            "end": 941
+          },
+          {
+            "kind": "latency",
+            "start": 1641,
+            "end": 1673
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2434,
+            "end": 2469
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 53,
+        "false_positive_points": 100,
+        "false_negative_points": 100,
+        "point_precision": 0.3464052287581699,
+        "point_recall": 0.3464052287581699,
+        "normal_point_false_positive_rate": 0.02901073397156948,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 99,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 99.0
+      },
+      {
+        "seed": 5,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 855,
+            "end": 941
+          },
+          {
+            "kind": "latency",
+            "start": 1641,
+            "end": 1673
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2434,
+            "end": 2469
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 149,
+        "false_positive_points": 100,
+        "false_negative_points": 4,
+        "point_precision": 0.5983935742971888,
+        "point_recall": 0.9738562091503268,
+        "normal_point_false_positive_rate": 0.02901073397156948,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 99,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 99.0
+      },
+      {
+        "seed": 5,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 819,
+            "end": 861
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 42,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 5,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 819,
+            "end": 861
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 3,
+        "false_positive_points": 448,
+        "false_negative_points": 39,
+        "point_precision": 0.0066518847006651885,
+        "point_recall": 0.07142857142857142,
+        "normal_point_false_positive_rate": 0.1259134345137718,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 362,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 362.0
+      },
+      {
+        "seed": 5,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 819,
+            "end": 861
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 42,
+        "false_positive_points": 448,
+        "false_negative_points": 0,
+        "point_precision": 0.08571428571428572,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.1259134345137718,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 362,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 362.0
+      },
+      {
+        "seed": 6,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 855,
+            "end": 945
+          },
+          {
+            "kind": "silence",
+            "start": 1607,
+            "end": 1681
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 156,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9512195121951219,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 6,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 855,
+            "end": 945
+          },
+          {
+            "kind": "silence",
+            "start": 1607,
+            "end": 1681
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 2,
+        "false_positive_points": 393,
+        "false_negative_points": 162,
+        "point_precision": 0.005063291139240506,
+        "point_recall": 0.012195121951219513,
+        "normal_point_false_positive_rate": 0.11437718277066357,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 314,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 314.0
+      },
+      {
+        "seed": 6,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 855,
+            "end": 945
+          },
+          {
+            "kind": "silence",
+            "start": 1607,
+            "end": 1681
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 156,
+        "false_positive_points": 393,
+        "false_negative_points": 8,
+        "point_precision": 0.28415300546448086,
+        "point_recall": 0.9512195121951219,
+        "normal_point_false_positive_rate": 0.11437718277066357,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 314,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 314.0
+      },
+      {
+        "seed": 6,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 851,
+            "end": 939
+          },
+          {
+            "kind": "latency",
+            "start": 1615,
+            "end": 1693
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2468,
+            "end": 2524
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 166,
+        "false_positive_points": 0,
+        "false_negative_points": 56,
+        "point_precision": 1.0,
+        "point_recall": 0.7477477477477478,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 6,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 851,
+            "end": 939
+          },
+          {
+            "kind": "latency",
+            "start": 1615,
+            "end": 1693
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2468,
+            "end": 2524
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 97,
+        "false_positive_points": 103,
+        "false_negative_points": 125,
+        "point_precision": 0.485,
+        "point_recall": 0.4369369369369369,
+        "normal_point_false_positive_rate": 0.03049141503848431,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 100,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 100.0
+      },
+      {
+        "seed": 6,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 851,
+            "end": 939
+          },
+          {
+            "kind": "latency",
+            "start": 1615,
+            "end": 1693
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2468,
+            "end": 2524
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 218,
+        "false_positive_points": 103,
+        "false_negative_points": 4,
+        "point_precision": 0.6791277258566978,
+        "point_recall": 0.9819819819819819,
+        "normal_point_false_positive_rate": 0.03049141503848431,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 100,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 100.0
+      },
+      {
+        "seed": 6,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 839,
+            "end": 915
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 76,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 6,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 839,
+            "end": 915
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 0,
+        "false_positive_points": 106,
+        "false_negative_points": 76,
+        "point_precision": 0.0,
+        "point_recall": 0.0,
+        "normal_point_false_positive_rate": 0.030079455164585697,
+        "anomaly_windows": 1,
+        "windows_detected": 0,
+        "false_alarm_episodes": 104,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 104.0
+      },
+      {
+        "seed": 6,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 839,
+            "end": 915
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 76,
+        "false_positive_points": 106,
+        "false_negative_points": 0,
+        "point_precision": 0.4175824175824176,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.030079455164585697,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 104,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 104.0
+      },
+      {
+        "seed": 7,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 868,
+            "end": 913
+          },
+          {
+            "kind": "silence",
+            "start": 1581,
+            "end": 1641
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 97,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9238095238095239,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 7,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 868,
+            "end": 913
+          },
+          {
+            "kind": "silence",
+            "start": 1581,
+            "end": 1641
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 289,
+        "false_negative_points": 104,
+        "point_precision": 0.0034482758620689655,
+        "point_recall": 0.009523809523809525,
+        "normal_point_false_positive_rate": 0.082689556509299,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 247,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 247.0
+      },
+      {
+        "seed": 7,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 868,
+            "end": 913
+          },
+          {
+            "kind": "silence",
+            "start": 1581,
+            "end": 1641
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 97,
+        "false_positive_points": 289,
+        "false_negative_points": 8,
+        "point_precision": 0.25129533678756477,
+        "point_recall": 0.9238095238095239,
+        "normal_point_false_positive_rate": 0.082689556509299,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 247,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 247.0
+      },
+      {
+        "seed": 7,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 865,
+            "end": 896
+          },
+          {
+            "kind": "latency",
+            "start": 1581,
+            "end": 1641
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2418,
+            "end": 2502
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 91,
+        "false_positive_points": 0,
+        "false_negative_points": 84,
+        "point_precision": 1.0,
+        "point_recall": 0.52,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 7,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 865,
+            "end": 896
+          },
+          {
+            "kind": "latency",
+            "start": 1581,
+            "end": 1641
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2418,
+            "end": 2502
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 116,
+        "false_positive_points": 96,
+        "false_negative_points": 59,
+        "point_precision": 0.5471698113207547,
+        "point_recall": 0.6628571428571428,
+        "normal_point_false_positive_rate": 0.02802919708029197,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 96,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 96.0
+      },
+      {
+        "seed": 7,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 865,
+            "end": 896
+          },
+          {
+            "kind": "latency",
+            "start": 1581,
+            "end": 1641
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2418,
+            "end": 2502
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 171,
+        "false_positive_points": 96,
+        "false_negative_points": 4,
+        "point_precision": 0.6404494382022472,
+        "point_recall": 0.9771428571428571,
+        "normal_point_false_positive_rate": 0.02802919708029197,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 96,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 96.0
+      },
+      {
+        "seed": 7,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 800,
+            "end": 878
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 78,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 7,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 800,
+            "end": 878
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 7,
+        "false_positive_points": 470,
+        "false_negative_points": 71,
+        "point_precision": 0.014675052410901468,
+        "point_recall": 0.08974358974358974,
+        "normal_point_false_positive_rate": 0.13344690516751845,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 384,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 384.0
+      },
+      {
+        "seed": 7,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 800,
+            "end": 878
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 78,
+        "false_positive_points": 470,
+        "false_negative_points": 0,
+        "point_precision": 0.14233576642335766,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.13344690516751845,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 384,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 384.0
+      },
+      {
+        "seed": 8,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 781,
+            "end": 827
+          },
+          {
+            "kind": "silence",
+            "start": 1633,
+            "end": 1727
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 132,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9428571428571428,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 8,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 781,
+            "end": 827
+          },
+          {
+            "kind": "silence",
+            "start": 1633,
+            "end": 1727
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 3,
+        "false_positive_points": 555,
+        "false_negative_points": 137,
+        "point_precision": 0.005376344086021506,
+        "point_recall": 0.02142857142857143,
+        "normal_point_false_positive_rate": 0.16040462427745664,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 436,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 436.0
+      },
+      {
+        "seed": 8,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 781,
+            "end": 827
+          },
+          {
+            "kind": "silence",
+            "start": 1633,
+            "end": 1727
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 132,
+        "false_positive_points": 555,
+        "false_negative_points": 8,
+        "point_precision": 0.19213973799126638,
+        "point_recall": 0.9428571428571428,
+        "normal_point_false_positive_rate": 0.16040462427745664,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 436,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 436.0
+      },
+      {
+        "seed": 8,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 864,
+            "end": 926
+          },
+          {
+            "kind": "latency",
+            "start": 1574,
+            "end": 1635
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2451,
+            "end": 2524
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 123,
+        "false_positive_points": 0,
+        "false_negative_points": 73,
+        "point_precision": 1.0,
+        "point_recall": 0.6275510204081632,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 8,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 864,
+            "end": 926
+          },
+          {
+            "kind": "latency",
+            "start": 1574,
+            "end": 1635
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2451,
+            "end": 2524
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 108,
+        "false_positive_points": 89,
+        "false_negative_points": 88,
+        "point_precision": 0.5482233502538071,
+        "point_recall": 0.5510204081632653,
+        "normal_point_false_positive_rate": 0.026145710928319625,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 87,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 87.0
+      },
+      {
+        "seed": 8,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 864,
+            "end": 926
+          },
+          {
+            "kind": "latency",
+            "start": 1574,
+            "end": 1635
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2451,
+            "end": 2524
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 194,
+        "false_positive_points": 89,
+        "false_negative_points": 2,
+        "point_precision": 0.6855123674911661,
+        "point_recall": 0.9897959183673469,
+        "normal_point_false_positive_rate": 0.026145710928319625,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 87,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 87.0
+      },
+      {
+        "seed": 8,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 837,
+            "end": 913
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 76,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 8,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 837,
+            "end": 913
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 3,
+        "false_positive_points": 506,
+        "false_negative_points": 73,
+        "point_precision": 0.005893909626719057,
+        "point_recall": 0.039473684210526314,
+        "normal_point_false_positive_rate": 0.14358683314415438,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 417,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 417.0
+      },
+      {
+        "seed": 8,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 837,
+            "end": 913
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 76,
+        "false_positive_points": 506,
+        "false_negative_points": 0,
+        "point_precision": 0.13058419243986255,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.14358683314415438,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 417,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 417.0
+      },
+      {
+        "seed": 9,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 768,
+            "end": 826
+          },
+          {
+            "kind": "silence",
+            "start": 1670,
+            "end": 1732
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 112,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9333333333333333,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 9,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 768,
+            "end": 826
+          },
+          {
+            "kind": "silence",
+            "start": 1670,
+            "end": 1732
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 0,
+        "false_positive_points": 99,
+        "false_negative_points": 120,
+        "point_precision": 0.0,
+        "point_recall": 0.0,
+        "normal_point_false_positive_rate": 0.028448275862068967,
+        "anomaly_windows": 2,
+        "windows_detected": 0,
+        "false_alarm_episodes": 96,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 96.0
+      },
+      {
+        "seed": 9,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 768,
+            "end": 826
+          },
+          {
+            "kind": "silence",
+            "start": 1670,
+            "end": 1732
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 112,
+        "false_positive_points": 99,
+        "false_negative_points": 8,
+        "point_precision": 0.5308056872037915,
+        "point_recall": 0.9333333333333333,
+        "normal_point_false_positive_rate": 0.028448275862068967,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 96,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 96.0
+      },
+      {
+        "seed": 9,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 840,
+            "end": 936
+          },
+          {
+            "kind": "latency",
+            "start": 1537,
+            "end": 1586
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2395,
+            "end": 2460
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 145,
+        "false_positive_points": 0,
+        "false_negative_points": 65,
+        "point_precision": 1.0,
+        "point_recall": 0.6904761904761905,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 9,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 840,
+            "end": 936
+          },
+          {
+            "kind": "latency",
+            "start": 1537,
+            "end": 1586
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2395,
+            "end": 2460
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 92,
+        "false_positive_points": 210,
+        "false_negative_points": 118,
+        "point_precision": 0.304635761589404,
+        "point_recall": 0.4380952380952381,
+        "normal_point_false_positive_rate": 0.061946902654867256,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 195,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 195.0
+      },
+      {
+        "seed": 9,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 840,
+            "end": 936
+          },
+          {
+            "kind": "latency",
+            "start": 1537,
+            "end": 1586
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2395,
+            "end": 2460
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 204,
+        "false_positive_points": 210,
+        "false_negative_points": 6,
+        "point_precision": 0.4927536231884058,
+        "point_recall": 0.9714285714285714,
+        "normal_point_false_positive_rate": 0.061946902654867256,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 195,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 195.0
+      },
+      {
+        "seed": 9,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 771,
+            "end": 811
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 40,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 9,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 771,
+            "end": 811
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 2,
+        "false_positive_points": 629,
+        "false_negative_points": 38,
+        "point_precision": 0.003169572107765452,
+        "point_recall": 0.05,
+        "normal_point_false_positive_rate": 0.17668539325842697,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 474,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 474.0
+      },
+      {
+        "seed": 9,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 771,
+            "end": 811
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 40,
+        "false_positive_points": 629,
+        "false_negative_points": 0,
+        "point_precision": 0.059790732436472344,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.17668539325842697,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 474,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 474.0
+      },
+      {
+        "seed": 10,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 799,
+            "end": 877
+          },
+          {
+            "kind": "silence",
+            "start": 1573,
+            "end": 1635
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 132,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9428571428571428,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 10,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 799,
+            "end": 877
+          },
+          {
+            "kind": "silence",
+            "start": 1573,
+            "end": 1635
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 2,
+        "false_positive_points": 524,
+        "false_negative_points": 138,
+        "point_precision": 0.0038022813688212928,
+        "point_recall": 0.014285714285714285,
+        "normal_point_false_positive_rate": 0.15144508670520232,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 404,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 404.0
+      },
+      {
+        "seed": 10,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 799,
+            "end": 877
+          },
+          {
+            "kind": "silence",
+            "start": 1573,
+            "end": 1635
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 132,
+        "false_positive_points": 524,
+        "false_negative_points": 8,
+        "point_precision": 0.20121951219512196,
+        "point_recall": 0.9428571428571428,
+        "normal_point_false_positive_rate": 0.15144508670520232,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 404,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 404.0
+      },
+      {
+        "seed": 10,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 825,
+            "end": 878
+          },
+          {
+            "kind": "latency",
+            "start": 1653,
+            "end": 1707
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2322,
+            "end": 2353
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 107,
+        "false_positive_points": 0,
+        "false_negative_points": 31,
+        "point_precision": 1.0,
+        "point_recall": 0.7753623188405797,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 10,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 825,
+            "end": 878
+          },
+          {
+            "kind": "latency",
+            "start": 1653,
+            "end": 1707
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2322,
+            "end": 2353
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 60,
+        "false_positive_points": 153,
+        "false_negative_points": 78,
+        "point_precision": 0.28169014084507044,
+        "point_recall": 0.43478260869565216,
+        "normal_point_false_positive_rate": 0.04419410745233969,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 143,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 143.0
+      },
+      {
+        "seed": 10,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 825,
+            "end": 878
+          },
+          {
+            "kind": "latency",
+            "start": 1653,
+            "end": 1707
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2322,
+            "end": 2353
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 136,
+        "false_positive_points": 153,
+        "false_negative_points": 2,
+        "point_precision": 0.47058823529411764,
+        "point_recall": 0.9855072463768116,
+        "normal_point_false_positive_rate": 0.04419410745233969,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 143,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 143.0
+      },
+      {
+        "seed": 10,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 831,
+            "end": 922
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 91,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 10,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 831,
+            "end": 922
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 3,
+        "false_positive_points": 702,
+        "false_negative_points": 88,
+        "point_precision": 0.00425531914893617,
+        "point_recall": 0.03296703296703297,
+        "normal_point_false_positive_rate": 0.20005699629524082,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 525,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 525.0
+      },
+      {
+        "seed": 10,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 831,
+            "end": 922
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 91,
+        "false_positive_points": 702,
+        "false_negative_points": 0,
+        "point_precision": 0.11475409836065574,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.20005699629524082,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 525,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 525.0
+      },
+      {
+        "seed": 11,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 761,
+            "end": 836
+          },
+          {
+            "kind": "silence",
+            "start": 1535,
+            "end": 1590
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 122,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9384615384615385,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 11,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 761,
+            "end": 836
+          },
+          {
+            "kind": "silence",
+            "start": 1535,
+            "end": 1590
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 91,
+        "false_negative_points": 129,
+        "point_precision": 0.010869565217391304,
+        "point_recall": 0.007692307692307693,
+        "normal_point_false_positive_rate": 0.02622478386167147,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 86,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 86.0
+      },
+      {
+        "seed": 11,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 761,
+            "end": 836
+          },
+          {
+            "kind": "silence",
+            "start": 1535,
+            "end": 1590
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 122,
+        "false_positive_points": 91,
+        "false_negative_points": 8,
+        "point_precision": 0.5727699530516432,
+        "point_recall": 0.9384615384615385,
+        "normal_point_false_positive_rate": 0.02622478386167147,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 86,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 86.0
+      },
+      {
+        "seed": 11,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 848,
+            "end": 902
+          },
+          {
+            "kind": "latency",
+            "start": 1585,
+            "end": 1620
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2374,
+            "end": 2454
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 89,
+        "false_positive_points": 0,
+        "false_negative_points": 80,
+        "point_precision": 1.0,
+        "point_recall": 0.5266272189349113,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 11,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 848,
+            "end": 902
+          },
+          {
+            "kind": "latency",
+            "start": 1585,
+            "end": 1620
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2374,
+            "end": 2454
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 99,
+        "false_positive_points": 289,
+        "false_negative_points": 70,
+        "point_precision": 0.2551546391752577,
+        "point_recall": 0.5857988165680473,
+        "normal_point_false_positive_rate": 0.08423200233168172,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 251,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 251.0
+      },
+      {
+        "seed": 11,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 848,
+            "end": 902
+          },
+          {
+            "kind": "latency",
+            "start": 1585,
+            "end": 1620
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2374,
+            "end": 2454
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 166,
+        "false_positive_points": 289,
+        "false_negative_points": 3,
+        "point_precision": 0.3648351648351648,
+        "point_recall": 0.9822485207100592,
+        "normal_point_false_positive_rate": 0.08423200233168172,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 251,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 251.0
+      },
+      {
+        "seed": 11,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 760,
+            "end": 838
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 78,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 11,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 760,
+            "end": 838
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 8,
+        "false_positive_points": 768,
+        "false_negative_points": 70,
+        "point_precision": 0.010309278350515464,
+        "point_recall": 0.10256410256410256,
+        "normal_point_false_positive_rate": 0.21805792163543442,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 555,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 555.0
+      },
+      {
+        "seed": 11,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 760,
+            "end": 838
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 78,
+        "false_positive_points": 768,
+        "false_negative_points": 0,
+        "point_precision": 0.09219858156028368,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.21805792163543442,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 555,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 555.0
+      },
+      {
+        "seed": 12,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 816,
+            "end": 874
+          },
+          {
+            "kind": "silence",
+            "start": 1533,
+            "end": 1620
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 137,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9448275862068966,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 12,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 816,
+            "end": 874
+          },
+          {
+            "kind": "silence",
+            "start": 1533,
+            "end": 1620
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 116,
+        "false_negative_points": 144,
+        "point_precision": 0.008547008547008548,
+        "point_recall": 0.006896551724137931,
+        "normal_point_false_positive_rate": 0.03357452966714906,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 112,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 112.0
+      },
+      {
+        "seed": 12,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 816,
+            "end": 874
+          },
+          {
+            "kind": "silence",
+            "start": 1533,
+            "end": 1620
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 137,
+        "false_positive_points": 116,
+        "false_negative_points": 8,
+        "point_precision": 0.541501976284585,
+        "point_recall": 0.9448275862068966,
+        "normal_point_false_positive_rate": 0.03357452966714906,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 112,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 112.0
+      },
+      {
+        "seed": 12,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 850,
+            "end": 939
+          },
+          {
+            "kind": "latency",
+            "start": 1660,
+            "end": 1742
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2435,
+            "end": 2515
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 171,
+        "false_positive_points": 0,
+        "false_negative_points": 80,
+        "point_precision": 1.0,
+        "point_recall": 0.6812749003984063,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 12,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 850,
+            "end": 939
+          },
+          {
+            "kind": "latency",
+            "start": 1660,
+            "end": 1742
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2435,
+            "end": 2515
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 127,
+        "false_positive_points": 101,
+        "false_negative_points": 124,
+        "point_precision": 0.5570175438596491,
+        "point_recall": 0.5059760956175299,
+        "normal_point_false_positive_rate": 0.030158256195879366,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 100,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 100.0
+      },
+      {
+        "seed": 12,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 850,
+            "end": 939
+          },
+          {
+            "kind": "latency",
+            "start": 1660,
+            "end": 1742
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2435,
+            "end": 2515
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 248,
+        "false_positive_points": 101,
+        "false_negative_points": 3,
+        "point_precision": 0.7106017191977078,
+        "point_recall": 0.9880478087649402,
+        "normal_point_false_positive_rate": 0.030158256195879366,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 100,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 100.0
+      },
+      {
+        "seed": 12,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 728,
+            "end": 766
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 38,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 12,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 728,
+            "end": 766
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 0,
+        "false_positive_points": 106,
+        "false_negative_points": 38,
+        "point_precision": 0.0,
+        "point_recall": 0.0,
+        "normal_point_false_positive_rate": 0.029758562605277934,
+        "anomaly_windows": 1,
+        "windows_detected": 0,
+        "false_alarm_episodes": 105,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 105.0
+      },
+      {
+        "seed": 12,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 728,
+            "end": 766
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 38,
+        "false_positive_points": 106,
+        "false_negative_points": 0,
+        "point_precision": 0.2638888888888889,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.029758562605277934,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 105,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 105.0
+      },
+      {
+        "seed": 13,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 758,
+            "end": 823
+          },
+          {
+            "kind": "silence",
+            "start": 1568,
+            "end": 1660
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 149,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9490445859872612,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 13,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 758,
+            "end": 823
+          },
+          {
+            "kind": "silence",
+            "start": 1568,
+            "end": 1660
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 179,
+        "false_negative_points": 156,
+        "point_precision": 0.005555555555555556,
+        "point_recall": 0.006369426751592357,
+        "normal_point_false_positive_rate": 0.05198954400232356,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 164,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 164.0
+      },
+      {
+        "seed": 13,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 758,
+            "end": 823
+          },
+          {
+            "kind": "silence",
+            "start": 1568,
+            "end": 1660
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 149,
+        "false_positive_points": 179,
+        "false_negative_points": 8,
+        "point_precision": 0.45426829268292684,
+        "point_recall": 0.9490445859872612,
+        "normal_point_false_positive_rate": 0.05198954400232356,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 164,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 164.0
+      },
+      {
+        "seed": 13,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 844,
+            "end": 917
+          },
+          {
+            "kind": "latency",
+            "start": 1570,
+            "end": 1646
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2368,
+            "end": 2418
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 149,
+        "false_positive_points": 0,
+        "false_negative_points": 50,
+        "point_precision": 1.0,
+        "point_recall": 0.7487437185929648,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 13,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 844,
+            "end": 917
+          },
+          {
+            "kind": "latency",
+            "start": 1570,
+            "end": 1646
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2368,
+            "end": 2418
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 90,
+        "false_positive_points": 449,
+        "false_negative_points": 109,
+        "point_precision": 0.16697588126159554,
+        "point_recall": 0.45226130653266333,
+        "normal_point_false_positive_rate": 0.13201999411937665,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 374,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 374.0
+      },
+      {
+        "seed": 13,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 844,
+            "end": 917
+          },
+          {
+            "kind": "latency",
+            "start": 1570,
+            "end": 1646
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2368,
+            "end": 2418
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 190,
+        "false_positive_points": 449,
+        "false_negative_points": 9,
+        "point_precision": 0.297339593114241,
+        "point_recall": 0.9547738693467337,
+        "normal_point_false_positive_rate": 0.13201999411937665,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 374,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 374.0
+      },
+      {
+        "seed": 13,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 761,
+            "end": 848
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 87,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 13,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 761,
+            "end": 848
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 106,
+        "false_negative_points": 86,
+        "point_precision": 0.009345794392523364,
+        "point_recall": 0.011494252873563218,
+        "normal_point_false_positive_rate": 0.03017364076288073,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 103,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 103.0
+      },
+      {
+        "seed": 13,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 761,
+            "end": 848
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 87,
+        "false_positive_points": 106,
+        "false_negative_points": 0,
+        "point_precision": 0.45077720207253885,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.03017364076288073,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 103,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 103.0
+      },
+      {
+        "seed": 14,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 755,
+            "end": 848
+          },
+          {
+            "kind": "silence",
+            "start": 1635,
+            "end": 1671
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 121,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.937984496124031,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 14,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 755,
+            "end": 848
+          },
+          {
+            "kind": "silence",
+            "start": 1635,
+            "end": 1671
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 16,
+        "false_positive_points": 703,
+        "false_negative_points": 113,
+        "point_precision": 0.022253129346314324,
+        "point_recall": 0.12403100775193798,
+        "normal_point_false_positive_rate": 0.20253529242293286,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 510,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 510.0
+      },
+      {
+        "seed": 14,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 755,
+            "end": 848
+          },
+          {
+            "kind": "silence",
+            "start": 1635,
+            "end": 1671
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 121,
+        "false_positive_points": 703,
+        "false_negative_points": 8,
+        "point_precision": 0.14684466019417475,
+        "point_recall": 0.937984496124031,
+        "normal_point_false_positive_rate": 0.20253529242293286,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 510,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 510.0
+      },
+      {
+        "seed": 14,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 877,
+            "end": 940
+          },
+          {
+            "kind": "latency",
+            "start": 1615,
+            "end": 1683
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2441,
+            "end": 2503
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 131,
+        "false_positive_points": 0,
+        "false_negative_points": 62,
+        "point_precision": 1.0,
+        "point_recall": 0.6787564766839378,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 14,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 877,
+            "end": 940
+          },
+          {
+            "kind": "latency",
+            "start": 1615,
+            "end": 1683
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2441,
+            "end": 2503
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 98,
+        "false_positive_points": 135,
+        "false_negative_points": 95,
+        "point_precision": 0.4206008583690987,
+        "point_recall": 0.5077720207253886,
+        "normal_point_false_positive_rate": 0.03962430290578221,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 124,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 124.0
+      },
+      {
+        "seed": 14,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 877,
+            "end": 940
+          },
+          {
+            "kind": "latency",
+            "start": 1615,
+            "end": 1683
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2441,
+            "end": 2503
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 188,
+        "false_positive_points": 135,
+        "false_negative_points": 5,
+        "point_precision": 0.5820433436532507,
+        "point_recall": 0.9740932642487047,
+        "normal_point_false_positive_rate": 0.03962430290578221,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 124,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 124.0
+      },
+      {
+        "seed": 14,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 816,
+            "end": 877
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 61,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 14,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 816,
+            "end": 877
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 229,
+        "false_negative_points": 60,
+        "point_precision": 0.004347826086956522,
+        "point_recall": 0.01639344262295082,
+        "normal_point_false_positive_rate": 0.0647075445040972,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 212,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 212.0
+      },
+      {
+        "seed": 14,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 816,
+            "end": 877
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 61,
+        "false_positive_points": 229,
+        "false_negative_points": 0,
+        "point_precision": 0.2103448275862069,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0647075445040972,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 212,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 212.0
+      },
+      {
+        "seed": 15,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 857,
+            "end": 940
+          },
+          {
+            "kind": "silence",
+            "start": 1673,
+            "end": 1763
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 165,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.953757225433526,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 15,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 857,
+            "end": 940
+          },
+          {
+            "kind": "silence",
+            "start": 1673,
+            "end": 1763
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 111,
+        "false_negative_points": 172,
+        "point_precision": 0.008928571428571428,
+        "point_recall": 0.005780346820809248,
+        "normal_point_false_positive_rate": 0.032389845345783486,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 105,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 105.0
+      },
+      {
+        "seed": 15,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 857,
+            "end": 940
+          },
+          {
+            "kind": "silence",
+            "start": 1673,
+            "end": 1763
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 165,
+        "false_positive_points": 111,
+        "false_negative_points": 8,
+        "point_precision": 0.5978260869565217,
+        "point_recall": 0.953757225433526,
+        "normal_point_false_positive_rate": 0.032389845345783486,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 105,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 105.0
+      },
+      {
+        "seed": 15,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 746,
+            "end": 826
+          },
+          {
+            "kind": "latency",
+            "start": 1674,
+            "end": 1707
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2352,
+            "end": 2421
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 113,
+        "false_positive_points": 0,
+        "false_negative_points": 69,
+        "point_precision": 1.0,
+        "point_recall": 0.6208791208791209,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 15,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 746,
+            "end": 826
+          },
+          {
+            "kind": "latency",
+            "start": 1674,
+            "end": 1707
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2352,
+            "end": 2421
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 81,
+        "false_positive_points": 158,
+        "false_negative_points": 101,
+        "point_precision": 0.3389121338912134,
+        "point_recall": 0.44505494505494503,
+        "normal_point_false_positive_rate": 0.04622586307782329,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 143,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 143.0
+      },
+      {
+        "seed": 15,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 746,
+            "end": 826
+          },
+          {
+            "kind": "latency",
+            "start": 1674,
+            "end": 1707
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2352,
+            "end": 2421
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 171,
+        "false_positive_points": 158,
+        "false_negative_points": 11,
+        "point_precision": 0.5197568389057751,
+        "point_recall": 0.9395604395604396,
+        "normal_point_false_positive_rate": 0.04622586307782329,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 143,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 143.0
+      },
+      {
+        "seed": 15,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 812,
+            "end": 867
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 55,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 15,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 812,
+            "end": 867
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 2,
+        "false_positive_points": 91,
+        "false_negative_points": 53,
+        "point_precision": 0.021505376344086023,
+        "point_recall": 0.03636363636363636,
+        "normal_point_false_positive_rate": 0.025669957686882933,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 90,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 90.0
+      },
+      {
+        "seed": 15,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 812,
+            "end": 867
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 55,
+        "false_positive_points": 91,
+        "false_negative_points": 0,
+        "point_precision": 0.3767123287671233,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.025669957686882933,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 90,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 90.0
+      },
+      {
+        "seed": 16,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 853,
+            "end": 925
+          },
+          {
+            "kind": "silence",
+            "start": 1656,
+            "end": 1741
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 149,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9490445859872612,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 16,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 853,
+            "end": 925
+          },
+          {
+            "kind": "silence",
+            "start": 1656,
+            "end": 1741
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 0,
+        "false_positive_points": 104,
+        "false_negative_points": 157,
+        "point_precision": 0.0,
+        "point_recall": 0.0,
+        "normal_point_false_positive_rate": 0.03020621550972989,
+        "anomaly_windows": 2,
+        "windows_detected": 0,
+        "false_alarm_episodes": 102,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 102.0
+      },
+      {
+        "seed": 16,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 853,
+            "end": 925
+          },
+          {
+            "kind": "silence",
+            "start": 1656,
+            "end": 1741
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 149,
+        "false_positive_points": 104,
+        "false_negative_points": 8,
+        "point_precision": 0.5889328063241107,
+        "point_recall": 0.9490445859872612,
+        "normal_point_false_positive_rate": 0.03020621550972989,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 102,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 102.0
+      },
+      {
+        "seed": 16,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 829,
+            "end": 886
+          },
+          {
+            "kind": "latency",
+            "start": 1529,
+            "end": 1626
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2479,
+            "end": 2530
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 154,
+        "false_positive_points": 0,
+        "false_negative_points": 51,
+        "point_precision": 1.0,
+        "point_recall": 0.751219512195122,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 16,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 829,
+            "end": 886
+          },
+          {
+            "kind": "latency",
+            "start": 1529,
+            "end": 1626
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2479,
+            "end": 2530
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 108,
+        "false_positive_points": 296,
+        "false_negative_points": 97,
+        "point_precision": 0.26732673267326734,
+        "point_recall": 0.526829268292683,
+        "normal_point_false_positive_rate": 0.08718703976435935,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 270,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 270.0
+      },
+      {
+        "seed": 16,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 829,
+            "end": 886
+          },
+          {
+            "kind": "latency",
+            "start": 1529,
+            "end": 1626
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2479,
+            "end": 2530
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 204,
+        "false_positive_points": 296,
+        "false_negative_points": 1,
+        "point_precision": 0.408,
+        "point_recall": 0.9951219512195122,
+        "normal_point_false_positive_rate": 0.08718703976435935,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 270,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 270.0
+      },
+      {
+        "seed": 16,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 873,
+            "end": 911
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 38,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 16,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 873,
+            "end": 911
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 0,
+        "false_positive_points": 104,
+        "false_negative_points": 38,
+        "point_precision": 0.0,
+        "point_recall": 0.0,
+        "normal_point_false_positive_rate": 0.029197080291970802,
+        "anomaly_windows": 1,
+        "windows_detected": 0,
+        "false_alarm_episodes": 99,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 99.0
+      },
+      {
+        "seed": 16,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 873,
+            "end": 911
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 38,
+        "false_positive_points": 104,
+        "false_negative_points": 0,
+        "point_precision": 0.2676056338028169,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.029197080291970802,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 99,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 99.0
+      },
+      {
+        "seed": 17,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 749,
+            "end": 817
+          },
+          {
+            "kind": "silence",
+            "start": 1658,
+            "end": 1748
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 150,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9493670886075949,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 17,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 749,
+            "end": 817
+          },
+          {
+            "kind": "silence",
+            "start": 1658,
+            "end": 1748
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 4,
+        "false_positive_points": 401,
+        "false_negative_points": 154,
+        "point_precision": 0.009876543209876543,
+        "point_recall": 0.02531645569620253,
+        "normal_point_false_positive_rate": 0.11650203370133644,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 316,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 316.0
+      },
+      {
+        "seed": 17,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 749,
+            "end": 817
+          },
+          {
+            "kind": "silence",
+            "start": 1658,
+            "end": 1748
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 150,
+        "false_positive_points": 401,
+        "false_negative_points": 8,
+        "point_precision": 0.27223230490018147,
+        "point_recall": 0.9493670886075949,
+        "normal_point_false_positive_rate": 0.11650203370133644,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 316,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 316.0
+      },
+      {
+        "seed": 17,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 791,
+            "end": 886
+          },
+          {
+            "kind": "latency",
+            "start": 1604,
+            "end": 1674
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2399,
+            "end": 2433
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 165,
+        "false_positive_points": 0,
+        "false_negative_points": 34,
+        "point_precision": 1.0,
+        "point_recall": 0.8291457286432161,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 17,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 791,
+            "end": 886
+          },
+          {
+            "kind": "latency",
+            "start": 1604,
+            "end": 1674
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2399,
+            "end": 2433
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 71,
+        "false_positive_points": 344,
+        "false_negative_points": 128,
+        "point_precision": 0.1710843373493976,
+        "point_recall": 0.35678391959798994,
+        "normal_point_false_positive_rate": 0.10114672155248457,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 294,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 294.0
+      },
+      {
+        "seed": 17,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 791,
+            "end": 886
+          },
+          {
+            "kind": "latency",
+            "start": 1604,
+            "end": 1674
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2399,
+            "end": 2433
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 194,
+        "false_positive_points": 344,
+        "false_negative_points": 5,
+        "point_precision": 0.36059479553903345,
+        "point_recall": 0.9748743718592965,
+        "normal_point_false_positive_rate": 0.10114672155248457,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 294,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 294.0
+      },
+      {
+        "seed": 17,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 847,
+            "end": 878
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 31,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 17,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 847,
+            "end": 878
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 141,
+        "false_negative_points": 30,
+        "point_precision": 0.007042253521126761,
+        "point_recall": 0.03225806451612903,
+        "normal_point_false_positive_rate": 0.03950686466797422,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 135,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 135.0
+      },
+      {
+        "seed": 17,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 847,
+            "end": 878
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 31,
+        "false_positive_points": 141,
+        "false_negative_points": 0,
+        "point_precision": 0.18023255813953487,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.03950686466797422,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 135,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 135.0
+      },
+      {
+        "seed": 18,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 874,
+            "end": 943
+          },
+          {
+            "kind": "silence",
+            "start": 1677,
+            "end": 1747
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 131,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9424460431654677,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 18,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 874,
+            "end": 943
+          },
+          {
+            "kind": "silence",
+            "start": 1677,
+            "end": 1747
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 505,
+        "false_negative_points": 138,
+        "point_precision": 0.001976284584980237,
+        "point_recall": 0.007194244604316547,
+        "normal_point_false_positive_rate": 0.1459115862467495,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 405,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 405.0
+      },
+      {
+        "seed": 18,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 874,
+            "end": 943
+          },
+          {
+            "kind": "silence",
+            "start": 1677,
+            "end": 1747
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 131,
+        "false_positive_points": 505,
+        "false_negative_points": 8,
+        "point_precision": 0.2059748427672956,
+        "point_recall": 0.9424460431654677,
+        "normal_point_false_positive_rate": 0.1459115862467495,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 405,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 405.0
+      },
+      {
+        "seed": 18,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 737,
+            "end": 813
+          },
+          {
+            "kind": "latency",
+            "start": 1594,
+            "end": 1689
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2478,
+            "end": 2560
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 171,
+        "false_positive_points": 0,
+        "false_negative_points": 82,
+        "point_precision": 1.0,
+        "point_recall": 0.6758893280632411,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 18,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 737,
+            "end": 813
+          },
+          {
+            "kind": "latency",
+            "start": 1594,
+            "end": 1689
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2478,
+            "end": 2560
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 146,
+        "false_positive_points": 420,
+        "false_negative_points": 107,
+        "point_precision": 0.2579505300353357,
+        "point_recall": 0.5770750988142292,
+        "normal_point_false_positive_rate": 0.1254855094114132,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 346,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 346.0
+      },
+      {
+        "seed": 18,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 737,
+            "end": 813
+          },
+          {
+            "kind": "latency",
+            "start": 1594,
+            "end": 1689
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2478,
+            "end": 2560
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 250,
+        "false_positive_points": 420,
+        "false_negative_points": 3,
+        "point_precision": 0.373134328358209,
+        "point_recall": 0.9881422924901185,
+        "normal_point_false_positive_rate": 0.1254855094114132,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 346,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 346.0
+      },
+      {
+        "seed": 18,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 738,
+            "end": 835
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 97,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 18,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 738,
+            "end": 835
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 2,
+        "false_positive_points": 104,
+        "false_negative_points": 95,
+        "point_precision": 0.018867924528301886,
+        "point_recall": 0.020618556701030927,
+        "normal_point_false_positive_rate": 0.029688838138738224,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 100,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 100.0
+      },
+      {
+        "seed": 18,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 738,
+            "end": 835
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 97,
+        "false_positive_points": 104,
+        "false_negative_points": 0,
+        "point_precision": 0.48258706467661694,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.029688838138738224,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 100,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 100.0
+      },
+      {
+        "seed": 19,
+        "service": "market-feed",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 854,
+            "end": 951
+          },
+          {
+            "kind": "silence",
+            "start": 1561,
+            "end": 1633
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 161,
+        "false_positive_points": 0,
+        "false_negative_points": 8,
+        "point_precision": 1.0,
+        "point_recall": 0.9526627218934911,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 19,
+        "service": "market-feed",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 854,
+            "end": 951
+          },
+          {
+            "kind": "silence",
+            "start": 1561,
+            "end": 1633
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 5,
+        "false_positive_points": 117,
+        "false_negative_points": 164,
+        "point_precision": 0.040983606557377046,
+        "point_recall": 0.029585798816568046,
+        "normal_point_false_positive_rate": 0.034100845234625476,
+        "anomaly_windows": 2,
+        "windows_detected": 1,
+        "false_alarm_episodes": 112,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 112.0
+      },
+      {
+        "seed": 19,
+        "service": "market-feed",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "tick_gap",
+            "start": 854,
+            "end": 951
+          },
+          {
+            "kind": "silence",
+            "start": 1561,
+            "end": 1633
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 161,
+        "false_positive_points": 117,
+        "false_negative_points": 8,
+        "point_precision": 0.579136690647482,
+        "point_recall": 0.9526627218934911,
+        "normal_point_false_positive_rate": 0.034100845234625476,
+        "anomaly_windows": 2,
+        "windows_detected": 2,
+        "false_alarm_episodes": 112,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 112.0
+      },
+      {
+        "seed": 19,
+        "service": "execution-gateway",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 824,
+            "end": 891
+          },
+          {
+            "kind": "latency",
+            "start": 1660,
+            "end": 1742
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2381,
+            "end": 2432
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 149,
+        "false_positive_points": 0,
+        "false_negative_points": 51,
+        "point_precision": 1.0,
+        "point_recall": 0.745,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 19,
+        "service": "execution-gateway",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 824,
+            "end": 891
+          },
+          {
+            "kind": "latency",
+            "start": 1660,
+            "end": 1742
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2381,
+            "end": 2432
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 91,
+        "false_positive_points": 259,
+        "false_negative_points": 109,
+        "point_precision": 0.26,
+        "point_recall": 0.455,
+        "normal_point_false_positive_rate": 0.07617647058823529,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 226,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 226.0
+      },
+      {
+        "seed": 19,
+        "service": "execution-gateway",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "rate_limit",
+            "start": 824,
+            "end": 891
+          },
+          {
+            "kind": "latency",
+            "start": 1660,
+            "end": 1742
+          },
+          {
+            "kind": "ml_degradation",
+            "start": 2381,
+            "end": 2432
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 191,
+        "false_positive_points": 259,
+        "false_negative_points": 9,
+        "point_precision": 0.42444444444444446,
+        "point_recall": 0.955,
+        "normal_point_false_positive_rate": 0.07617647058823529,
+        "anomaly_windows": 3,
+        "windows_detected": 3,
+        "false_alarm_episodes": 226,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 226.0
+      },
+      {
+        "seed": 19,
+        "service": "portfolio-ledger",
+        "mode": "rules",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 830,
+            "end": 907
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 77,
+        "false_positive_points": 0,
+        "false_negative_points": 0,
+        "point_precision": 1.0,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      {
+        "seed": 19,
+        "service": "portfolio-ledger",
+        "mode": "forest",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 830,
+            "end": 907
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 1,
+        "false_positive_points": 95,
+        "false_negative_points": 76,
+        "point_precision": 0.010416666666666666,
+        "point_recall": 0.012987012987012988,
+        "normal_point_false_positive_rate": 0.026965654271927333,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 89,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 89.0
+      },
+      {
+        "seed": 19,
+        "service": "portfolio-ledger",
+        "mode": "combined",
+        "episodes": [
+          {
+            "kind": "nav_mismatch",
+            "start": 830,
+            "end": 907
+          }
+        ],
+        "samples": 3600,
+        "true_positive_points": 77,
+        "false_positive_points": 95,
+        "false_negative_points": 0,
+        "point_precision": 0.4476744186046512,
+        "point_recall": 1.0,
+        "normal_point_false_positive_rate": 0.026965654271927333,
+        "anomaly_windows": 1,
+        "windows_detected": 1,
+        "false_alarm_episodes": 89,
+        "service_hours": 1.0,
+        "false_alarm_episodes_per_service_hour": 89.0
+      }
+    ]
+  },
+  "nab": {
+    "dataset": {
+      "repository": "https://github.com/numenta/NAB",
+      "revision": "ea702d75cc2258d9d7dd35ca8e5e2539d71f3140",
+      "files": {
+        "machine_temperature_system_failure.csv": {
+          "url": "https://raw.githubusercontent.com/numenta/NAB/ea702d75cc2258d9d7dd35ca8e5e2539d71f3140/data/realKnownCause/machine_temperature_system_failure.csv",
+          "sha256": "92bf5b87fc7f9bba8ca0b7ec63ccaac8cb4a1371a258e8c29a10ae9c018d82a4"
+        },
+        "combined_windows.json": {
+          "url": "https://raw.githubusercontent.com/numenta/NAB/ea702d75cc2258d9d7dd35ca8e5e2539d71f3140/labels/combined_windows.json",
+          "sha256": "1e1fbc4601321aad8d0f8b3784c8134299379f68f6c1f7777565f8ffd57ab6b1"
+        },
+        "LICENSE.txt": {
+          "url": "https://raw.githubusercontent.com/numenta/NAB/ea702d75cc2258d9d7dd35ca8e5e2539d71f3140/LICENSE.txt",
+          "sha256": "0a0b4d0b10cb1f7ed9ab2993ef93defc03447e6eba9daca1315dd32dae4877e3"
+        }
+      }
+    },
+    "adaptation": "Scalar temperature forest, not the four-feature trading model",
+    "protocol": "First 15% train, final 85% test; no label filtering or threshold tuning",
+    "train_samples": 3404,
+    "train_anomaly_points": 567,
+    "test_start": "2013-12-14T16:55:00",
+    "seconds_per_sample": 300.0,
+    "official_nab_score": null,
+    "results": {
+      "robust_threshold": {
+        "samples": 19291,
+        "true_positive_points": 9,
+        "false_positive_points": 0,
+        "false_negative_points": 1692,
+        "point_precision": 1.0,
+        "point_recall": 0.005291005291005291,
+        "normal_point_false_positive_rate": 0.0,
+        "anomaly_windows": 3,
+        "windows_detected": 1,
+        "false_alarm_episodes": 0,
+        "service_hours": 1607.5833333333333,
+        "false_alarm_episodes_per_service_hour": 0.0
+      },
+      "forest": {
+        "samples": 19291,
+        "true_positive_points": 591,
+        "false_positive_points": 195,
+        "false_negative_points": 1110,
+        "point_precision": 0.7519083969465649,
+        "point_recall": 0.3474426807760141,
+        "normal_point_false_positive_rate": 0.011085844229675953,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 60,
+        "service_hours": 1607.5833333333333,
+        "false_alarm_episodes_per_service_hour": 0.037323104038152505
+      },
+      "combined": {
+        "samples": 19291,
+        "true_positive_points": 591,
+        "false_positive_points": 195,
+        "false_negative_points": 1110,
+        "point_precision": 0.7519083969465649,
+        "point_recall": 0.3474426807760141,
+        "normal_point_false_positive_rate": 0.011085844229675953,
+        "anomaly_windows": 3,
+        "windows_detected": 2,
+        "false_alarm_episodes": 60,
+        "service_hours": 1607.5833333333333,
+        "false_alarm_episodes_per_service_hour": 0.037323104038152505
+      }
+    }
+  }
+}
