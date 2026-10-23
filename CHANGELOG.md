@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Refine investigation order, persistent review section links, readable technical panels and copyable run references (Phase 6A).
+
 - Visualize recorded agent operations and add a provenance-aware evidence explorer with secondary model usage (Phase 5).
 
 - Redesign incident review with visible diagnosis/evidence, separate technical panels and a clear human decision area (Phase 4).

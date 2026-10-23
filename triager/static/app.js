@@ -508,10 +508,15 @@ function renderDiagnosisSummary(incident) {
 function renderAgentTimeline(data) {
   const host = $("#agent-timeline"); host.replaceChildren();
   const nodes = window.DeskInvestigation.trace(data);
-  $("#agent-run-summary").textContent = nodes.length ? `${nodes.length} recorded graph operations · ${data.workflow || "workflow version not recorded"}${data.run_id ? " · Run " + data.run_id : ""}` : "No node trace recorded for this investigation. No execution stages are inferred.";
+  $("#agent-run-summary").textContent = nodes.length ? `${nodes.length} recorded graph operations · ${data.workflow || "workflow version not recorded"}${data.run_id ? " · Run " + window.DeskInvestigation.shortRunId(data.run_id) : ""}` : "No node trace recorded for this investigation. No execution stages are inferred.";
+  const copy = $("#copy-run-id");
+  copy.hidden = !data.run_id; copy.dataset.runId = data.run_id || "";
+  copy.title = data.run_id || "";
+  $("#agent-run-summary").title = data.run_id || "";
+  $("#run-copy-status").textContent = "";
   for (const node of nodes) {
     const li=document.createElement("li"), details=document.createElement("details"), summary=document.createElement("summary");
-    const name=document.createElement("span"); name.className="agent-node-name"; name.textContent=`${node.index+1}. ${node.name}`;
+    const name=document.createElement("span"); name.className="agent-node-name"; name.textContent=node.name;
     const meta=document.createElement("span"); meta.className="agent-node-meta"; meta.textContent=`${node.status} · ${node.duration}`;
     summary.append(name,meta); details.append(summary);
     const explanation=document.createElement("p"); explanation.textContent=node.explanation; details.append(explanation);
@@ -522,6 +527,8 @@ function renderAgentTimeline(data) {
       link.textContent=node.node === "verify" ? "Review evidence and uncertainty" : "Inspect recorded tool calls";
       details.append(link);
     }
+    const marker=document.createElement("span"); marker.className="agent-step-marker"; marker.setAttribute("aria-hidden","true"); marker.textContent=String(node.index+1); li.append(marker);
+    li.dataset.assessment = node.node === "critic" && node.status !== "Assessment recorded" ? "none" : "recorded";
     li.append(details); host.append(li);
   }
 }
@@ -557,7 +564,7 @@ function renderInvestigation(data) {
   }
   const diagnosis = data.diagnosis || {};
   const provider = window.DeskInvestigation.providerLabel(data);
-  const confidence = Number.isFinite(diagnosis.confidence) ? `Confidence ${Math.round(diagnosis.confidence*100)}% (uncalibrated)` : "Confidence not reported";
+  const confidence = Number.isFinite(diagnosis.confidence) ? `${data.provider === "offline" ? "Rule confidence" : "Reported confidence"} ${Math.round(diagnosis.confidence*100)}% · uncalibrated, not measured accuracy` : "Confidence not reported";
   line(host,`${provider} · ${diagnosis.abstained ? "Insufficient evidence" : confidence}`,"review-analysis-source");
   const support = data.verification?.semantic_support;
   line(host, support === "model_critic_assessed" ? "Causal support assessed by a model critic; this is not a correctness guarantee." : support === "critic_unavailable" ? "The causal critic was unavailable. Causal support remains unverified." : "Causal support has not been independently assessed.","review-uncertainty");
@@ -909,7 +916,24 @@ $("#detail").addEventListener("click", e => {
   if (!focusTarget.hasAttribute("tabindex") && focusTarget.tagName !== "SUMMARY") focusTarget.setAttribute("tabindex","-1");
   focusTarget.focus({preventScroll:true});
 });
+async function copyRunId() {
+  const button = $("#copy-run-id"), runId = button.dataset.runId;
+  if (!runId) return;
+  try {
+    await navigator.clipboard.writeText(runId);
+    if (button.dataset.runId === runId) $("#run-copy-status").textContent = "Run ID copied";
+  } catch {
+    if (button.dataset.runId === runId) $("#run-copy-status").textContent = `Copy unavailable. Run ID: ${runId}`;
+  }
+}
+$("#copy-run-id").onclick = copyRunId;
 ["#evidence-kind", "#evidence-relation"].forEach(selector=>$(selector).onchange=filterEvidence);
+if (typeof ResizeObserver !== "undefined") {
+  const reviewNav = $("#detail .investigation-nav");
+  new ResizeObserver(() => {
+    $("#detail").style.setProperty("--review-nav-offset", `${reviewNav.offsetHeight + 32}px`);
+  }).observe(reviewNav);
+}
 const savedScenario = sessionStorage.getItem("desk-scenario-selection");
 if ([...$("#fault").options].some((option) => option.value === savedScenario))
   $("#fault").value = savedScenario;

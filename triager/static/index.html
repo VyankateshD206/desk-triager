@@ -233,9 +233,9 @@
         <p id="review-description" class="sr-only">Review the diagnosis and evidence before making a simulated recovery decision. Approval queues recovery; fresh telemetry confirms the outcome.</p>
         <div class="review-metadata"><span id="detail-service"></span><span id="detail-severity" class="severity"></span><span class="badge" id="detail-status"></span><span>Detected <time id="detail-detected"></time></span></div>
       </div>
+      <nav class="investigation-nav" aria-label="Investigation views"><a class="investigation-jump" href="#diagnosis-heading">Summary</a><a class="investigation-jump" href="#agent-workflow-heading">Workflow</a><a class="investigation-jump" href="#evidence-library">Evidence</a><a class="investigation-jump" href="#tool-details">Tools</a><a class="investigation-jump" href="#recovery-heading">Recovery decision</a></nav>
       <div class="review-grid">
         <div class="review-main">
-          <nav class="investigation-nav" aria-label="Investigation views"><a class="investigation-jump" href="#diagnosis-heading">Summary</a><a class="investigation-jump" href="#agent-workflow-heading">Workflow</a><a class="investigation-jump" href="#evidence-library">Evidence</a><a class="investigation-jump" href="#tool-details">Tools</a></nav>
           <section class="review-section" aria-labelledby="symptom-heading"><h3 id="symptom-heading">What happened</h3><p id="diagnosis"></p></section>
           <section class="review-section assessment" aria-labelledby="diagnosis-heading">
             <div class="section-heading"><h3 id="diagnosis-heading">Diagnosis summary</h3><button class="text-button" id="triage">Refresh diagnosis ↗</button></div>
@@ -265,7 +265,7 @@
             <h3 id="agent-workflow-heading">Agent investigation</h3>
             <p class="agent-process-guide">Detect → Investigate → Validate → Human review → Recover → Verify</p>
             <p class="subtle">Process guide, not an execution trace. Investigation is read-only; human decisions and recovery are recorded separately below.</p>
-            <p id="agent-run-summary" class="subtle"></p>
+            <div class="agent-run"><p id="agent-run-summary" class="subtle"></p><button id="copy-run-id" class="quiet" type="button" hidden>Copy run ID</button><span id="run-copy-status" class="subtle" role="status"></span></div>
             <ol id="agent-timeline" class="agent-steps" aria-label="Recorded investigation nodes"></ol>
             <p class="subtle">Nodes follow recorded graph order. Tool timestamps are listed separately; exact node-to-tool timing is not recorded.</p>
           </section>

@@ -2,6 +2,7 @@
 (() => {
   const number = value => Number.isFinite(value) && value >= 0;
   const duration = value => number(value) ? `${value.toLocaleString(undefined, {maximumFractionDigits: 1})} ms` : 'Duration not recorded';
+  const shortRunId = value => typeof value === 'string' ? (value.length > 16 ? `${value.slice(0,8)}…${value.slice(-4)}` : value) : '';
   function providerLabel(data) {
     if (data?.provider === 'offline') return 'Offline rule-based analysis';
     if (['gemini','openai'].includes(data?.provider)) return `${data.provider === 'gemini' ? 'Gemini' : 'OpenAI'} · model-backed diagnosis`;
@@ -15,7 +16,7 @@
         ? ['Offline rule analysis', 'Recorded', 'Applied the offline rules. This is not an LLM result.']
         : ['Agent reasoning', 'Recorded', 'Recorded reasoning pass. Only observable calls and final structured findings are shown; per-pass model content is not displayed.'];
       case 'tools': return ['Read-only tool execution', 'Recorded', 'Processed tool requests. See recorded tool outcomes below; a completed node does not mean every tool succeeded.'];
-      case 'verify': return ['Evidence verification', 'Recorded', `Recorded verification operation. ${final.checks ? "Final check types: " + final.checks + ". " : "Check types not recorded. "}${Array.isArray(final.issues) ? "Final issues: " + final.issues.length + ". " : "Issue count not recorded. "}Extract checks do not prove root-cause correctness.`];
+      case 'verify': return ['Evidence verification', 'Recorded', `Checked the recorded evidence. ${final.checks ? "Checks: " + (final.checks === "citations_quotes_numeric_values" ? "source references, quoted excerpts and numerical values" : final.checks) + ". " : "Check types not recorded. "}${Array.isArray(final.issues) ? "Final issues: " + final.issues.length + ". " : "Issue count not recorded. "}Extract checks do not prove root-cause correctness.`];
       case 'critic': return final.semantic_support === 'model_critic_assessed'
         ? ['Model critic', 'Assessment recorded', 'A model critic assessed causal support. This is a second opinion, not verified accuracy.']
         : final.semantic_support === 'critic_unavailable'
@@ -70,5 +71,5 @@
     return Object.fromEntries(['provider','model','input_tokens','output_tokens','latency_ms','prior_failed_attempts','estimated_cost_usd']
       .filter(key=>['provider','model'].includes(key) ? typeof call[key]==='string' : Object.hasOwn(call,key) && (call[key]===null || number(call[key]))).map(key=>[key,call[key]]));
   }
-  window.DeskInvestigation = Object.freeze({duration,providerLabel,trace,evidenceType,relatedFindings,toolSource,usage});
+  window.DeskInvestigation = Object.freeze({duration,shortRunId,providerLabel,trace,evidenceType,relatedFindings,toolSource,usage});
 })();

@@ -22,6 +22,7 @@ vm.runInContext(source.slice(0,source.indexOf('function setMetricState'))+
   source.slice(source.indexOf('function updateApproval()'),source.indexOf('async function refresh()'))+
   source.slice(source.indexOf('function renderReviewMetadata()'),source.indexOf('let reviewReturnTarget'))+
   source.slice(source.indexOf('async function submitDecision('),source.indexOf('$("#approve").onclick')),context);
+vm.runInContext(source.slice(source.indexOf('async function copyRunId()'),source.indexOf('$("#copy-run-id").onclick')),context);
 vm.runInContext('async function refresh(){}; function renderTimeline(){}; api=(...args)=>mockApi(...args);',context);
 const evaluate=code=>vm.runInContext(code,context);
 function select(overrides={}){
@@ -32,6 +33,20 @@ function select(overrides={}){
 }
 const text=node=>(node.textContent || '')+(node.children || []).map(text).join(' ');
 async function main(){
+  const runId='12345678-1234-5678-9012-123456789abc';
+  context.record={run_id:runId,node_trace:[{node:'critic',latency_ms:2}],verification:{semantic_support:'not_assessed'}};
+  evaluate('renderAgentTimeline(record)');
+  assert.match(element('#agent-run-summary').textContent,/12345678…9abc/);
+  assert.equal(element('#copy-run-id').dataset.runId,runId);
+  assert.equal(element('#agent-timeline').children[0].dataset.assessment,'none');
+  let copied;
+  context.navigator={clipboard:{writeText:async value=>{copied=value;}}};
+  await evaluate('copyRunId()');
+  assert.equal(copied,runId);assert.equal(element('#run-copy-status').textContent,'Run ID copied');
+  context.navigator={};
+  await evaluate('copyRunId()');assert.match(element('#run-copy-status').textContent,/Copy unavailable.*12345678-1234/);
+  evaluate('renderAgentTimeline({})');assert.equal(element('#copy-run-id').hidden,true);
+
   context.legacy={provider:'offline',tool_trace:['inspect_service_logs'],evidence_items:[],diagnosis:{hypotheses:[]}};
   evaluate('renderInvestigation(legacy)');
   assert.match(text(element('#tool-trace')),/Recorded name only/);

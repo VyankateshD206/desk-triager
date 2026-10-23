@@ -182,3 +182,32 @@ Validation on 24 October 2026:
   secondary token/cost records, keyboard focus and desktop/mobile layout. At 375px the
   offline trace stacked in one column and dialog scroll width matched client width.
 - No recovery decisions were submitted during this phase.
+
+
+## Phase 6A: review refinement
+
+Recorded graph operations now follow a single connected, numbered timeline, including
+repeated operations in their stored order. Stage, recorded status and duration remain
+visible; technical metrics and explanations expand on demand. An unassessed critic gate
+uses a dashed marker and explicit status, never an implied model assessment. Verification
+check names use plain English, and confidence is explicitly uncalibrated rather than an
+accuracy measure. Run references are shortened visually; Copy run ID copies the full
+reference and reports success or provides selectable text when clipboard access fails.
+
+The existing section links now remain available while the dialog scrolls, with a direct
+Recovery decision destination. Anchor offsets follow the actual navigation height using
+ResizeObserver, including wrapped mobile links. The recovery panel remains visually
+separate. No inner scroll containers were added. Advanced panels use consistent borders,
+spacing and readable summaries. Approval authorization, decision handlers, API contracts,
+backend state and execution behavior are unchanged.
+
+Validation: frontend fixture suites include full-ID copying, clipboard failure, missing run
+IDs and the unassessed critic marker. Browser checks cover timeline expansion, copy feedback,
+section focus, mobile navigation at 375px, no horizontal dialog overflow and native Escape /
+focus return. Existing offline and Gemini record exports are checked without new model calls.
+The existing build and Python regression suite pass (138 tests).
+
+Limitations: expanded raw sources can still make the dialog long. On small screens recovery
+buttons remain in the stacked decision section, reachable through the persistent link;
+they are not permanently pinned over the content. Exact node-to-tool correlation and
+per-stage timestamps remain unavailable where the backend did not record them.

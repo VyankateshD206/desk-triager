@@ -3,6 +3,9 @@ const assert=require('node:assert/strict'), fs=require('node:fs'), vm=require('n
 const sandbox={window:{}};
 vm.runInNewContext(fs.readFileSync('triager/static/investigation.js','utf8'),sandbox);
 const view=sandbox.window.DeskInvestigation;
+assert.equal(view.shortRunId('12345678-1234-5678-9012-123456789abc'),'12345678…9abc');
+assert.equal(view.shortRunId('short-id'),'short-id');
+assert.equal(view.shortRunId(null),'');
 const offline={provider:'offline',node_trace:[{node:'collect_context',latency_ms:0},{node:'reason',latency_ms:1},{node:'verify',latency_ms:2},{node:'critic',latency_ms:.1},{node:'final_report',latency_ms:1}],model_calls:[],verification:{checks:'citations_quotes_numeric_values',issues:[],semantic_support:'not_assessed'}};
 assert.equal(view.trace({diagnosis:{}}).length,0);
 assert.equal(view.trace(offline).length,5);
