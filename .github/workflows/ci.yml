@@ -20,12 +20,12 @@ jobs:
         with:
           node-version: '22'
       - run: pip install -e '.[dev]'
-      - run: npm ci --ignore-scripts
-      - run: npm run build
-      - run: npm test
+      - run: make build
+      - run: make test
       - run: python -m evals.run --output eval-results.json
       - run: python -m evals.security --output security-results.json
       - run: python -m evals.benchmark --output benchmark-results.json
+      - run: python -m evals.detection --seeds 2 --output detection-results.json
       - run: python -m evals.retrieval
       - uses: actions/upload-artifact@v4
         with:
@@ -34,6 +34,7 @@ jobs:
             eval-results.json
             security-results.json
             benchmark-results.json
+            detection-results.json
   demo:
     runs-on: ubuntu-latest
     timeout-minutes: 15

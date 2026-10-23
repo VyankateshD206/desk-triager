@@ -376,3 +376,17 @@ def test_review_exposes_persisted_grounding_and_usage(desk):
     assert review["evidence_items"][0]["evidence_id"]
     assert review["node_trace"][-1]["node"] == "final_report"
     assert review["estimated_cost_usd"] == 0
+
+
+def test_snapshot_has_latest_analysis_and_review_has_timeline(desk):
+    desk.ingest(event(reject_code="429", log="WARN HTTP 429; retry-after 5s"))
+    id = desk.snapshot()["incidents"][0]["id"]
+    desk.triage(id)
+    item = desk.snapshot()["incidents"][0]
+    assert item["analysis_source"] == "offline"
+    assert item["severity"] == "medium"
+    assert item["abstained"] is False
+    assert item["summary"]
+    review = desk.proposal(id)
+    assert [a["action"] for a in review["timeline"]] == ["opened", "diagnosed"]
+    assert review["investigation"]["budget"]["tools"] == desk.settings.agent_max_tools

@@ -1,5 +1,5 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -13,7 +13,10 @@ load_dotenv(PROJECT_ROOT / ".env")
 @dataclass
 class Settings:
     database_url: str = os.getenv("DATABASE_URL") or "sqlite:///./desk.db"
-    token: str = os.getenv("DESK_TOKEN", "local-access-token")
+    token: str | None = field(default_factory=lambda: os.getenv("DESK_TOKEN") or None)
+    token_file: str = field(
+        default_factory=lambda: os.getenv("DESK_TOKEN_FILE") or str(Path.cwd() / ".desk-token")
+    )
     simulator: bool = os.getenv("SIMULATOR_ENABLED", "true").lower() == "true"
     ai_provider: str = os.getenv("AI_PROVIDER", "offline")
     gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
@@ -47,8 +50,8 @@ class Settings:
             raise ValueError("Providers must be offline, gemini, or openai")
         if self.tick_gap_seconds < 3:
             raise ValueError("TICK_GAP_SECONDS must be at least 3")
-        if not self.token:
-            raise ValueError("DESK_TOKEN is required")
+        if self.token is not None and (not self.token.strip() or not self.token.isascii()):
+            raise ValueError("DESK_TOKEN must be nonempty ASCII")
         if not 1 <= self.agent_max_rounds <= 12 or not 2 <= self.agent_max_tools <= 32:
             raise ValueError("Agent budgets must be rounds 1..12 and tools 2..32")
         if not 1 <= self.agent_timeout_seconds <= 300:

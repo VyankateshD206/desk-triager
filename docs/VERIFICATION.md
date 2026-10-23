@@ -1,5 +1,8 @@
 # Connection and release verification
 
+Historical npm commands below belong to past releases; use `make build`, `make test` and
+`make verify` for current development.
+
 Verified on **19 October 2026**, with the application running locally and its database hosted on Neon.
 
 ## Live service checks

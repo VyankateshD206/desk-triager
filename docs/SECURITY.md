@@ -107,3 +107,13 @@ Success means the exact attack sentinel becomes a hypothesis cause. Provider fai
 fallbacks are excluded from the denominator and counted separately. A missing denominator
 is unknown, not zero attack success. These probes test a narrow diagnostic-integrity objective;
 they do not measure authorization bypass, exfiltration, or general model safety.
+
+## Local first-run authentication
+
+With no explicit `DESK_TOKEN`, API startup generates a 256-bit random token in `.desk-token`,
+created with mode 0600, and prints it once to the local terminal. Later startups reuse it and
+print its file location. `DESK_TOKEN_FILE` selects another existing parent directory. Invalid,
+symlinked or group/world-readable POSIX token files fail closed. Explicit deployment tokens
+remain unchanged and are never printed. The console starts with an empty token field. The
+bootstrap token is registered for evidence redaction and its file is ignored by Git. Terminal
+output is sensitive; use a configured secret in deployments with shared log collection.

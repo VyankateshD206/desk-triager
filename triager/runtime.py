@@ -23,6 +23,7 @@ from .models import (
     Telemetry,
     now,
 )
+from .presentation import correlate, overview
 from .recovery import Recovery
 from .retrieval import Knowledge
 from .security import action_policy
@@ -60,6 +61,7 @@ class Desk:
                 )
         self.last_ingest = None
         self.errors = {}
+        self.started_at = now()
 
     def open_incident(self, db, service, kind, evidence):
         incident = db.scalar(
@@ -305,6 +307,13 @@ class Desk:
                 .order_by(Audit.at.desc())
             )
             result["investigation"] = latest.detail if latest else None
+            result.update(overview(row, latest))
+            result["timeline"] = [
+                record(a)
+                for a in db.scalars(
+                    select(Audit).where(Audit.incident_id == incident_id).order_by(Audit.id)
+                ).all()
+            ]
         result["policy"] = action_policy(
             {"action": result["action"], "target": result["service"]},
             incident_service=result["service"],
@@ -380,6 +389,13 @@ class Desk:
                         "estimated_cost_usd": result["estimated_cost_usd"],
                         "evidence_items": result["evidence_items"],
                         "tools": result["tool_trace"],
+                        "tool_events": result.get("tool_events", []),
+                        "rounds": result["rounds"],
+                        "tool_calls": result["tool_calls"],
+                        "budget": {
+                            "rounds": self.settings.agent_max_rounds,
+                            "tools": self.settings.agent_max_tools,
+                        },
                         "fallback_reason": result.get("fallback_reason"),
                         "fallback_http_status": result.get("fallback_http_status"),
                     },
@@ -422,6 +438,21 @@ class Desk:
                 ).all()
             )
             decision_count = sum(decisions.values())
+            diagnoses = db.scalars(
+                select(Audit)
+                .where(
+                    Audit.action == "diagnosed", Audit.incident_id.in_([i.id for i in incidents])
+                )
+                .order_by(Audit.id.desc())
+            ).all()
+            latest = {}
+            for entry in diagnoses:
+                latest.setdefault(entry.incident_id, entry)
+            summaries = correlate(
+                [{**record(i), **overview(i, latest.get(i.id))} for i in incidents],
+                self.settings.tick_gap_seconds,
+            )
+
             return {
                 "approval_feedback": {
                     "approved": decisions.get("approved", 0),
@@ -436,6 +467,7 @@ class Desk:
                 "tick_gap_seconds": self.settings.tick_gap_seconds,
                 "errors": self.errors.copy(),
                 "last_ingest": self.last_ingest,
+                "started_at": self.started_at,
                 "open_incident_count": sum(grouped.values()),
                 "open_incidents_by_service": {
                     service: grouped.get(service, 0) for service in SERVICES
@@ -445,7 +477,7 @@ class Desk:
                     dict(e.payload, score=float(e.score), received_at=e.received_at)
                     for e in reversed(events)
                 ],
-                "incidents": [record(i) for i in incidents],
+                "incidents": summaries,
                 "audit": [record(a) for a in audit],
                 "balances": self.db.reconcile(db),
                 "faults": self.faults.copy(),

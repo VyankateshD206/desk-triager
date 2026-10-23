@@ -9,10 +9,12 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__
+from .auth import local_token
 from .config import Settings
 from .limits import RateLimits
 from .models import SERVICES, Telemetry
 from .runtime import Desk
+from .security import register_secret
 from .telemetry import configure_tracing
 from .workers import recover_pending, simulate, supervise, triage_pending, watch
 
@@ -41,6 +43,13 @@ def create_app(settings=None):
 
     @asynccontextmanager
     async def lifespan(app):
+        if settings.token is None:
+            settings.token, created = local_token(settings.token_file)
+            register_secret(settings.token)
+            if created:
+                print("Local desk access token: " + settings.token, flush=True)
+            else:
+                print("Using the private token in " + settings.token_file, flush=True)
         tracer_provider = configure_tracing()
         desk = await asyncio.to_thread(Desk, settings)
         app.state.desk = desk
@@ -72,7 +81,7 @@ def create_app(settings=None):
 
     def authorize(request: Request, x_desk_token: str = Header(default="")):
         limits.check(request.client.host if request.client else "local", request.url.path)
-        if not hmac.compare_digest(x_desk_token, settings.token):
+        if not settings.token or not hmac.compare_digest(x_desk_token, settings.token):
             raise HTTPException(401, "Valid X-Desk-Token required")
 
     @app.get("/")

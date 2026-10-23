@@ -34,8 +34,8 @@ class Detector:
         # Negative margin indicates an outlier; this is not a probability.
         return float(self.model.decision_function(self.scaler.transform(values))[0])
 
-    def detect(self, event, nav_difference=False):
-        score = self.score(event)
+    @staticmethod
+    def rule_kinds(event, nav_difference=False):
         kinds = []
         if event.tick_age_ms > 5000:
             kinds.append("tick_gap")
@@ -45,6 +45,11 @@ class Detector:
             kinds.append("latency")
         if event.service == "portfolio-ledger" and nav_difference:
             kinds.append("nav_mismatch")
+        return kinds
+
+    def detect(self, event, nav_difference=False):
+        score = self.score(event)
+        kinds = self.rule_kinds(event, nav_difference)
         if score < 0 and not kinds:
             kinds.append("ml_degradation")
         return score, kinds

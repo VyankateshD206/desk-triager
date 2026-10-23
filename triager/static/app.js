@@ -84,15 +84,14 @@ function showError(error) {
   $("#error").classList.remove("hidden");
 }
 function updateGuide() {
-  ["detect", "review", "recover"].forEach((step) =>
-    $("#step-" + step).classList.remove("active"),
-  );
+  ["detect", "review", "recover"].forEach((step) => {$("#step-" + step).classList.remove("active"); $("#step-"+step).removeAttribute("aria-current");});
   if (!activeScenario) {
     $("#scenario-hint").textContent =
-      "Choose a failure to see how the desk responds.";
+      state && Object.keys(state.faults || {}).length ? "Active simulated faults: " + Object.entries(state.faults).map(([service,kind])=>`${service}: ${names[kind] || kind}`).join(" · ") : "No active scenario. Incident history is retained across sessions.";
     return;
   }
   $("#step-detect").classList.add("active");
+  $("#step-detect").setAttribute("aria-current", "step");
   const kind =
     activeScenario.kind === "silence" ? "tick_gap" : activeScenario.kind;
   const incident = state?.incidents.find(
@@ -114,12 +113,18 @@ function updateGuide() {
     sessionStorage.setItem("desk-scenario", JSON.stringify(activeScenario));
   }
   $("#step-review").classList.add("active");
+  $("#step-detect").removeAttribute("aria-current");
+  $("#step-review").setAttribute("aria-current", "step");
   if (incident.status === "resolved") {
     $("#step-recover").classList.add("active");
+    $("#step-review").removeAttribute("aria-current");
+    $("#step-recover").setAttribute("aria-current", "step");
     $("#scenario-hint").textContent =
       "Recovered. A fresh healthy sample confirmed success.";
   } else if (incident.status === "queued" || incident.status === "verifying") {
     $("#step-recover").classList.add("active");
+    $("#step-review").removeAttribute("aria-current");
+    $("#step-recover").setAttribute("aria-current", "step");
     $("#scenario-hint").textContent =
       incident.status === "queued" ? "Recovery queued for the worker…" : "Recovery approved. Checking fresh telemetry…";
   } else if (incident.status === "failed") {
@@ -131,26 +136,40 @@ function updateGuide() {
         : "Incident detected. Open Review below to approve recovery.";
   }
 }
-function renderChart(events) {
-  const width = 760,
-    left = 40,
-    max = Math.max(400, ...events.map((e) => e.fill_latency_ms));
-  const y = (value) => 145 - (value / max) * 128;
-  const points = events
-    .map(
-      (e, i) =>
-        `${left + (i * width) / Math.max(1, events.length - 1)},${y(e.fill_latency_ms)}`,
-    )
-    .join(" ");
-  const svg = $("#chart");
-  svg.innerHTML = `${[0, max].map((value) => `<line x1="${left}" y1="${y(value)}" x2="800" y2="${y(value)}" stroke="#30383b"/><text x="0" y="${y(value) + 4}" fill="#98a6a9" font-size="11">${Math.round(value)}</text>`).join("")}<line x1="${left}" y1="${y(350)}" x2="800" y2="${y(350)}" stroke="#ad8863" stroke-dasharray="4 5"/><polyline points="${points}" fill="none" stroke="#b9dfc4" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
-  $("#chart-start").textContent = events.length
-    ? clock(events[0].timestamp)
-    : "Waiting for samples";
+const metricSpec = {
+  fill_latency_ms: {label: "Fill latency", unit: "ms", threshold: 350, service: "execution-gateway"},
+  heartbeat_jitter_ms: {label: "Heartbeat jitter", unit: "ms", service: "execution-gateway"},
+  slippage_bps: {label: "Slippage", unit: "bps", service: "execution-gateway"},
+  tick_age_ms: {label: "Tick age", unit: "ms", threshold: 5000, service: "market-feed"},
+};
+const ageText = (at) => {
+  const seconds = Math.max(0, Math.floor((Date.now() - Date.parse(at)) / 1000));
+  return seconds < 60 ? `${seconds}s ago` : seconds < 3600 ? `${Math.floor(seconds / 60)}m ago` : seconds < 86400 ? `${Math.floor(seconds / 3600)}h ago` : `${Math.floor(seconds / 86400)}d ago`;
+};
+function chartSamples() {
+  return (state?.events || []).filter(e => e.service === metricSpec[$("#chart-metric").value].service);
 }
+function renderChart() {
+  const metric = $("#chart-metric").value, spec = metricSpec[metric], events = chartSamples();
+  const svg = $("#chart"), width = Math.max(240, svg.clientWidth), left = 44, right = width - 12;
+  const rawMax = Math.max(spec.unit === "bps" ? 2 : 20, ...events.map(e => e[metric])) * 1.2;
+  const step = spec.unit === "bps" ? 2 : rawMax < 200 ? 40 : rawMax < 1000 ? 200 : 2000;
+  const max = Math.ceil(rawMax/step)*step;
+  const y = v => 160 - (v / max) * 125;
+  svg.setAttribute("viewBox", `0 0 ${width} 190`);
+  svg.setAttribute("aria-label", `${spec.label} in ${spec.unit}; ${events.length} samples; auto-scaled from zero`);
+  svg.dataset.help = `${spec.label} in ${spec.unit}. Auto-scaled from zero. ${spec.threshold ? `Alert threshold ${spec.threshold} ${spec.unit}; an upward arrow means the threshold is outside the visible range.` : "No fixed numeric alert rule for this metric."}`;
+  const points = events.map((e,i) => `${left + i * (right-left) / Math.max(1,events.length-1)},${y(e[metric])}`).join(" ");
+  const ticks = [0,.25,.5,.75,1].map(f => `<line x1="${left}" y1="${y(max*f)}" x2="${right}" y2="${y(max*f)}" stroke="#30383b"/><text x="0" y="${y(max*f)+4}" fill="#aeb8bc" font-size="12">${max < 10 ? (max*f).toFixed(1) : Math.round(max*f)}</text>`).join("");
+  const thresholdY = spec.threshold ? Math.max(25, y(spec.threshold)) : 0;
+  const threshold = spec.threshold ? `<line x1="${left}" y1="${thresholdY}" x2="${right}" y2="${thresholdY}" stroke="#efbd8c" stroke-dasharray="4 5"/><text x="${right}" y="${thresholdY-8}" text-anchor="end" fill="#efbd8c" font-size="12">${spec.threshold} ${spec.unit} alert${spec.threshold > max ? " ↑ off scale" : ""}</text>` : "";
+  svg.innerHTML = `<text x="0" y="16" fill="#aeb8bc" font-size="12">${spec.unit}</text>${ticks}${threshold}<polyline points="${points}" fill="none" stroke="#b9dfc4" stroke-width="2"/>`;
+  $("#chart-start").textContent = events.length ? clock(events[0].timestamp) : "Waiting for samples";
+}
+
 function render(s) {
   state = s;
-  const unresolved = s.incidents.filter((i) => i.status !== "resolved");
+
   $("#open").textContent = s.open_incident_count;
   $("#open").style.color = s.open_incident_count
     ? "var(--orange)"
@@ -188,8 +207,10 @@ function render(s) {
   $("#session").textContent = degraded
     ? "Needs attention"
     : s.mode === "simulated desk"
-      ? "Monitoring services"
+      ? "Monitoring"
       : "Monitoring";
+  $("#global-mode").textContent = s.mode === "simulated desk" ? "SIMULATED" : "EXTERNAL TELEMETRY";
+  $("#sample-age").textContent = s.last_ingest ? "Last sample " + ageText(s.last_ingest) : "No samples yet";
   $("#session").style.color = degraded ? "var(--orange)" : "var(--green)";
   $("#updated").textContent = s.last_ingest
     ? "Updated " + clock(s.last_ingest)
@@ -206,18 +227,28 @@ function render(s) {
       stale = age > s.tick_gap_seconds;
     const status = count ? "Review" : stale ? "Stale" : "Healthy";
     node.className = "service" + (count || stale ? " attention" : "");
-    node.innerHTML = `${escape(service)}<small>${status}</small>`;
+    node.textContent = service;
+    node.setAttribute("aria-label", `${service}: ${status}`);
     node.dataset.help = `${service}: ${status.toLowerCase()}. Last accepted sample arrived ${age.toFixed(1)} seconds ago. Silence beyond ${s.tick_gap_seconds} seconds triggers a feed-gap incident. ${count} unresolved incident(s). A service can receive telemetry while its values are anomalous.`;
   }
   renderIncidents();
-  renderChart(gateway);
+  renderChart();
   renderSupporting(s);
   $("#inject").disabled = starting || s.mode !== "simulated desk";
   updateGuide();
   if (selected && $("#detail").open) {
     const current = s.incidents.find((i) => i.id === selected.id);
     if (current) {
+      const statusChanged = selected.status !== current.status;
       selected.status = current.status;
+      if (statusChanged) {
+        const id = selected.id;
+        api("/api/incidents/"+id).then(fresh => {
+          if (selected?.id === id && $("#detail").open) {
+            selected.execution=fresh.execution; renderTimeline(fresh); updateApproval();
+          }
+        }).catch(showError);
+      }
       if (current.report && !busy && current.report !== selected.report) {
         $("#report").textContent = current.report;
         if (selected.approval) selected.approval.status = "superseded";
@@ -227,20 +258,41 @@ function render(s) {
     }
   }
 }
+let incidentSort = {key: "opened_at", direction: -1};
+const openCorrelations = new Set();
+function incidentRow(i) {
+  const source = i.analysis_source ? (i.analysis_source === "offline" ? "Offline analysis" : i.analysis_source === "gemini" ? "Gemini" : i.analysis_source) : "Pending";
+  return `<tr class="incident-row" tabindex="0" data-id="${escape(i.id)}" aria-label="Review ${escape(i.signal || names[i.kind] || i.kind)} on ${escape(i.service)}">
+  <td><span class="severity ${escape(i.severity || "unknown")}">${escape(i.severity || "unknown")}</span></td>
+  <td>${escape(i.signal || names[i.kind] || i.kind)}<small>${escape(i.service)}</small></td>
+  <td><time datetime="${escape(i.opened_at)}" title="${escape(new Date(i.opened_at).toLocaleString())}">${clock(i.opened_at)}</time><small>${ageText(i.opened_at)}</small></td>
+  <td><div class="analysis-summary" title="${escape(i.summary)}">${escape(i.summary)}</div><span class="source-badge">${escape(source)}</span> ${i.abstained ? '<span class="source-badge">Insufficient evidence</span>' : ""}${i.fallback_reason ? ' <span class="source-badge">Fallback</span>' : ""}</td>
+  <td><span class="badge ${escape(i.status)}">${escape(statusLabels[i.status] || i.status)}</span></td>
+  <td><button class="inspect" data-id="${escape(i.id)}">${i.status === "open" ? "Review" : "View"}</button></td></tr>`;
+}
 function renderIncidents() {
   if (!state) return;
-  const rows = state.incidents.filter(
-    (i) => $("#show-history").checked || i.status !== "resolved",
-  );
-  $("#incident-rows").innerHTML =
-    rows
-      .map(
-        (i) =>
-          `<tr><td>${escape(names[i.kind] || i.kind)}</td><td>${escape(i.service)}</td><td><span class="badge ${escape(i.status)}">${escape(statusLabels[i.status] || i.status)}</span></td><td><button class="inspect" data-id="${escape(i.id)}">${i.status === "open" ? "Review" : "View"}</button></td></tr>`,
-      )
-      .join("") ||
-    '<tr><td class="empty" colspan="4"><strong>No open incidents</strong>Start a scenario to follow detection, diagnosis, and recovery.</td></tr>';
+  const severity = {critical:0, high:1, medium:2, low:3, unknown:4};
+  const rows = state.incidents.filter(i => $("#show-history").checked || i.status !== "resolved").sort((a,b) => incidentSort.direction * (incidentSort.key === "severity" ? (severity[a.severity] ?? 4) - (severity[b.severity] ?? 4) : a.opened_at.localeCompare(b.opened_at)));
+  const earlier = rows.filter(i => i.opened_at < state.started_at).length;
+  $("#history-note").textContent = earlier ? `${earlier} shown incident(s) retained from earlier sessions. No history is deleted when the server restarts.` : "";
+  const focused = document.activeElement;
+  const focusId = focused?.closest("[data-id]")?.dataset.id;
+  const focusWasButton = focused?.tagName === "BUTTON";
+  const shown = new Set();
+  $("#incident-rows").innerHTML = rows.map(i => {
+    if (!i.correlation) return incidentRow(i);
+    const group = i.correlation;
+    if (shown.has(group.id)) return "";
+    shown.add(group.id);
+    return `<tr class="correlation"><td colspan="6"><details data-correlation="${escape(group.id)}" ${openCorrelations.has(group.id) ? "open" : ""}><summary>Telemetry interruption · ${group.impacted_services.length} impacted services</summary><p>${escape(group.basis)}. Historical incidents remain until reviewed; approval is per service.</p><ul>${rows.filter(r=>r.correlation?.id===group.id).map(r=>`<li>${escape(r.service)} · ${escape(statusLabels[r.status])} <button class="inspect" data-id="${escape(r.id)}">Review service</button></li>`).join("")}</ul></details><small>${group.impacted_services.map(escape).join(" · ")} · Detected ${ageText(i.opened_at)}</small></td></tr>`;
+  }).join("") || `<tr><td class="empty" colspan="6"><strong>No open incidents ✓</strong>Last checked ${clock(new Date().toISOString())}</td></tr>`;
+  if (focusId) {
+    const row=[...$("#incident-rows").querySelectorAll("tr[data-id]")].find(r=>r.dataset.id===focusId);
+    (focusWasButton ? row?.querySelector("button") : row)?.focus({preventScroll:true});
+  }
 }
+
 function renderSupporting(s) {
   $("#events").textContent = s.event_count.toLocaleString();
   $("#balances").innerHTML =
@@ -263,6 +315,9 @@ function renderSupporting(s) {
     '<p class="subtle">Detection and recovery activity will appear here.</p>';
 }
 function updateApproval() {
+  if (selected.status === "resolved") $("#modal-message").textContent = "Recovery verified by fresh healthy telemetry. The incident is resolved.";
+  else if (selected.status === "verifying") $("#modal-message").textContent = "The fixed handler ran. Checking consecutive fresh healthy samples…";
+  else if (selected.status === "failed") $("#modal-message").textContent = "Recovery needs attention. Check the worker result and verification history.";
   $("#detail-status").textContent = statusLabels[selected.status] || selected.status;
   $("#detail-status").className = "badge " + selected.status;
   $("#approve").disabled =
@@ -280,7 +335,7 @@ function updateApproval() {
           ? "Verifying recovery…"
           : selected.status === "queued" ? "Recovery queued…"
           : selected.status === "failed" ? "Escalation required"
-          : "Approve recovery";
+          : "Approve simulated recovery";
 }
 async function refresh() {
   try {
@@ -292,6 +347,14 @@ async function refresh() {
     $("#session").textContent = "Disconnected";
   }
 }
+function renderTimeline(incident) {
+  const stages = [["Detected",["opened"]],["Triaged",["diagnosed"]],["Approved",["approval_queued"]],["Verifying",["reconnect_feed","enable_backoff","resync_orders","resync_ledger"]],["Resolved",["resolved"]]];
+  $("#incident-timeline").innerHTML = stages.map(([label,actions]) => {
+    const entry=(incident.timeline || []).filter(e=>actions.includes(e.action)).at(-1);
+    return `<li class="${entry?"done":""}">${label}<time ${entry?`datetime="${escape(entry.at)}"`:""}>${entry?clock(entry.at):"Pending"}</time></li>`;
+  }).join("");
+}
+
 function renderInvestigation(data) {
   const host = $("#investigation-trace");
   host.replaceChildren();
@@ -304,18 +367,47 @@ function renderInvestigation(data) {
   const diagnosis = data.diagnosis || {};
   line(`${data.provider || "unknown"} · ${diagnosis.abstained ? "Insufficient evidence" : `Confidence ${Math.round((diagnosis.confidence || 0) * 100)}% (uncalibrated)`}`);
   line(`Causal support: ${data.verification?.semantic_support || "not independently assessed"}`);
+  for (const hypothesis of diagnosis.hypotheses || []) {
+    const claim=document.createElement("p");
+    claim.append(document.createTextNode(hypothesis.cause + " "));
+    for (const id of hypothesis.evidence_ids || []) {
+      const link=document.createElement("a"); link.className="evidence-link";
+      link.href="#evidence-"+id; link.textContent="[source "+id.slice(0,8)+"…] "; claim.append(link);
+    }
+    host.append(claim);
+  }
+  if (data.fallback_reason) line(`Provider fallback: ${data.fallback_reason}`);
+  line(`Budget: ${data.rounds ?? "—"}/${data.budget?.rounds ?? "—"} reasoning rounds · ${data.tool_calls ?? "—"}/${data.budget?.tools ?? "—"} tool calls`);
+  for (const issue of data.verification?.issues || []) line(`Unsupported claim flagged: ${issue}`);
+  for (const tool of data.tool_events || []) {
+    const details=document.createElement("details"); details.className="tool-record";
+    const summary=document.createElement("summary");
+    summary.textContent=`${tool.tool} ${JSON.stringify(tool.arguments)} · ${tool.status} · ${Math.round(tool.latency_ms)} ms`;
+    const pre=document.createElement("pre"); pre.textContent=tool.result_summary + (tool.summary_truncated?" … (truncated)":"");
+    details.append(summary,pre);
+    const links = document.createElement("p");
+    for (const id of tool.evidence_ids || []) {
+      const link = document.createElement("a"); link.className="evidence-link";
+      link.href="#evidence-"+id; link.textContent="Evidence "+id.slice(0,8)+"… "; links.append(link);
+    }
+    details.append(links); host.append(details);
+  }
   const calls = data.model_calls || [];
   line(`Tokens: ${calls.reduce((n, c) => n + (c.input_tokens || 0), 0)} input / ${calls.reduce((n, c) => n + (c.output_tokens || 0), 0)} output. Estimated cost: ${data.estimated_cost_usd == null ? "unavailable" : "$" + data.estimated_cost_usd.toFixed(5)}`);
   for (const node of data.node_trace || []) line(`${node.node}: ${Math.round(node.latency_ms)} ms`);
+  const library=document.createElement("details");
+  const libraryTitle=document.createElement("summary"); libraryTitle.textContent=`Evidence library · ${(data.evidence_items || []).length} sources`;
+  library.append(libraryTitle); host.append(library);
   for (const item of data.evidence_items || []) {
     const details = document.createElement("details");
     const summary = document.createElement("summary");
     summary.textContent = `${item.source} · ${item.evidence_id.slice(0, 12)}…`;
+    details.id = "evidence-" + item.evidence_id;
     summary.title = item.evidence_id;
     const pre = document.createElement("pre");
     pre.textContent = item.content;
     details.append(summary, pre);
-    host.append(details);
+    library.append(details);
   }
 }
 async function inspect(id) {
@@ -326,6 +418,10 @@ async function inspect(id) {
     $("#detail-service").textContent = selected.service;
     $("#diagnosis").textContent = selected.diagnosis;
     $("#action").textContent = actions[selected.action] || selected.action;
+    const balance = selected.approval?.payload?.balance;
+    const balanceChange = balance ? ` Local NAV $${money(balance.local)} → simulated exchange NAV $${money(balance.exchange)}.` : "";
+    $("#approval-scope").textContent = `SIMULATED ONLY · ${selected.service}: ${actions[selected.action] || selected.action} This queues the fixed handler for this service; consecutive fresh healthy samples must confirm recovery. No real exchange action is sent.${balanceChange}`;
+    renderTimeline(selected);
     $("#script").textContent = selected.script;
     $("#evidence").textContent = JSON.stringify(selected.evidence, null, 2);
     $("#report").textContent =
@@ -349,14 +445,14 @@ $("#close").onclick = () => {
   hideHelp();
 };
 const savedToken = sessionStorage.getItem("desk-token");
-$("#token").value =
-  savedToken && savedToken !== "local-demo-token"
-    ? savedToken
-    : "local-access-token";
-$("#token").onchange = () => {
+$("#token").value = savedToken || "";
+if (!savedToken) document.querySelector(".settings").open = true;
+const connect = () => {
   sessionStorage.setItem("desk-token", $("#token").value);
   refresh();
 };
+$("#token").onchange = connect;
+$("#connect").onclick = connect;
 $("#fault").onchange = () => {
   $("#scenario-description").textContent =
     scenarios[$("#fault").value.split("|")[0]];
@@ -417,6 +513,7 @@ async function submitDecision(approved) {
     await api("/api/incidents/" + selected.id + (approved ? "/approve" : "/reject"), body,
       {"Idempotency-Key": key});
     selected = await api("/api/incidents/" + selected.id);
+    renderTimeline(selected);
     $("#modal-message").textContent = approved
       ? "Recovery queued. The worker will apply it, then check consecutive fresh healthy samples."
       : "Rejection recorded. Refresh the diagnosis before proposing another recovery.";
@@ -484,21 +581,26 @@ document.addEventListener("keydown", (event) => {
 });
 window.addEventListener("scroll", hideHelp, true);
 $("#chart").addEventListener("pointermove", (event) => {
-  const events = state?.events.filter((e) => e.service === "execution-gateway");
-  if (!events?.length) return;
-  const rect = $("#chart").getBoundingClientRect(),
-    fraction = (((event.clientX - rect.left) / rect.width) * 800 - 40) / 760;
-  const index = Math.max(
-      0,
-      Math.min(events.length - 1, Math.round(fraction * (events.length - 1))),
-    ),
-    sample = events[index];
-  showHelp(
-    $("#chart"),
-    `${clock(sample.timestamp)} · ${sample.fill_latency_ms.toFixed(1)} ms\nTime from simulated order submission to fill. ${sample.fill_latency_ms > 350 ? "Above" : "Below"} the 350 ms latency alert threshold.`,
-    event.clientX,
-    event.clientY,
-  );
+  const events = chartSamples(); if (!events.length) return;
+  const rect = $("#chart").getBoundingClientRect();
+  const fraction = (event.clientX - rect.left - 44) / Math.max(1,rect.width-56);
+  const sample = events[Math.max(0, Math.min(events.length-1, Math.round(fraction*(events.length-1))))];
+  const metric = $("#chart-metric").value, spec = metricSpec[metric];
+  showHelp($("#chart"), `${clock(sample.timestamp)} · ${spec.label} ${sample[metric].toFixed(1)} ${spec.unit}`, event.clientX,event.clientY);
+});
+$("#chart-metric").onchange = renderChart;
+window.addEventListener("resize", renderChart);
+document.querySelectorAll("[data-sort]").forEach(button => button.onclick = () => {
+  incidentSort = {key:button.dataset.sort, direction:incidentSort.key === button.dataset.sort ? -incidentSort.direction : button.dataset.sort === "severity" ? 1 : -1};
+  document.querySelectorAll("[data-sort]").forEach(b=>b.closest("th").removeAttribute("aria-sort"));
+  button.closest("th").setAttribute("aria-sort",incidentSort.direction===1?"ascending":"descending"); renderIncidents();
+});
+$("#incident-rows").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("tr[data-id]")) {e.preventDefault(); inspect(e.target.dataset.id);} });
+$("#incident-rows").addEventListener("toggle", e => { const id=e.target.dataset.correlation; if(id) {if(e.target.open) openCorrelations.add(id); else openCorrelations.delete(id);} }, true);
+$("#investigation-trace").addEventListener("click", e => {
+  const link=e.target.closest(".evidence-link"); if(!link) return;
+  e.preventDefault(); const target=document.getElementById(link.hash.slice(1));
+  if(target) {target.open=true; const library=target.parentElement; if(library.tagName==="DETAILS") library.open=true; target.scrollIntoView({block:"nearest"});}
 });
 const savedScenario = sessionStorage.getItem("desk-scenario-selection");
 if ([...$("#fault").options].some((option) => option.value === savedScenario))

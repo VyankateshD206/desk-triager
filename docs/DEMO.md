@@ -108,7 +108,7 @@ accuracy or a real exchange action.
 
 To reproduce against an isolated local instance, install Playwright as an optional development
 tool (`npm install --no-save playwright` and `npx playwright install chromium`), then run
-`DEMO_URL=http://127.0.0.1:18080 node scripts/record_demo.mjs`. Output defaults to
+`DEMO_TOKEN=YOUR_ISOLATED_TOKEN DEMO_URL=http://127.0.0.1:18080 node scripts/record_demo.mjs`. Output defaults to
 `/tmp/desk-demo`. The script injects one rate-limit fault and approves its fixed simulator
-recovery. Use the default local demo token and a disposable database. It checks browser
+recovery. Supply the token for an explicitly configured local demo and a disposable database. It checks browser
 errors, the approval acknowledgment and the final recovered progress state.
