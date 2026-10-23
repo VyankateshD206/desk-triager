@@ -1,7 +1,8 @@
 # Evaluation foundation
 
 Version 1.1.0 introduces evidence and report contracts plus a reproducible offline baseline.
-It does not yet migrate the live diagnosis flow to LangGraph.
+Version 1.2.0 migrates live diagnosis to LangGraph. The seed evaluation still runs only
+the shared rules baseline; a controlled LLM comparison remains pending.
 
 ## Run
 
@@ -34,7 +35,7 @@ the scorer detects failures. The workflow uploads the baseline report for inspec
 ## Next milestones
 
 1. Add a label-blind single-prompt provider baseline and adapt the existing agent.
-2. Introduce a bounded LangGraph investigation loop with persisted checkpoints.
+2. Evaluate the bounded LangGraph loop (implemented in v1.2.0) against the prompt baseline.
 3. Expand to 40 reviewed cases and split by source incident or fault family.
 4. Add root-cause rubrics, semantic support checks, and manual judge audits.
 5. Add injection cases, unsafe-action recall, false-block rates, and hard policy gates.

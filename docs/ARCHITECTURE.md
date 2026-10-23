@@ -7,7 +7,7 @@ flowchart LR
     W --> D
     D --> N[(Neon PostgreSQL / local SQLite)]
     V[Receipt-time watchdog] --> N
-    N --> T[Triage worker]
+    N --> T[LangGraph triage worker]
     T <-->|read-only tools| G[Gemini REST / offline fallback]
     T --> N
     UI[Desk console] --> API[Authenticated FastAPI]
@@ -29,7 +29,10 @@ One Python process owns simulation, ingestion, detection, and recovery. SQL is t
 
 ## Diagnosis
 
-A background worker handles one undiagnosed open incident at a time. It stores the report, so repeated anomalous samples do not create more model calls. Manual refresh is explicit. Gemini can request only scoped log reads and a fixed balance reconciliation query. A bounded REST loop preserves model response parts for function-call continuity. Provider failures return deterministic offline evidence.
+A background worker handles one undiagnosed open incident at a time. It stores the report, so repeated anomalous samples do not create more model calls. Manual refresh is explicit. Gemini can request only scoped log reads and a fixed balance reconciliation query. A bounded LangGraph loop preserves model response parts for function-call continuity. Each
+node checkpoints to a local SQLite file. Provider failures return offline symptom analysis;
+budget exhaustion returns an abstention. The model receives service-scoped evidence, not the
+detector's predefined diagnosis or action. See [workflow limits](AGENT_WORKFLOW.md).
 
 ## Interface
 

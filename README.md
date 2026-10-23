@@ -4,7 +4,7 @@
 
 A Python support platform that monitors execution telemetry, detects silent service failures, investigates logs and ledger differences, and proposes a recovery for trader approval.
 
-**Python · FastAPI · PostgreSQL / Neon · scikit-learn · Gemini REST API**
+**Python · FastAPI · LangGraph · PostgreSQL / Neon · scikit-learn · Gemini REST API**
 
 ![Trading-service observatory](docs/desk-console.png)
 
@@ -65,7 +65,7 @@ flowchart LR
     I --> D[Rules + Isolation Forest]
     D --> DB[(PostgreSQL / SQLite)]
     W[Silence watchdog] --> DB
-    DB --> T[Automatic triage]
+    DB --> T[Checkpointed LangGraph investigation]
     T <-->|read-only tools| G[Gemini REST / offline fallback]
     T --> DB
     U[Trader console] -->|approval| R[Allowlisted recovery]
@@ -78,10 +78,11 @@ See [architecture and tradeoffs](docs/ARCHITECTURE.md) and [operational runbooks
 
 ## Agent evaluation foundation (v1.1.0)
 
-Provider-independent diagnosis schemas now validate confidence, abstention, and evidence
-references. Evidence IDs bind content to its source, service, and timestamp. These contracts
-are the foundation for the planned LangGraph migration; the running agent still uses the
-existing Gemini REST workflow.
+Provider-independent diagnosis schemas validate confidence, abstention, and evidence
+references. Evidence IDs bind content to its source, service, and timestamp. Since v1.2.0,
+the running agent uses a bounded LangGraph investigation loop with SQLite checkpoints.
+Gemini uses REST inside the reasoning node; offline mode uses the shared symptom baseline.
+See [the graph workflow](docs/AGENT_WORKFLOW.md).
 
 Run the credential-free seed evaluation from the repository root:
 
@@ -144,7 +145,10 @@ triager/
   app.py          Authenticated FastAPI routes and worker lifecycle
   runtime.py      Ingestion, incidents, approvals, and verification
   detector.py     Rule thresholds and Isolation Forest baseline
-  agent.py        Bounded, read-only Gemini REST tool calling
+  agent.py        Scoped tools, Gemini REST provider, checkpoint lifecycle
+  workflow.py     Bounded LangGraph investigation and citation validation
+  contracts.py    Diagnosis and evidence schemas
+  baseline.py     Conservative offline symptom classification
   db.py           SQLAlchemy engine and balance reconciliation
   models.py       Telemetry validation and SQL tables
   workers.py      Simulation, watchdog, and triage workers

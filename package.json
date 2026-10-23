@@ -1,6 +1,6 @@
 {
   "name": "desk-triager",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Build and run the Python trading-service observatory",
   "engines": { "node": ">=18" },
