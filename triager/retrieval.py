@@ -7,9 +7,9 @@ import re
 import httpx
 import numpy as np
 from sklearn.feature_extraction.text import HashingVectorizer
-from sqlalchemy import select
+from sqlalchemy import Float, cast, select
 
-from .models import KnowledgeChunk, now
+from .models import KnowledgeChunk, PublicVector, now
 from .recovery import digest
 from .security import redact_text
 
@@ -147,7 +147,9 @@ class Knowledge:
                 if not np.any(vector):
                     return []
                 if self.db.engine.dialect.name == "postgresql":
-                    distance = KnowledgeChunk.embedding.cosine_distance(vector)
+                    distance = KnowledgeChunk.embedding.op(
+                        "OPERATOR(public.<=>)", return_type=Float
+                    )(cast(vector, PublicVector(DIMENSIONS)))
                     found = session.execute(
                         statement.add_columns(distance).order_by(distance).limit(limit)
                     ).all()
