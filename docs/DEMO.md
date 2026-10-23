@@ -98,3 +98,17 @@ when verification fails. Run it against the default offline stack to avoid model
 Named volumes preserve database history, graph checkpoints, logs, and metrics when stopping.
 The verification script adds test incidents and checkpoints to that demo history. For a
 separate clean experiment, use a different Compose project name with `-p`.
+
+## Recorded console walkthrough
+
+[Watch the local console demo](media/desk-demo.webm). The recording uses isolated SQLite,
+offline reasoning and simulated telemetry. It demonstrates detection, evidence review,
+approval, worker execution and recovery confirmation; it does not demonstrate live LLM
+accuracy or a real exchange action.
+
+To reproduce against an isolated local instance, install Playwright as an optional development
+tool (`npm install --no-save playwright` and `npx playwright install chromium`), then run
+`DEMO_URL=http://127.0.0.1:18080 node scripts/record_demo.mjs`. Output defaults to
+`/tmp/desk-demo`. The script injects one rate-limit fault and approves its fixed simulator
+recovery. Use the default local demo token and a disposable database. It checks browser
+errors, the approval acknowledgment and the final recovered progress state.
