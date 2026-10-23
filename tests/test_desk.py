@@ -19,6 +19,7 @@ def desk(tmp_path):
             database_url=f"sqlite:///{tmp_path}/test.db",
             simulator=True,
             ai_provider="offline",
+            tick_gap_seconds=8,
         )
     )
     yield desk
