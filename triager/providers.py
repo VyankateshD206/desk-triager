@@ -56,6 +56,20 @@ def response_input(contents):
     return items
 
 
+def openai_schema(schema):
+    """Translate Gemini's uppercase schema types to standard JSON Schema."""
+    if isinstance(schema, dict):
+        return {
+            key: (
+                value.lower() if key == "type" and isinstance(value, str) else openai_schema(value)
+            )
+            for key, value in schema.items()
+        }
+    if isinstance(schema, list):
+        return [openai_schema(value) for value in schema]
+    return schema
+
+
 def request_once(settings, instruction, contents, declarations, timeout, provider):
     model = settings.openai_model if provider == "openai" else settings.gemini_model
     if not re.fullmatch(r"[A-Za-z0-9._-]+", model):
@@ -109,7 +123,7 @@ def request_once(settings, instruction, contents, declarations, timeout, provide
                         "type": "function",
                         "name": tool["name"],
                         "description": tool["description"],
-                        "parameters": tool["parameters"],
+                        "parameters": openai_schema(tool["parameters"]),
                         "strict": False,
                     }
                     for tool in declarations

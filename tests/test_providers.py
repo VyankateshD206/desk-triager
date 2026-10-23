@@ -18,6 +18,7 @@ def test_openai_responses_tool_roundtrip_preserves_call_ids(monkeypatch):
         assert request.url == "https://api.openai.com/v1/responses"
         assert request.headers["Authorization"] == "Bearer synthetic-key"
         if len(requests) == 1:
+            assert requests[0]["tools"][0]["parameters"]["type"] == "object"
             output = [
                 {
                     "type": "function_call",
@@ -48,7 +49,19 @@ def test_openai_responses_tool_roundtrip_preserves_call_ids(monkeypatch):
     )
     settings = Settings(ai_provider="openai")
     contents = [{"role": "user", "parts": [{"text": "Return JSON"}]}]
-    first = complete(settings, "Return JSON", contents, [], time.time() + 30)
+    first = complete(
+        settings,
+        "Return JSON",
+        contents,
+        [
+            {
+                "name": "get_metrics",
+                "description": "Metrics",
+                "parameters": {"type": "OBJECT", "properties": {}},
+            }
+        ],
+        time.time() + 30,
+    )
     assert first["_usage"]["input_tokens"] == 20
     assert first["_provider"] == "openai"
     contents.append({k: v for k, v in first.items() if k not in {"_usage", "_provider"}})

@@ -11,6 +11,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
+from uuid import uuid4
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 
@@ -131,7 +132,7 @@ def run_case(inputs, mode, settings, directory, knowledge):
     else:
         with SqliteSaver.from_conn_string(agent.checkpoint_path) as saver:
             graph = build_graph(agent, saver)
-            run_id = "benchmark-" + mode
+            run_id = "benchmark-" + mode + "-" + uuid4().hex
             result = agent.result(
                 graph.invoke(
                     {
