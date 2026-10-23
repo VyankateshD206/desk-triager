@@ -27,7 +27,7 @@ TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|AIza[A-Za-z0-9_-]{30,})\b")
 
 
 def redact_text(text):
-    for name in ("GEMINI_API_KEY", "DESK_TOKEN", "DATABASE_URL"):
+    for name in ("GEMINI_API_KEY", "OPENAI_API_KEY", "DESK_TOKEN", "DATABASE_URL"):
         value = os.getenv(name, "")
         if len(value) >= 8:
             text = text.replace(value, "[REDACTED]")

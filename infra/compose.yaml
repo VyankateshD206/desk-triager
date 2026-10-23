@@ -1,7 +1,7 @@
 name: desk-triager-demo
 services:
   postgres:
-    image: postgres:17.6-alpine
+    image: pgvector/pgvector:0.8.7-pg17
     environment:
       POSTGRES_USER: desk
       POSTGRES_PASSWORD: local-demo-password

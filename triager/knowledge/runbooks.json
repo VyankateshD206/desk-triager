@@ -1,0 +1,58 @@
+[
+  {
+    "document_id": "runbook:feed",
+    "version": "1",
+    "service": "market-feed",
+    "title": "Stale feed and transport silence",
+    "content": "Compare tick age and receipt heartbeat. A websocket disconnect, DNS failure, or network path interruption can stop fresh quotes. Inspect transport logs and connection metrics before a simulated reconnect.",
+    "source": "repo:docs/RUNBOOKS.md"
+  },
+  {
+    "document_id": "runbook:throttle",
+    "version": "1",
+    "service": "execution-gateway",
+    "title": "Exchange rate limits and retry storms",
+    "content": "HTTP 429 with Retry-After indicates exchange throttling. Check retry pacing and rejected requests. Use bounded backoff; do not replay orders blindly.",
+    "source": "repo:docs/RUNBOOKS.md"
+  },
+  {
+    "document_id": "runbook:slow-sql",
+    "version": "1",
+    "service": "execution-gateway",
+    "title": "Slow SQL query and order backlog",
+    "content": "High SQL duration alongside fill latency suggests a slow query or database contention. Inspect query duration and connection saturation. A busy CPU or bad routing deployment needs different evidence.",
+    "source": "repo:docs/RUNBOOKS.md"
+  },
+  {
+    "document_id": "runbook:memory",
+    "version": "1",
+    "service": "execution-gateway",
+    "title": "Retained buffers and memory pressure",
+    "content": "Growing retained buffer bytes alongside fill latency suggests a memory retention problem. Compare memory trend and SQL duration; a normal query duration helps distinguish memory pressure from slow SQL.",
+    "source": "repo:docs/RUNBOOKS.md"
+  },
+  {
+    "document_id": "runbook:deploy",
+    "version": "1",
+    "service": "execution-gateway",
+    "title": "Routing latency after deployment",
+    "content": "Correlate a routing delay regression with deployment timestamps and configuration diffs. A changed retry delay can increase fill latency despite healthy database timings. Request review before rollback.",
+    "source": "repo:docs/RUNBOOKS.md"
+  },
+  {
+    "document_id": "runbook:ledger",
+    "version": "1",
+    "service": "portfolio-ledger",
+    "title": "NAV reconciliation mismatch",
+    "content": "Compare each account using Decimal precision and a one-cent tolerance. An exchange snapshot discrepancy may require settlement investigation. Never overwrite a live ledger from one unverified snapshot.",
+    "source": "repo:docs/RUNBOOKS.md"
+  },
+  {
+    "document_id": "runbook:drift",
+    "version": "1",
+    "service": "execution-gateway",
+    "title": "Feature drift with insufficient cause",
+    "content": "Slippage and heartbeat drift outside a synthetic baseline is an anomaly signal, not a root cause or probability. Obtain additional logs and metrics; abstain if evidence cannot distinguish causes.",
+    "source": "repo:docs/RUNBOOKS.md"
+  }
+]

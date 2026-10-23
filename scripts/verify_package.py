@@ -15,6 +15,9 @@ with ZipFile(wheel) as archive:
         "triager/static/index.html",
         "triager/static/app.js",
         "triager/static/style.css",
+        "triager/migrations/env.py",
+        "triager/migrations/versions/0001_schema.py",
+        "triager/knowledge/runbooks.json",
     }
     if not required.issubset(names):
         raise SystemExit("Application or console assets missing from wheel")

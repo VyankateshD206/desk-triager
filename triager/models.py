@@ -2,11 +2,23 @@ from datetime import datetime, timezone
 from typing import Literal
 from uuid import uuid4
 
+from pgvector.sqlalchemy import Vector
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
-from sqlalchemy import JSON, Column, Integer, Numeric, String, Text
+from sqlalchemy import JSON, Boolean, Column, Integer, Numeric, String, Text
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
+
+
+class PublicVector(Vector):
+    """Resolve the shared extension type even inside an isolated schema."""
+
+    cache_ok = True
+
+    def get_col_spec(self, **kwargs):
+        return "public." + super().get_col_spec(**kwargs)
+
+
 SERVICES = ("market-feed", "execution-gateway", "portfolio-ledger")
 KINDS = ("tick_gap", "rate_limit", "nav_mismatch", "latency", "ml_degradation")
 
@@ -120,3 +132,18 @@ class SimulatorFault(Base):
     service = Column(String, primary_key=True)
     kind = Column(String, nullable=False)
     generation = Column(String, nullable=False)
+
+
+class KnowledgeChunk(Base):
+    __tablename__ = "knowledge_chunks"
+    id = Column(String(64), primary_key=True)
+    document_id = Column(String, nullable=False, index=True)
+    document_version = Column(String, nullable=False)
+    service = Column(String, nullable=False, index=True)
+    title = Column(String, nullable=False)
+    content = Column(Text, nullable=False)
+    source = Column(String, nullable=False)
+    embedding_version = Column(String, nullable=False)
+    embedding = Column(PublicVector(768).with_variant(JSON, "sqlite"), nullable=False)
+    active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(String, nullable=False)

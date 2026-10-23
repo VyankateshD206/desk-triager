@@ -27,8 +27,12 @@ class Settings:
     agent_timeout_seconds: float = 60
     verification_timeout_seconds: float = 30
     verification_samples: int = 2
+    retrieval_enabled: bool = os.getenv("RETRIEVAL_ENABLED", "true").lower() == "true"
+    embedding_provider: str = os.getenv("EMBEDDING_PROVIDER", "hash")
 
     def validate(self):
+        if self.embedding_provider not in {"hash", "gemini"}:
+            raise ValueError("Embedding provider must be hash or gemini")
         if self.ai_provider not in {"offline", "gemini"}:
             raise ValueError("AI_PROVIDER must be offline or gemini")
         if self.tick_gap_seconds < 3:

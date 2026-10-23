@@ -24,6 +24,7 @@ from .models import (
     now,
 )
 from .recovery import Recovery
+from .retrieval import Knowledge
 from .security import action_policy
 
 log = logging.getLogger(__name__)
@@ -41,6 +42,8 @@ class Desk:
         self.settings = settings
         self.db = Database(settings.database_url)
         self.db.initialize(seed=settings.simulator)
+        if settings.retrieval_enabled:
+            Knowledge(self.db, settings.embedding_provider).seed()
         self.detector = Detector()
         self.agent = TriageAgent(self.db, settings)
         self.lock = threading.RLock()

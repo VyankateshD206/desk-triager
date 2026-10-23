@@ -14,6 +14,7 @@ from .baseline import rules_baseline
 from .contracts import Diagnosis, Evidence, IncidentInput
 from .models import SERVICES, Event, now
 from .observability import DESCRIPTIONS, ObservabilityTools
+from .retrieval import Knowledge
 from .security import redact_text, sanitize
 from .workflow import build_graph
 
@@ -58,12 +59,17 @@ class TriageAgent:
         }
 
     def tools(self, service):
-        return {
+        tools = {
             "inspect_service_logs": lambda: self.inspect(service),
             "reconcile_balances": self.db.reconcile,
             "get_service_metrics": lambda: self.metrics(service),
             **ObservabilityTools(self.settings).tools(service),
         }
+        if self.settings.retrieval_enabled:
+            tools["search_runbooks"] = lambda: Knowledge(
+                self.db, self.settings.embedding_provider
+            ).search(service, json.dumps(self.inspect(service), sort_keys=True))
+        return tools
 
     @staticmethod
     def evidence_item(source, service, content, at=None):
@@ -109,6 +115,16 @@ class TriageAgent:
                 ("inspect_service_logs", "Read recent service logs; initially collected."),
                 ("reconcile_balances", "Read ledger differences; initially collected."),
                 ("get_service_metrics", "Read fill latency and reject metrics."),
+                *(
+                    [
+                        (
+                            "search_runbooks",
+                            "Retrieve reviewed runbooks and past incidents for this service.",
+                        )
+                    ]
+                    if self.settings.retrieval_enabled
+                    else []
+                ),
                 *[
                     (name, DESCRIPTIONS[name])
                     for name in ObservabilityTools(self.settings).tools(state["service"])

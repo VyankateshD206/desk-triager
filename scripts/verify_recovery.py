@@ -10,6 +10,7 @@ from sqlalchemy import func, select, text
 from triager.config import Settings
 from triager.db import Database
 from triager.models import RecoveryJob, Telemetry
+from triager.retrieval import Knowledge
 from triager.runtime import Desk
 
 
@@ -30,6 +31,12 @@ def main():
                 graph_checkpoint_path=directory + "/graph.sqlite3",
             )
             desk = Desk(settings)
+            assert (
+                Knowledge(desk.db).search("execution-gateway", "slow SQL query duration")[0][
+                    "document_id"
+                ]
+                == "runbook:slow-sql"
+            )
             desks.append(desk)
             desk.inject("nav_mismatch", "portfolio-ledger")
             for sample in desk.generate():

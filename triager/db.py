@@ -1,9 +1,12 @@
 from decimal import Decimal
+from pathlib import Path
 
-from sqlalchemy import create_engine, select
+from alembic import command
+from alembic.config import Config
+from sqlalchemy import create_engine, select, text
 from sqlalchemy.orm import sessionmaker
 
-from .models import Balance, Base
+from .models import Balance
 
 
 class Database:
@@ -24,7 +27,14 @@ class Database:
         self.Session = sessionmaker(self.engine, expire_on_commit=False)
 
     def initialize(self, seed=False):
-        Base.metadata.create_all(self.engine)
+        if self.engine.dialect.name == "postgresql":
+            with self.engine.begin() as connection:
+                connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public"))
+        config = Config()
+        config.set_main_option("script_location", str(Path(__file__).parent / "migrations"))
+        with self.engine.begin() as connection:
+            config.attributes["connection"] = connection
+            command.upgrade(config, "head")
         if seed:
             with self.Session.begin() as db:
                 # Preserve balances from installations that used the original account identifier.
