@@ -32,3 +32,6 @@ htmlcov/
 node_modules/
 .npm/
 .neon/
+
+# Local career and publishing notes
+/.local-notes/

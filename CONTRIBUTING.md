@@ -20,4 +20,4 @@ pytest -q
 
 Validate a relevant failure scenario through detection, review, approval, and verification when changing the incident workflow. Keep synthetic data and simulated recovery clearly identified. Record architectural tradeoffs in `docs/ARCHITECTURE.md` and operational steps in `docs/RUNBOOKS.md`.
 
-Open a pull request describing the problem, changed behavior, and verification results. Schema changes need an explicit migration strategy; `create_all` only initializes missing tables.
+Open a pull request describing the problem, changed behavior, and verification results. Use `make build` and `make test`. Schema changes need an Alembic migration and upgrade verification.

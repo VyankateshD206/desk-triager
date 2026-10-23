@@ -153,19 +153,21 @@ TICK_GAP_SECONDS=30
 
 Without cloud credentials, the app uses SQLite and offline triage. See [.env.example](.env.example) for all settings. Keep credentials private; `.env` files are excluded from Git. Gemini requests may incur API charges.
 
-## Build and run with npm
+## Development commands
 
-The application remains Python. These npm commands delegate to the local `.venv` interpreter and require no Node runtime service dependencies:
+The app is Python with a vanilla JavaScript console. No npm wrapper is required.
 
 ```bash
-npm ci --ignore-scripts
-npm run build          # Lint, validate JavaScript, build wheel, verify packaged assets
-npm start              # Start the Python service on localhost:8000
-npm test               # Run isolated regression tests
-npm run verify:services # Exercise live Neon + Gemini through the running service
+make build   # Lint, optional Node syntax validation, wheel and asset verification
+make run     # Serve on localhost:8000
+make test    # Isolated regression suite
+make eval    # Offline agent, security and detection measurements
+make verify  # Explicit live service verification against the running app
 ```
 
-`npm run verify:services` requires configured credentials and a running application. It creates one synthetic rate-limit incident, uses the automatic triage report, approves recovery, and independently verifies the retained SQL audit history. Build output is under `dist/` and excludes local credentials and database files.
+`make verify` needs configured database/Gemini credentials and creates a synthetic incident
+and recovery. Build output is under `dist/`; credentials and runtime state are excluded.
+See [the next improvement cycle](docs/IMPROVEMENTS.md) and [detector evaluation](docs/DETECTION.md).
 
 ## Validation
 
@@ -198,7 +200,7 @@ triager/
   static/         Console, contextual explanations, and chart
 tests/            Behavioral regression tests
 scripts/          Credential-safe connection check
-docs/             Architecture, runbooks, interview notes, publishing
+docs/             Architecture, runbooks, evaluation results
 .github/          Continuous integration and pull request template
 ```
 
