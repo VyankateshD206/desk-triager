@@ -227,6 +227,12 @@ def test_gemini_rest_tool_loop_and_unknown_tool_rejected(desk, monkeypatch):
                                 {
                                     "cause": "Exchange throttling",
                                     "evidence_ids": [evidence[0]["evidence_id"]],
+                                    "supporting_quotes": [
+                                        {
+                                            "evidence_id": evidence[0]["evidence_id"],
+                                            "quote": evidence[0]["content"][:40],
+                                        }
+                                    ],
                                 }
                             ],
                         }
@@ -323,3 +329,16 @@ def test_legacy_account_is_renamed_without_changing_balances(desk):
         balance = db.get(Balance, "desk-primary")
         assert balance.local_nav == Decimal("999000.00")
         assert balance.exchange_nav == Decimal("998750.00")
+
+
+def test_policy_rechecks_persisted_action_against_incident_kind(desk):
+    from triager.models import Incident
+
+    desk.ingest(event(reject_code="429"))
+    incident = desk.snapshot()["incidents"][0]
+    with desk.db.Session.begin() as session:
+        session.get(Incident, incident["id"]).action = "resync_ledger"
+    assert desk.proposal(incident["id"])["policy"]["disposition"] == "blocked"
+    with pytest.raises(ValueError):
+        desk.approve(incident["id"], "resync_ledger", "operator")
+    assert desk.proposal(incident["id"])["status"] == "open"

@@ -46,6 +46,13 @@ def report(state, citation=None):
                                 "evidence_ids": [
                                     citation or state["evidence_items"][0]["evidence_id"]
                                 ],
+                                "supporting_quotes": [
+                                    {
+                                        "evidence_id": citation
+                                        or state["evidence_items"][0]["evidence_id"],
+                                        "quote": "HTTP 429",
+                                    }
+                                ],
                             }
                         ],
                     }
@@ -224,3 +231,19 @@ def test_expiration_during_schema_repair_terminates(agent, monkeypatch):
     result = agent.diagnose({"service": "execution-gateway"})
     assert result["diagnosis"]["abstained"]
     assert result["fallback_reason"] == "InvestigationBudgetExceeded"
+
+
+def test_legacy_checkpoint_requires_fresh_diagnosis(agent):
+    from langgraph.graph import END, START, StateGraph
+
+    from triager.workflow import InvestigationState
+
+    with SqliteSaver.from_conn_string(agent.checkpoint_path) as saver:
+        builder = StateGraph(InvestigationState)
+        builder.add_edge(START, END)
+        graph = builder.compile(checkpointer=saver)
+        graph.invoke(
+            {"service": "execution-gateway", "run_id": "legacy"}, agent.run_config("legacy")
+        )
+    with pytest.raises(ValueError, match="predates security"):
+        agent.resume("legacy")

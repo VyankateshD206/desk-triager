@@ -107,6 +107,14 @@ def main():
                                                     {
                                                         "cause": "Controlled SQL delay in demo service",
                                                         "evidence_ids": refs,
+                                                        "supporting_quotes": [
+                                                            {
+                                                                "evidence_id": e["evidence_id"],
+                                                                "quote": e["content"][:120],
+                                                            }
+                                                            for e in state["evidence_items"]
+                                                            if e["evidence_id"] in refs
+                                                        ],
                                                     }
                                                 ],
                                             }

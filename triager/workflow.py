@@ -8,7 +8,9 @@ import httpx
 from langgraph.graph import END, START, StateGraph
 from pydantic import ValidationError
 
-from .contracts import Diagnosis, Evidence, unsupported_citations
+from .contracts import Diagnosis, Evidence
+from .security import sanitize
+from .verification import verify_support
 
 
 class InvestigationState(TypedDict, total=False):
@@ -29,12 +31,14 @@ class InvestigationState(TypedDict, total=False):
     fallback_reason: str
     fallback_http_status: int
     result: dict
+    verification: dict
+    security_version: str
 
 
 def build_graph(agent, checkpointer, *, interrupt_after=None):
     def collect(state):
-        logs = agent.inspect(state["service"])
-        balances = agent.db.reconcile()
+        logs = sanitize(agent.inspect(state["service"]))
+        balances = sanitize(agent.db.reconcile())
         items = [
             agent.evidence_item("telemetry:" + row["event_id"], state["service"], row, row["at"])
             for row in logs
@@ -42,6 +46,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
         items.append(agent.evidence_item("ledger:snapshot", state["service"], balances))
         return {
             "evidence": {"logs": logs, "reconciliation": balances},
+            "security_version": "1",
             "evidence_items": items,
             "rounds": 0,
             "schema_retries": 0,
@@ -88,7 +93,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
         if state["rounds"] >= agent.settings.agent_max_rounds or time.time() >= state["deadline"]:
             return exhausted("InvestigationBudgetExceeded")
         try:
-            content = agent.model_turn(state)
+            content = sanitize(agent.model_turn(state))
             contents = state["contents"] + [content]
             calls = [
                 part["functionCall"] for part in content.get("parts", []) if "functionCall" in part
@@ -190,10 +195,15 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
             )
             for item in state["evidence_items"]
         )
-        invalid = unsupported_citations(report, evidence)
-        if invalid:
-            return {**fallback(state), "fallback_reason": "UnsupportedCitation"}
-        return {}
+        issues = verify_support(report, evidence)
+        verification = {
+            "checks": "citations_quotes_numeric_values",
+            "issues": list(issues),
+            "semantic_support": "not_assessed",
+        }
+        if issues:
+            return {**fallback(state), "fallback_reason": issues[0], "verification": verification}
+        return {"verification": verification}
 
     def finalize(state):
         diagnosis = Diagnosis.model_validate(state["diagnosis"])
@@ -202,6 +212,9 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
         if diagnosis.abstained:
             lines.append("Insufficient evidence.")
         lines.extend("Missing: " + item for item in diagnosis.missing_information)
+        lines.append(
+            "Evidence extracts checked; causal support has not been independently assessed."
+        )
         lines.append("Recovery requires separate approval and fresh telemetry verification.")
         result = {
             key: state[key]
@@ -212,6 +225,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                 "tool_trace",
                 "run_id",
                 "diagnosis",
+                "verification",
             )
         }
         result.update(

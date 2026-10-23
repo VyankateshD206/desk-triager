@@ -1,6 +1,6 @@
 """Conservative symptom baseline shared by offline triage and evaluation."""
 
-from .contracts import Diagnosis, Hypothesis, IncidentInput
+from .contracts import Diagnosis, EvidenceQuote, Hypothesis, IncidentInput
 
 
 def rules_baseline(incident: IncidentInput) -> Diagnosis:
@@ -21,7 +21,18 @@ def rules_baseline(incident: IncidentInput) -> Diagnosis:
                     confidence=0.5,
                     hypotheses=(
                         Hypothesis(
-                            cause="Observed symptom: " + phrase, evidence_ids=(item.evidence_id,)
+                            cause="Observed symptom: " + phrase,
+                            evidence_ids=(item.evidence_id,),
+                            supporting_quotes=(
+                                EvidenceQuote(
+                                    evidence_id=item.evidence_id,
+                                    quote=item.content[
+                                        item.content.lower().index(
+                                            phrase
+                                        ) : item.content.lower().index(phrase) + len(phrase)
+                                    ],
+                                ),
+                            ),
                         ),
                     ),
                 )

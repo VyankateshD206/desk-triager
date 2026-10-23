@@ -12,6 +12,7 @@ from .agent import TriageAgent
 from .db import Database
 from .detector import RUNBOOKS, Detector
 from .models import SERVICES, Audit, Balance, Event, Incident, ServiceWatermark, Telemetry, now
+from .security import action_policy
 
 log = logging.getLogger(__name__)
 
@@ -225,6 +226,12 @@ class Desk:
             if not row:
                 raise KeyError(incident_id)
             result = record(row)
+        result["policy"] = action_policy(
+            {"action": result["action"], "target": result["service"]},
+            incident_service=result["service"],
+            incident_kind=result["kind"],
+            simulator=self.settings.simulator,
+        ).model_dump()
         result["script"] = (
             "# Fixed recovery client; the server checks the incident's allowlisted action.\n"
             "import os, httpx\n"
@@ -253,6 +260,14 @@ class Desk:
                 raise ValueError("Incident was already approved or resolved")
             if action != row.action or action == "inspect_only":
                 raise ValueError("Action is not an executable allowlisted proposal")
+            decision = action_policy(
+                {"action": action, "target": row.service},
+                incident_service=row.service,
+                incident_kind=row.kind,
+                simulator=self.settings.simulator,
+            )
+            if decision.disposition != "requires_approval":
+                raise ValueError(decision.reason)
             if action == "resync_ledger":
                 balance = db.get(Balance, "desk-primary")
                 before = {
@@ -282,6 +297,7 @@ class Desk:
                         "before": before,
                         "scope": "simulation",
                         "awaiting": "fresh healthy telemetry",
+                        "policy": decision.model_dump(),
                     },
                 )
             )
@@ -309,6 +325,7 @@ class Desk:
                         "run_id": result["run_id"],
                         "workflow": result["workflow"],
                         "diagnosis": result["diagnosis"],
+                        "verification": result["verification"],
                         "tools": result["tool_trace"],
                         "fallback_reason": result.get("fallback_reason"),
                         "fallback_http_status": result.get("fallback_http_status"),

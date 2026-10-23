@@ -44,9 +44,22 @@ class IncidentInput(Contract):
     evidence: tuple[Evidence, ...]
 
 
+class EvidenceQuote(Contract):
+    evidence_id: str = Field(min_length=1)
+    quote: str = Field(min_length=1, max_length=2000)
+
+
+class NumericClaim(Contract):
+    evidence_id: str = Field(min_length=1)
+    pointer: str = Field(pattern=r"^/", max_length=500)
+    value: float = Field(allow_inf_nan=False)
+
+
 class Hypothesis(Contract):
     cause: str = Field(min_length=1)
     evidence_ids: tuple[str, ...] = Field(min_length=1)
+    supporting_quotes: tuple[EvidenceQuote, ...] = ()
+    numeric_claims: tuple[NumericClaim, ...] = ()
 
 
 class Diagnosis(Contract):
