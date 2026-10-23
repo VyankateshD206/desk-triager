@@ -37,3 +37,10 @@ async def triage_pending(desk):
         await asyncio.to_thread(desk.triage_next)
         desk.errors.pop("triage", None)
         await asyncio.sleep(2)
+
+
+async def recover_pending(desk):
+    while True:
+        await asyncio.to_thread(desk.recovery.execute_next)
+        desk.errors.pop("recovery", None)
+        await asyncio.sleep(0.5)

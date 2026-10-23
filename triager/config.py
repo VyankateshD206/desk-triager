@@ -25,6 +25,8 @@ class Settings:
     agent_max_rounds: int = 4
     agent_max_tools: int = 8
     agent_timeout_seconds: float = 60
+    verification_timeout_seconds: float = 30
+    verification_samples: int = 2
 
     def validate(self):
         if self.ai_provider not in {"offline", "gemini"}:
@@ -37,3 +39,8 @@ class Settings:
             raise ValueError("Agent budgets must be rounds 1..12 and tools 2..32")
         if not 1 <= self.agent_timeout_seconds <= 300:
             raise ValueError("Agent timeout must be 1..300 seconds")
+        if (
+            not 1 <= self.verification_samples <= 10
+            or not 3 <= self.verification_timeout_seconds <= 300
+        ):
+            raise ValueError("Invalid recovery verification limits")

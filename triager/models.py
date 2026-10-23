@@ -83,3 +83,40 @@ class ServiceWatermark(Base):
     __tablename__ = "service_watermarks"
     service = Column(String, primary_key=True)
     event_timestamp = Column(String, nullable=False)
+
+
+class RecoveryProposal(Base):
+    __tablename__ = "recovery_proposals"
+    id = Column(String, primary_key=True)
+    incident_id = Column(String, nullable=False, index=True)
+    fingerprint = Column(String(64), nullable=False)
+    created_at = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="pending")
+    payload = Column(JSON, nullable=False)
+
+
+class RecoveryJob(Base):
+    __tablename__ = "recovery_jobs"
+    id = Column(String, primary_key=True)
+    proposal_id = Column(String, nullable=False, unique=True)
+    incident_id = Column(String, nullable=False, index=True)
+    key_hash = Column(String(64), nullable=False, unique=True)
+    request_hash = Column(String(64), nullable=False)
+    actor = Column(String(80), nullable=False)
+    reason = Column(Text, nullable=False)
+    decision = Column(String, nullable=False)
+    status = Column(String, nullable=False, index=True)
+    created_at = Column(String, nullable=False)
+    lease_until = Column(String, nullable=True)
+    lease_token = Column(String, nullable=True)
+    attempts = Column(Integer, nullable=False, default=0)
+    result = Column(JSON, nullable=False, default=dict)
+    verification_deadline = Column(String, nullable=True)
+    healthy_samples = Column(Integer, nullable=False, default=0)
+
+
+class SimulatorFault(Base):
+    __tablename__ = "simulator_faults"
+    service = Column(String, primary_key=True)
+    kind = Column(String, nullable=False)
+    generation = Column(String, nullable=False)

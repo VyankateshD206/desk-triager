@@ -12,7 +12,7 @@ from . import __version__
 from .config import Settings
 from .models import SERVICES, Telemetry
 from .runtime import Desk
-from .workers import simulate, supervise, triage_pending, watch
+from .workers import recover_pending, simulate, supervise, triage_pending, watch
 
 STATIC = Path(__file__).parent / "static"
 
@@ -26,6 +26,11 @@ class Approval(BaseModel):
     model_config = ConfigDict(extra="forbid")
     action: str = Field(min_length=1, max_length=80)
     actor: str = Field(min_length=1, max_length=80)
+    proposal_id: str = Field(min_length=1, max_length=80)
+
+
+class Rejection(Approval):
+    reason: str = Field(min_length=1, max_length=2000)
 
 
 def create_app(settings=None):
@@ -37,6 +42,9 @@ def create_app(settings=None):
         app.state.desk = desk
         tasks = [asyncio.create_task(supervise(desk, "watchdog", lambda: watch(desk)))]
         tasks.append(asyncio.create_task(supervise(desk, "triage", lambda: triage_pending(desk))))
+        tasks.append(
+            asyncio.create_task(supervise(desk, "recovery", lambda: recover_pending(desk)))
+        )
         if settings.simulator:
 
             async def publish(event):
@@ -110,9 +118,30 @@ def create_app(settings=None):
             raise HTTPException(404, "Incident not found") from None
 
     @app.post("/api/incidents/{incident_id}/approve", dependencies=[Depends(authorize)])
-    def approve(incident_id: str, body: Approval):
+    def approve(
+        incident_id: str,
+        body: Approval,
+        idempotency_key: str = Header(alias="Idempotency-Key", min_length=8, max_length=80),
+    ):
         try:
-            return app.state.desk.approve(incident_id, body.action, body.actor)
+            return app.state.desk.approve(
+                incident_id, body.action, body.actor, body.proposal_id, idempotency_key
+            )
+        except KeyError:
+            raise HTTPException(404, "Incident not found") from None
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from None
+
+    @app.post("/api/incidents/{incident_id}/reject", dependencies=[Depends(authorize)])
+    def reject(
+        incident_id: str,
+        body: Rejection,
+        idempotency_key: str = Header(alias="Idempotency-Key", min_length=8, max_length=80),
+    ):
+        try:
+            return app.state.desk.reject(
+                incident_id, body.action, body.actor, body.proposal_id, idempotency_key, body.reason
+            )
         except KeyError:
             raise HTTPException(404, "Incident not found") from None
         except ValueError as exc:

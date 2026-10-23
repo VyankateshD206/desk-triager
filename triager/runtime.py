@@ -11,7 +11,19 @@ from sqlalchemy import func, select
 from .agent import TriageAgent
 from .db import Database
 from .detector import RUNBOOKS, Detector
-from .models import SERVICES, Audit, Balance, Event, Incident, ServiceWatermark, Telemetry, now
+from .models import (
+    SERVICES,
+    Audit,
+    Balance,
+    Event,
+    Incident,
+    RecoveryJob,
+    ServiceWatermark,
+    SimulatorFault,
+    Telemetry,
+    now,
+)
+from .recovery import Recovery
 from .security import action_policy
 
 log = logging.getLogger(__name__)
@@ -33,6 +45,8 @@ class Desk:
         self.agent = TriageAgent(self.db, settings)
         self.lock = threading.RLock()
         self.faults = {}
+        self.load_faults()
+        self.recovery = Recovery(self)
         self.rng = random.Random(24)
         self.last_seen = {s: time.monotonic() for s in SERVICES}
         self.accepted_at = {}
@@ -127,11 +141,40 @@ class Desk:
                         )
                     ).all()
                     for incident in pending:
+                        job = db.scalar(
+                            select(RecoveryJob).where(
+                                RecoveryJob.incident_id == incident.id,
+                                RecoveryJob.status == "succeeded",
+                            )
+                        )
+                        if not job:
+                            # Legacy verifying rows predate durable jobs; preserve old verification.
+                            healthy_count = self.settings.verification_samples
+                        else:
+                            if job.verification_deadline < now():
+                                incident.status, incident.updated_at = "failed", now()
+                                job.status = "verification_failed"
+                                db.add(
+                                    Audit(
+                                        at=now(),
+                                        incident_id=incident.id,
+                                        actor="verifier",
+                                        action="verification_timeout",
+                                        detail={"execution_id": job.id},
+                                    )
+                                )
+                                continue
+                            healthy_count = job.healthy_samples
                         if (
                             incident.kind not in kinds
                             and score >= 0
                             and event.timestamp > datetime.fromisoformat(incident.updated_at)
                         ):
+                            healthy_count += 1
+                            if job:
+                                job.healthy_samples = healthy_count
+                            if healthy_count < self.settings.verification_samples:
+                                continue
                             incident.status, incident.updated_at = "resolved", now()
                             db.add(
                                 Audit(
@@ -142,6 +185,8 @@ class Desk:
                                     detail={"healthy_event": event.event_id, "score": score},
                                 )
                             )
+                        elif job:
+                            job.healthy_samples = 0
             if not late:
                 self.accepted_at[event.service] = event.timestamp
                 self.last_seen[event.service] = time.monotonic()
@@ -150,6 +195,24 @@ class Desk:
 
     def watchdog(self):
         with self.lock, self.db.Session.begin() as db:
+            for job in db.scalars(
+                select(RecoveryJob).where(
+                    RecoveryJob.status == "succeeded", RecoveryJob.verification_deadline < now()
+                )
+            ):
+                incident = db.get(Incident, job.incident_id)
+                if incident.status == "verifying":
+                    incident.status, incident.updated_at = "failed", now()
+                    job.status = "verification_failed"
+                    db.add(
+                        Audit(
+                            at=now(),
+                            incident_id=incident.id,
+                            actor="verifier",
+                            action="verification_timeout",
+                            detail={"execution_id": job.id},
+                        )
+                    )
             for service, seen in self.last_seen.items():
                 gap = time.monotonic() - seen
                 if gap > self.settings.tick_gap_seconds:
@@ -175,6 +238,12 @@ class Desk:
         if kind == "nav_mismatch" and service != "portfolio-ledger":
             raise ValueError("NAV mismatch belongs to portfolio-ledger")
         with self.lock:
+            with self.db.Session.begin() as session:
+                fault = session.get(SimulatorFault, service)
+                if fault:
+                    fault.kind, fault.generation = kind, str(uuid4())
+                else:
+                    session.add(SimulatorFault(service=service, kind=kind, generation=str(uuid4())))
             self.faults[service] = kind
             if kind == "nav_mismatch":
                 with self.db.Session.begin() as db:
@@ -184,6 +253,7 @@ class Desk:
     def generate(self):
         events = []
         with self.lock:
+            self.load_faults()
             for service in SERVICES:
                 kind = self.faults.get(service)
                 if kind == "silence":
@@ -232,12 +302,22 @@ class Desk:
             incident_kind=result["kind"],
             simulator=self.settings.simulator,
         ).model_dump()
+        result["approval"] = self.recovery.prepare(incident_id)
+        with self.db.Session() as session:
+            job = session.scalar(
+                select(RecoveryJob)
+                .where(RecoveryJob.incident_id == incident_id)
+                .order_by(RecoveryJob.created_at.desc())
+                .limit(1)
+            )
+            result["execution"] = self.recovery.response(job) if job else None
         result["script"] = (
             "# Fixed recovery client; the server checks the incident's allowlisted action.\n"
-            "import os, httpx\n"
+            "import os, uuid, httpx\n"
             f"response = httpx.post('http://127.0.0.1:8000/api/incidents/{incident_id}/approve',\n"
-            "    headers={'X-Desk-Token': os.environ['DESK_TOKEN']},\n"
-            f"    json={{'action': '{result['action']}', 'actor': 'trader'}})\n"
+            "    headers={'X-Desk-Token': os.environ['DESK_TOKEN'], 'Idempotency-Key': str(uuid.uuid4())},\n"
+            f"    json={{'action': '{result['action']}', 'actor': 'trader', "
+            f"'proposal_id': '{result['approval']['id'] if result['approval'] else ''}'}})\n"
             "response.raise_for_status()\nprint(response.json())\n"
         )
         result["scope"] = (
@@ -247,61 +327,19 @@ class Desk:
         )
         return result
 
-    def approve(self, incident_id, action, actor):
-        if not self.settings.simulator:
-            raise ValueError(
-                "No live exchange adapter is installed; recovery is restricted to simulation"
-            )
-        with self.lock, self.db.Session.begin() as db:
-            row = db.get(Incident, incident_id)
-            if not row:
-                raise KeyError(incident_id)
-            if row.status != "open":
-                raise ValueError("Incident was already approved or resolved")
-            if action != row.action or action == "inspect_only":
-                raise ValueError("Action is not an executable allowlisted proposal")
-            decision = action_policy(
-                {"action": action, "target": row.service},
-                incident_service=row.service,
-                incident_kind=row.kind,
-                simulator=self.settings.simulator,
-            )
-            if decision.disposition != "requires_approval":
-                raise ValueError(decision.reason)
-            if action == "resync_ledger":
-                balance = db.get(Balance, "desk-primary")
-                before = {
-                    "local_nav": str(balance.local_nav),
-                    "exchange_nav": str(balance.exchange_nav),
-                }
-                balance.local_nav = balance.exchange_nav
-            else:
-                before = {"fault": self.faults.get(row.service)}
-            # Only clear the fault that this action addresses, preserving unrelated injected failures.
-            matching = {
-                "reconnect_feed": {"tick_gap", "silence"},
-                "enable_backoff": {"rate_limit"},
-                "resync_ledger": {"nav_mismatch"},
-                "resync_orders": {"latency"},
+    def approve(self, incident_id, action, actor, proposal_id, idempotency_key):
+        return self.recovery.decide(incident_id, action, actor, proposal_id, idempotency_key)
+
+    def reject(self, incident_id, action, actor, proposal_id, idempotency_key, reason):
+        return self.recovery.decide(
+            incident_id, action, actor, proposal_id, idempotency_key, approved=False, reason=reason
+        )
+
+    def load_faults(self):
+        with self.db.Session() as session:
+            self.faults = {
+                fault.service: fault.kind for fault in session.scalars(select(SimulatorFault))
             }
-            if self.faults.get(row.service) in matching[action]:
-                self.faults.pop(row.service, None)
-            row.status, row.updated_at = "verifying", now()
-            db.add(
-                Audit(
-                    at=now(),
-                    incident_id=incident_id,
-                    actor=actor,
-                    action=action,
-                    detail={
-                        "before": before,
-                        "scope": "simulation",
-                        "awaiting": "fresh healthy telemetry",
-                        "policy": decision.model_dump(),
-                    },
-                )
-            )
-            return {"status": "verifying", "action": action}
 
     def triage(self, incident_id):
         proposal = self.proposal(incident_id)

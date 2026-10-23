@@ -92,10 +92,15 @@ def verify(base_url="http://127.0.0.1:8000"):
             result = request(
                 "POST",
                 f"/api/incidents/{incident['id']}/approve",
-                json={"action": proposal["action"], "actor": "service-verification"},
+                json={
+                    "action": proposal["action"],
+                    "actor": "service-verification",
+                    "proposal_id": proposal["approval"]["id"],
+                },
+                headers={"Idempotency-Key": str(__import__("uuid").uuid4())},
             )
-            if result["status"] != "verifying":
-                raise VerificationError("Approval did not enter verification")
+            if result["status"] != "queued":
+                raise VerificationError("Approval did not queue recovery")
             deadline = time.monotonic() + 15
             while time.monotonic() < deadline:
                 current = request("GET", "/api/incidents/" + incident["id"])
@@ -104,7 +109,7 @@ def verify(base_url="http://127.0.0.1:8000"):
                 time.sleep(0.5)
             else:
                 raise VerificationError("Recovery was not verified")
-            print("PASS Recovery: open -> verifying -> resolved", flush=True)
+            print("PASS Recovery: open -> queued -> verifying -> resolved", flush=True)
             with database.Session() as db:
                 stored = db.get(Incident, incident["id"])
                 audit = list(db.scalars(select(Audit).where(Audit.incident_id == incident["id"])))

@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -20,10 +21,20 @@ def desk(tmp_path):
             simulator=True,
             ai_provider="offline",
             tick_gap_seconds=8,
+            verification_samples=1,
         )
     )
     yield desk
     desk.db.engine.dispose()
+
+
+def approve(desk, incident_id, action, actor):
+    proposal = desk.proposal(incident_id)
+    result = desk.approve(incident_id, action, actor, proposal["approval"]["id"], str(uuid4()))
+    desk.recovery.execute_next()
+    if result["status"] == "queued":
+        return {"status": "verifying", "action": action}
+    return result
 
 
 def event(**kwargs):
@@ -65,11 +76,11 @@ def test_fault_approval_requires_fresh_healthy_verification(desk, kind, service,
         desk.ingest(e)
     incident = next(i for i in desk.snapshot()["incidents"] if i["kind"] == kind)
     with pytest.raises(ValueError):
-        desk.approve(incident["id"], "arbitrary_python", "trader")
-    assert desk.approve(incident["id"], action, "trader")["status"] == "verifying"
+        approve(desk, incident["id"], "arbitrary_python", "trader")
+    assert approve(desk, incident["id"], action, "trader")["status"] == "verifying"
     assert desk.proposal(incident["id"])["status"] == "verifying"
     with pytest.raises(ValueError):
-        desk.approve(incident["id"], action, "trader")
+        approve(desk, incident["id"], action, "trader")
     desk.ingest(event(service=service))
     assert desk.proposal(incident["id"])["status"] == "resolved"
     audit = desk.snapshot()["audit"]
@@ -90,7 +101,7 @@ def test_watchdog_detects_absence_without_new_messages(desk):
 def test_late_event_cannot_close_incident(desk):
     desk.ingest(event(reject_code="429"))
     incident = desk.snapshot()["incidents"][0]
-    desk.approve(incident["id"], "enable_backoff", "trader")
+    approve(desk, incident["id"], "enable_backoff", "trader")
     result = desk.ingest(event(timestamp=datetime.now(timezone.utc) - timedelta(seconds=20)))
     assert result["late"]
     assert desk.proposal(incident["id"])["status"] == "verifying"
@@ -102,13 +113,13 @@ def test_model_detects_subthreshold_drift(desk):
     assert result["anomalies"] == ["ml_degradation"]
     incident = desk.snapshot()["incidents"][0]
     with pytest.raises(ValueError):
-        desk.approve(incident["id"], "inspect_only", "trader")
+        approve(desk, incident["id"], "inspect_only", "trader")
 
 
 def test_nonhealthy_event_cannot_verify(desk):
     desk.ingest(event(reject_code="429"))
     incident = desk.snapshot()["incidents"][0]
-    desk.approve(incident["id"], "enable_backoff", "trader")
+    approve(desk, incident["id"], "enable_backoff", "trader")
     desk.ingest(event(reject_code="429"))
     assert desk.proposal(incident["id"])["status"] == "verifying"
 
@@ -287,7 +298,7 @@ def test_preapproval_healthy_sample_cannot_verify(desk):
     desk.ingest(event(reject_code="429"))
     healthy_but_queued = event()
     incident = desk.snapshot()["incidents"][0]
-    desk.approve(incident["id"], "enable_backoff", "trader")
+    approve(desk, incident["id"], "enable_backoff", "trader")
     desk.ingest(healthy_but_queued)
     assert desk.proposal(incident["id"])["status"] == "verifying"
 
@@ -351,5 +362,5 @@ def test_policy_rechecks_persisted_action_against_incident_kind(desk):
         session.get(Incident, incident["id"]).action = "resync_ledger"
     assert desk.proposal(incident["id"])["policy"]["disposition"] == "blocked"
     with pytest.raises(ValueError):
-        desk.approve(incident["id"], "resync_ledger", "operator")
+        approve(desk, incident["id"], "resync_ledger", "operator")
     assert desk.proposal(incident["id"])["status"] == "open"
