@@ -208,3 +208,22 @@ def test_rejected_feedback_export_requires_human_labels(desk):
     assert candidates[0]["evidence"]
     assert "trader@example.com" not in str(candidates)
     assert "private-operator" not in str(candidates)
+
+
+def test_approval_reason_is_durable_and_bound_to_idempotency(desk):
+    item, key = proposal(desk), str(uuid4())
+    desk.approve(
+        item["id"],
+        item["action"],
+        "operator",
+        item["approval"]["id"],
+        key,
+        "Telemetry supports bounded retry",
+    )
+    with desk.db.Session() as session:
+        job = session.scalar(select(RecoveryJob))
+        assert job.reason == "Telemetry supports bounded retry"
+    with pytest.raises(ValueError, match="different request"):
+        desk.approve(
+            item["id"], item["action"], "operator", item["approval"]["id"], key, "Different reason"
+        )

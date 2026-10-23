@@ -29,6 +29,7 @@ class Approval(BaseModel):
     action: str = Field(min_length=1, max_length=80)
     actor: str = Field(min_length=1, max_length=80)
     proposal_id: str = Field(min_length=1, max_length=80)
+    reason: str = Field(default="", max_length=2000)
 
 
 class Rejection(Approval):
@@ -132,7 +133,7 @@ def create_app(settings=None):
     ):
         try:
             return app.state.desk.approve(
-                incident_id, body.action, body.actor, body.proposal_id, idempotency_key
+                incident_id, body.action, body.actor, body.proposal_id, idempotency_key, body.reason
             )
         except KeyError:
             raise HTTPException(404, "Incident not found") from None

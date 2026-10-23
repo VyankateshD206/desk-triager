@@ -332,6 +332,7 @@ async function inspect(id) {
       selected.report ||
       "The triage worker is collecting logs and checking ledger balances. You can also refresh the diagnosis.";
     $("#modal-message").textContent = "";
+    $("#feedback-reason").value = "";
     updateApproval();
     $("#detail").showModal();
   } catch (e) {
@@ -412,7 +413,7 @@ async function submitDecision(approved) {
     if (!key) { key = crypto.randomUUID(); sessionStorage.setItem(keyName, key); }
     const body = {action: selected.action, actor: $("#actor").value,
       proposal_id: selected.approval.id};
-    if (!approved) body.reason = $("#feedback-reason").value;
+    body.reason = $("#feedback-reason").value;
     await api("/api/incidents/" + selected.id + (approved ? "/approve" : "/reject"), body,
       {"Idempotency-Key": key});
     selected = await api("/api/incidents/" + selected.id);

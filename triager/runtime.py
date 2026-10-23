@@ -336,8 +336,10 @@ class Desk:
         )
         return result
 
-    def approve(self, incident_id, action, actor, proposal_id, idempotency_key):
-        return self.recovery.decide(incident_id, action, actor, proposal_id, idempotency_key)
+    def approve(self, incident_id, action, actor, proposal_id, idempotency_key, reason=""):
+        return self.recovery.decide(
+            incident_id, action, actor, proposal_id, idempotency_key, reason=reason
+        )
 
     def reject(self, incident_id, action, actor, proposal_id, idempotency_key, reason):
         return self.recovery.decide(

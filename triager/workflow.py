@@ -311,11 +311,13 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                     "output_tokens": sum(c.get("output_tokens") or 0 for c in calls),
                     "estimated_cost_usd": estimate_cost(calls),
                 }
-                if (
-                    name in {"reason", "critic"}
-                    and agent.settings.ai_provider != "offline"
-                    and (result.get("fallback_reason") or not calls)
-                ):
+                expected_call = (name == "reason" and agent.settings.ai_provider != "offline") or (
+                    name == "critic"
+                    and agent.settings.critic_enabled
+                    and state.get("provider") != "offline"
+                    and not state.get("diagnosis", {}).get("abstained")
+                )
+                if expected_call and (result.get("fallback_reason") or not calls):
                     usage["estimated_cost_usd"] = None
                 for key, value in usage.items():
                     if value is not None:
