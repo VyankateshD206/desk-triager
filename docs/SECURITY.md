@@ -70,8 +70,8 @@ Graph tools remain read only. Even if a compromised model requests shell executi
 deployment, recovery, or a different service, those requests cannot reach an executable
 handler through the graph. This boundary existed as an allowlist before this release;
 the new policy adds typed scope and incident-kind checks rather than replacing it with a
-keyword blocklist. Native approval interrupts and a durable execution outbox are separate
-planned milestones.
+keyword blocklist. Version 1.5.0 adds native approval interrupts, exact proposal binding, and a durable
+execution outbox; see [recovery guarantees](RECOVERY.md).
 
 ## Reproduce the security evaluation
 

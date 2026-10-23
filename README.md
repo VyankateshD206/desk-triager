@@ -17,6 +17,7 @@ A Python support platform that monitors execution telemetry, detects silent serv
 - Automatically gathers evidence with scoped log inspection and read-only reconciliation tools.
 - Requires approval for fixed recovery actions, then verifies a fresh healthy sample before closing the incident.
 - Preserves events, incident history, service watermarks, and an approval audit trail in SQL.
+- Uses native LangGraph approval interrupts, an idempotent SQL recovery outbox, and consecutive-sample verification.
 
 The interface stays focused on three metrics and the incident queue. Hover, focus, or tap a number for its definition, units, and threshold. Technical evidence, scripts, balances, and audit history are available on demand.
 
@@ -46,10 +47,10 @@ The default configuration uses SQLite, synthetic telemetry, and rule-based offli
 2. Watch the detector create an incident and the triage worker collect evidence.
 3. Click **Review** to inspect the diagnosis and recommended recovery.
 4. Approve the action as `desk-operator` or enter an attribution label of your choice.
-5. Watch `Needs review → Verifying → Resolved`. Approval alone does not establish recovery; a fresh healthy telemetry sample must confirm it.
+5. Watch `Needs review → Queued → Verifying → Resolved`. Approval alone does not establish recovery; a fresh healthy telemetry sample must confirm it.
 6. Enable **Show resolved** and expand **Activity & balances** to inspect the approval and verification audit records.
 
-The selected scenario and progress survive a page refresh. All scenario execution and exchange recovery remain explicitly simulated.
+The selected scenario and progress survive a page refresh. All scenario execution and exchange recovery remain explicitly simulated. See [durable approval](docs/RECOVERY.md) for proposal binding, idempotency, rejection feedback, and worker recovery.
 
 | Scenario | Signal | Recovery |
 |---|---|---|

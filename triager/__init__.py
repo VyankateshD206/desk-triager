@@ -1,3 +1,3 @@
 """Trading service observability and approval-gated incident recovery."""
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"

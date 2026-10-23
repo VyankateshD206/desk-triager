@@ -24,7 +24,7 @@ One Python process owns simulation, ingestion, detection, and recovery. SQL is t
 - A reentrant process lock serializes ingestion, fault injection, and approvals. It is not a distributed lock; run one worker.
 - The watchdog uses monotonic receipt time to detect total silence. Startup grants a grace period. Old or out-of-order events are archived but cannot refresh service health or verify recovery. Accepted timestamps are persisted in `service_watermarks`.
 - Unresolved `(service, kind)` pairs reuse an incident. An incident does not close just because telemetry improves. Approval must be followed by a fresh, healthy sample whose timestamp is later than the approval.
-- Recovery audit entries and ledger updates share a transaction. Simulator fault switches are temporary fixtures; SQL incident and audit history survive restart.
+- Recovery audit entries and ledger updates share a transaction. Simulator fault generations, incidents, recovery jobs, and audit history survive restart.
 - Direct ingestion has no durable buffer before SQL commit. During a database outage, samples that could not be committed can be lost; worker errors and receipt-time gaps make this visible.
 
 ## Diagnosis
@@ -54,5 +54,5 @@ sources and the fixture's deployment registry through fixed read-only tools. Inc
 uses PostgreSQL; graph checkpoints remain local SQLite on a named volume.
 
 This diagnostic stack intentionally has no adapter for executing recovery in the external
-fixture. Its fault/reset controls are separate from the triager's approval API. Model-driven
-recovery, approval interrupts, policy upgrades, and an execution outbox remain future work.
+fixture. Its fault/reset controls are separate from the triager's approval API. Model-driven recovery remains disabled. The internal simulator now uses native approval
+interrupts and a transactional execution outbox; see [recovery](RECOVERY.md).

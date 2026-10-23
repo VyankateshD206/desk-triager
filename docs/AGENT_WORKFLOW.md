@@ -60,8 +60,8 @@ distributed work claiming, and automatic restart discovery remain follow-up work
 
 Existing deterministic action selection, human approval, and fresh-telemetry recovery
 verification remain authoritative. Graph checkpoint resume cannot approve an action.
-Native human approval interrupts, proposal version binding, and a durable execution outbox
-are planned separately. This release tests interruption after evidence collection to prove
+Version 1.5.0 implements native human approval interrupts, proposal binding, and a SQL
+execution outbox in a separate deterministic recovery graph; see [recovery](RECOVERY.md). This release tests interruption after evidence collection to prove
 that a new agent instance resumes without repeating those reads.
 
 ## Validation

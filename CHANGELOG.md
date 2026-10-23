@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0 — 2026-10-23
+
+- Add native LangGraph approval interrupts with exact proposal binding.
+- Persist idempotent approval/rejection requests and a transactional recovery outbox.
+- Claim jobs with leases and bounded retries; verify SQL-backed recovery in PostgreSQL CI.
+- Persist simulator fault generations and recheck execution preconditions.
+- Require consecutive healthy samples and escalate verification timeouts.
+- Add queued/failed console states, rejection feedback, and approval-rate reporting.
+
 ## 1.4.0 — 2026-10-23
 
 - Redact common secrets and email addresses before new model/checkpoint state.

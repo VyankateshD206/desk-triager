@@ -72,3 +72,12 @@ planner requests. All five constructed unsupported extracts that passed membersh
 checking are rejected by the new extract verifier; two valid extracts remain accepted.
 These are seed fixture results, not a live-model attack success measurement. The demo
 planner now supplies verified quotations, and the external tool integration still passes.
+
+
+## v1.5.0 durable recovery
+
+[CI run 39939131125](https://github.com/VyankateshD206/desk-triager/actions/runs/39939131125)
+passed unit/build/security checks, the full fault demo, and the isolated PostgreSQL
+recovery test. The latter verified interrupt resume, idempotency, competing worker claims,
+ledger execution, and fresh-telemetry resolution. Local regression coverage also includes
+stale proposals, rejected decisions, expired leases, and verification timeouts.
