@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 — 2026-10-23
+
+- Add a Docker Compose fault laboratory with PostgreSQL, Prometheus, and Loki.
+- Instrument controlled SQL delay, capped resource pressure, bad deploys, and throttling.
+- Add service-scoped log, metric, deployment, and diff tools with bounded GET requests.
+- Verify real source evidence, incident ingestion, and graph tool execution in CI.
+- Document local startup, optional Gemini mode, and remaining plan milestones.
+
 ## 1.2.0 — 2026-10-23
 
 - Replace the manual tool loop with a checkpointed LangGraph investigation.

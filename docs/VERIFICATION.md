@@ -47,3 +47,17 @@ These are local command results, not an assertion that a GitHub Actions run or a
 - Read-only dashboard queries no longer block ingestion while waiting for remote SQL round trips. The local Neon configuration uses a 30-second silence threshold to tolerate network and startup jitter. This threshold is configurable; the local SQLite default remains eight seconds.
 
 No credentials, connection strings, provider response bodies, or real trading records are included in these notes. The retained verification incident uses synthetic execution telemetry and simulated recovery.
+
+
+## v1.3.0 demo milestone
+
+Local checks passed 62 tests, lint/format, wheel/asset validation, and Compose configuration
+validation. No Docker daemon was reachable in the implementation environment, so the live
+stack was verified on a fresh GitHub Actions runner instead.
+
+[Integration run 39929972100](https://github.com/VyankateshD206/desk-triager/actions/runs/39929972100)
+passed both the test and demo jobs. The demo job built containers, started all five services,
+injected four faults, matched current event IDs in Loki, checked Prometheus gauges, verified
+PostgreSQL incident ingestion, and exercised all four external tools through LangGraph with
+a scripted planner. It also called the authenticated triage API in offline mode. No paid
+model calls or LLM accuracy claims are included in that result.

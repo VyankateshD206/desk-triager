@@ -43,3 +43,16 @@ Read-only dashboard queries do not hold the ingestion lock across network round 
 ## Model limits
 
 The model uses a frozen synthetic healthy baseline and fitted feature scaling. The decision margin is not a probability. Before real desk use, evaluate historical data chronologically, measure false alarms per service-hour, calibrate service-specific thresholds, and version the dataset and model together. An autoencoder is intentionally not added alongside an unvalidated Isolation Forest.
+
+
+## Instrumented Docker demo
+
+The optional [Compose laboratory](DEMO.md) runs the same triager with external telemetry
+and the internal simulator disabled. A separate execution-service fixture generates faults,
+pushes logs to Loki, and exposes gauges scraped by Prometheus. The graph can query those
+sources and the fixture's deployment registry through fixed read-only tools. Incident SQL
+uses PostgreSQL; graph checkpoints remain local SQLite on a named volume.
+
+This diagnostic stack intentionally has no adapter for executing recovery in the external
+fixture. Its fault/reset controls are separate from the triager's approval API. Model-driven
+recovery, approval interrupts, policy upgrades, and an execution outbox remain future work.

@@ -1,0 +1,7 @@
+# Optional: explicit opt-in to paid model calls. Never put a key in this file.
+services:
+  triager:
+    environment:
+      AI_PROVIDER: gemini
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?Export GEMINI_API_KEY to enable the AI demo}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
