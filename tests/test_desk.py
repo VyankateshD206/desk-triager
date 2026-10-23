@@ -364,3 +364,15 @@ def test_policy_rechecks_persisted_action_against_incident_kind(desk):
     with pytest.raises(ValueError):
         approve(desk, incident["id"], "resync_ledger", "operator")
     assert desk.proposal(incident["id"])["status"] == "open"
+
+
+def test_review_exposes_persisted_grounding_and_usage(desk):
+    desk.ingest(event(reject_code="429", log="WARN HTTP 429; retry-after 5s"))
+    incident_id = desk.snapshot()["incidents"][0]["id"]
+    assert desk.proposal(incident_id)["investigation"] is None
+    desk.triage(incident_id)
+    review = desk.proposal(incident_id)["investigation"]
+    assert review["provider"] == "offline"
+    assert review["evidence_items"][0]["evidence_id"]
+    assert review["node_trace"][-1]["node"] == "final_report"
+    assert review["estimated_cost_usd"] == 0

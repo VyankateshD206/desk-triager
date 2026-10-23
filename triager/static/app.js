@@ -99,7 +99,7 @@ function updateGuide() {
     (i) =>
       i.service === activeScenario.service &&
       i.kind === kind &&
-      (i.status !== "resolved" ||
+      (i.id === activeScenario.incidentId || i.status !== "resolved" ||
         Date.parse(i.opened_at) >= activeScenario.since - 1000),
   );
   if (!incident) {
@@ -109,15 +109,21 @@ function updateGuide() {
         : "Failure injected. Waiting for the detector…";
     return;
   }
+  if (!activeScenario.incidentId) {
+    activeScenario.incidentId = incident.id;
+    sessionStorage.setItem("desk-scenario", JSON.stringify(activeScenario));
+  }
   $("#step-review").classList.add("active");
   if (incident.status === "resolved") {
     $("#step-recover").classList.add("active");
     $("#scenario-hint").textContent =
       "Recovered. A fresh healthy sample confirmed success.";
-  } else if (incident.status === "verifying") {
+  } else if (incident.status === "queued" || incident.status === "verifying") {
     $("#step-recover").classList.add("active");
     $("#scenario-hint").textContent =
-      "Recovery approved. Checking fresh telemetry…";
+      incident.status === "queued" ? "Recovery queued for the worker…" : "Recovery approved. Checking fresh telemetry…";
+  } else if (incident.status === "failed") {
+    $("#scenario-hint").textContent = "Recovery needs attention. Review the incident and worker result.";
   } else {
     $("#scenario-hint").textContent =
       incident.action === "inspect_only"
@@ -244,6 +250,8 @@ function renderSupporting(s) {
           `<div class="balance"><div class="account">${escape(b.account)}</div><div class="balance-grid"><div><small>Local NAV</small><strong>${help(money(b.local_nav), "Net asset value held in the local ledger, in US dollars.")}</strong></div><div><small>Exchange NAV</small><strong>${help(money(b.exchange_nav), "Net asset value reported by the simulated exchange, in US dollars. This is the reference for simulated reconciliation.")}</strong></div><div><small>Difference</small><strong>${help(money(b.difference), "Local NAV minus simulated exchange NAV. A difference above one cent in absolute value triggers reconciliation review.")}</strong></div></div></div>`,
       )
       .join("") || '<p class="subtle">No ledger accounts configured.</p>';
+  const feedback = s.approval_feedback || {};
+  $("#feedback-stats").textContent = `Approvals ${feedback.approved || 0} · Rejections ${feedback.rejected || 0} · Approval rate ${feedback.approval_rate == null ? "no decisions" : Math.round(feedback.approval_rate * 100) + "%"}`;
   $("#journal").innerHTML =
     s.audit
       .slice(0, 15)
@@ -284,9 +292,36 @@ async function refresh() {
     $("#session").textContent = "Disconnected";
   }
 }
+function renderInvestigation(data) {
+  const host = $("#investigation-trace");
+  host.replaceChildren();
+  const line = (text) => {
+    const p = document.createElement("p");
+    p.textContent = text;
+    host.append(p);
+  };
+  if (!data) { line("No completed investigation yet."); return; }
+  const diagnosis = data.diagnosis || {};
+  line(`${data.provider || "unknown"} · ${diagnosis.abstained ? "Insufficient evidence" : `Confidence ${Math.round((diagnosis.confidence || 0) * 100)}% (uncalibrated)`}`);
+  line(`Causal support: ${data.verification?.semantic_support || "not independently assessed"}`);
+  const calls = data.model_calls || [];
+  line(`Tokens: ${calls.reduce((n, c) => n + (c.input_tokens || 0), 0)} input / ${calls.reduce((n, c) => n + (c.output_tokens || 0), 0)} output. Estimated cost: ${data.estimated_cost_usd == null ? "unavailable" : "$" + data.estimated_cost_usd.toFixed(5)}`);
+  for (const node of data.node_trace || []) line(`${node.node}: ${Math.round(node.latency_ms)} ms`);
+  for (const item of data.evidence_items || []) {
+    const details = document.createElement("details");
+    const summary = document.createElement("summary");
+    summary.textContent = `${item.source} · ${item.evidence_id.slice(0, 12)}…`;
+    summary.title = item.evidence_id;
+    const pre = document.createElement("pre");
+    pre.textContent = item.content;
+    details.append(summary, pre);
+    host.append(details);
+  }
+}
 async function inspect(id) {
   try {
     selected = await api("/api/incidents/" + id);
+    renderInvestigation(selected.investigation);
     $("#detail-title").textContent = names[selected.kind] || selected.kind;
     $("#detail-service").textContent = selected.service;
     $("#diagnosis").textContent = selected.diagnosis;
@@ -357,7 +392,8 @@ $("#triage").onclick = async () => {
     selected = await api("/api/incidents/" + selected.id);
     $("#script").textContent = selected.script;
     $("#report").textContent =
-      `${result.provider === "gemini" ? "Gemini diagnosis" : "Offline diagnosis"}${result.fallback_reason ? " (Gemini unavailable)" : ""}\n\n${result.report}`;
+      `${result.provider} diagnosis${result.fallback_reason ? " (provider fallback)" : ""}\n\n${result.report}`;
+    renderInvestigation(selected.investigation);
   } catch (e) {
     $("#report").textContent = e.message;
   } finally {

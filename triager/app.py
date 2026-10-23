@@ -3,15 +3,17 @@ import hmac
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__
 from .config import Settings
+from .limits import RateLimits
 from .models import SERVICES, Telemetry
 from .runtime import Desk
+from .telemetry import configure_tracing
 from .workers import recover_pending, simulate, supervise, triage_pending, watch
 
 STATIC = Path(__file__).parent / "static"
@@ -38,6 +40,7 @@ def create_app(settings=None):
 
     @asynccontextmanager
     async def lifespan(app):
+        tracer_provider = configure_tracing()
         desk = await asyncio.to_thread(Desk, settings)
         app.state.desk = desk
         tasks = [asyncio.create_task(supervise(desk, "watchdog", lambda: watch(desk)))]
@@ -59,11 +62,15 @@ def create_app(settings=None):
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
         desk.db.engine.dispose()
+        if tracer_provider:
+            await asyncio.to_thread(tracer_provider.shutdown)
 
     app = FastAPI(title="Desk | Execution Anomaly Triager", version=__version__, lifespan=lifespan)
+    limits = RateLimits()
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
-    def authorize(x_desk_token: str = Header(default="")):
+    def authorize(request: Request, x_desk_token: str = Header(default="")):
+        limits.check(request.client.host if request.client else "local", request.url.path)
         if not hmac.compare_digest(x_desk_token, settings.token):
             raise HTTPException(401, "Valid X-Desk-Token required")
 

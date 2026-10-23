@@ -299,6 +299,12 @@ class Desk:
             if not row:
                 raise KeyError(incident_id)
             result = record(row)
+            latest = db.scalar(
+                select(Audit)
+                .where(Audit.incident_id == incident_id, Audit.action == "diagnosed")
+                .order_by(Audit.at.desc())
+            )
+            result["investigation"] = latest.detail if latest else None
         result["policy"] = action_policy(
             {"action": result["action"], "target": result["service"]},
             incident_service=result["service"],
@@ -367,6 +373,10 @@ class Desk:
                         "workflow": result["workflow"],
                         "diagnosis": result["diagnosis"],
                         "verification": result["verification"],
+                        "node_trace": result["node_trace"],
+                        "model_calls": result["model_calls"],
+                        "estimated_cost_usd": result["estimated_cost_usd"],
+                        "evidence_items": result["evidence_items"],
                         "tools": result["tool_trace"],
                         "fallback_reason": result.get("fallback_reason"),
                         "fallback_http_status": result.get("fallback_http_status"),
