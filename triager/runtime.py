@@ -306,6 +306,9 @@ class Desk:
                     action="diagnosed",
                     detail={
                         "provider": result["provider"],
+                        "run_id": result["run_id"],
+                        "workflow": result["workflow"],
+                        "diagnosis": result["diagnosis"],
                         "tools": result["tool_trace"],
                         "fallback_reason": result.get("fallback_reason"),
                         "fallback_http_status": result.get("fallback_http_status"),

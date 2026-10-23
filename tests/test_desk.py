@@ -215,7 +215,24 @@ def test_gemini_rest_tool_loop_and_unknown_tool_rejected(desk, monkeypatch):
             ]
         else:
             assert body["contents"][-1]["parts"][1]["functionResponse"]["response"]["error"]
-            parts = [{"text": "Mock exchange returned 429; approve bounded backoff after review."}]
+            evidence = json.loads(body["contents"][0]["parts"][0]["text"])["untrusted_evidence"]
+            parts = [
+                {
+                    "text": json.dumps(
+                        {
+                            "severity": "medium",
+                            "category": "rate_limit",
+                            "confidence": 0.8,
+                            "hypotheses": [
+                                {
+                                    "cause": "Exchange throttling",
+                                    "evidence_ids": [evidence[0]["evidence_id"]],
+                                }
+                            ],
+                        }
+                    )
+                }
+            ]
         return httpx.Response(
             200, json={"candidates": [{"content": {"role": "model", "parts": parts}}]}
         )
@@ -225,7 +242,7 @@ def test_gemini_rest_tool_loop_and_unknown_tool_rejected(desk, monkeypatch):
     )
     result = desk.agent.diagnose(desk.snapshot()["incidents"][0])
     assert result["provider"] == "gemini"
-    assert result["tool_trace"] == ["reconcile_balances"]
+    assert result["tool_trace"] == ["inspect_service_logs", "reconcile_balances"]
     assert len(requests) == 2
 
 

@@ -18,6 +18,10 @@ class Settings:
     ai_provider: str = os.getenv("AI_PROVIDER", "offline")
     gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
     tick_gap_seconds: float = float(os.getenv("TICK_GAP_SECONDS", "8"))
+    graph_checkpoint_path: str = os.getenv("GRAPH_CHECKPOINT_PATH", "")
+    agent_max_rounds: int = 4
+    agent_max_tools: int = 8
+    agent_timeout_seconds: float = 60
 
     def validate(self):
         if self.ai_provider not in {"offline", "gemini"}:
@@ -26,3 +30,7 @@ class Settings:
             raise ValueError("TICK_GAP_SECONDS must be at least 3")
         if not self.token:
             raise ValueError("DESK_TOKEN is required")
+        if not 1 <= self.agent_max_rounds <= 12 or not 2 <= self.agent_max_tools <= 32:
+            raise ValueError("Agent budgets must be rounds 1..12 and tools 2..32")
+        if not 1 <= self.agent_timeout_seconds <= 300:
+            raise ValueError("Agent timeout must be 1..300 seconds")
