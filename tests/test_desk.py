@@ -179,6 +179,17 @@ def test_api_auth_and_validation(tmp_path):
             assert (await client.get("/api/incidents/missing", headers=headers)).status_code == 404
             assert (
                 await client.post(
+                    "/api/incidents/missing/approve",
+                    headers=headers,
+                    json={
+                        "action": "resync_orders",
+                        "actor": "operator",
+                        "requires_approval": False,
+                    },
+                )
+            ).status_code == 422
+            assert (
+                await client.post(
                     "/api/telemetry", headers=headers, json=event().model_dump(mode="json")
                 )
             ).status_code == 200

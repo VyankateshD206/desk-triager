@@ -6,7 +6,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__
 from .config import Settings
@@ -23,7 +23,8 @@ class Injection(BaseModel):
 
 
 class Approval(BaseModel):
-    action: str
+    model_config = ConfigDict(extra="forbid")
+    action: str = Field(min_length=1, max_length=80)
     actor: str = Field(min_length=1, max_length=80)
 
 
