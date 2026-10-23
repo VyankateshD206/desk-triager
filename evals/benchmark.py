@@ -146,7 +146,7 @@ def run_case(inputs, mode, settings, directory, knowledge):
         items = result["evidence_items"]
         metadata = {key: result.get(key) for key in metadata}
     cost = estimate_cost(metadata["model_calls"])
-    if mode != "rules" and not metadata["model_calls"]:
+    if mode != "rules" and (not metadata["model_calls"] or metadata["fallback_reason"]):
         cost = None
     return (
         report,

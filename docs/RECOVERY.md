@@ -46,3 +46,12 @@ key misuse, stale proposals, rejection, worker leases, SQL commit replay, verifi
 windows, and timeouts. CI additionally exercises PostgreSQL ledger execution and competing
 worker claims in an isolated temporary schema. Feedback counts and approval rate are
 available in `/api/snapshot`; rejected examples are not automatically trusted as knowledge.
+
+## Reusing feedback
+
+`python -m evals.feedback --output /tmp/feedback-candidates.json` exports rejected diagnoses
+and their redacted evidence as unlabeled candidates. Actor names are excluded. A rejection
+is not a root-cause label: review the evidence, supply a corrected answer, and assign the
+incident family to one split before adding it to the benchmark. Knowledge imports still
+require a separate reviewed knowledge document; feedback is never indexed automatically.
+The console reports approvals, rejections and approval rate from durable decision records.

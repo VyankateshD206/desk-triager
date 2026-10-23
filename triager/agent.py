@@ -181,7 +181,8 @@ class TriageAgent:
         result["node_trace"] = state.get("node_trace", [])
         result["estimated_cost_usd"] = estimate_cost(result.get("model_calls", []))
         if (
-            (self.settings.ai_provider != "offline" and not result.get("model_calls"))
+            result.get("fallback_reason")
+            or (self.settings.ai_provider != "offline" and not result.get("model_calls"))
             or result.get("verification", {}).get("semantic_support") == "critic_unavailable"
             or (self.settings.retrieval_enabled and self.settings.embedding_provider == "gemini")
         ):

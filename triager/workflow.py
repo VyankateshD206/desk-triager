@@ -311,6 +311,12 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                     "output_tokens": sum(c.get("output_tokens") or 0 for c in calls),
                     "estimated_cost_usd": estimate_cost(calls),
                 }
+                if (
+                    name in {"reason", "critic"}
+                    and agent.settings.ai_provider != "offline"
+                    and (result.get("fallback_reason") or not calls)
+                ):
+                    usage["estimated_cost_usd"] = None
                 for key, value in usage.items():
                     if value is not None:
                         span.set_attribute("triage." + key, value)

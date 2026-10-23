@@ -186,3 +186,25 @@ def test_same_text_retriage_creates_new_proposal_after_rejection(desk):
     assert revised["approval"]["status"] == "pending"
     assert revised["approval"]["id"] != item["approval"]["id"]
     assert desk.snapshot()["approval_feedback"]["rejected"] == 1
+
+
+def test_rejected_feedback_export_requires_human_labels(desk):
+    from evals.feedback import export_candidates
+
+    desk.triage(proposal(desk)["id"])
+    item = proposal(desk)
+    desk.reject(
+        item["id"],
+        item["action"],
+        "private-operator",
+        item["approval"]["id"],
+        str(uuid4()),
+        "Need evidence; email trader@example.com",
+    )
+    candidates = export_candidates(desk.db)
+    assert len(candidates) == 1
+    assert candidates[0]["expected"] is None
+    assert candidates[0]["annotation_status"] == "pending_human_review"
+    assert candidates[0]["evidence"]
+    assert "trader@example.com" not in str(candidates)
+    assert "private-operator" not in str(candidates)
