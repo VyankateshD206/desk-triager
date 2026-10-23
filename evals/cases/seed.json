@@ -1,0 +1,205 @@
+[
+  {
+    "id": "stale-feed",
+    "family": "tick_gap",
+    "origin": "hand-authored synthetic fixture; not a public postmortem",
+    "input": {
+      "service": "market-feed",
+      "evidence": [
+        {
+          "source": "fixture:stale-feed:1",
+          "service": "market-feed",
+          "observed_at": "2026-10-23T00:00:00+00:00",
+          "content": "WARN websocket stale; tick age 12000ms"
+        }
+      ]
+    },
+    "expected": {
+      "category": "tick_gap",
+      "severity": "high",
+      "abstained": false
+    }
+  },
+  {
+    "id": "throttle",
+    "family": "rate_limit",
+    "origin": "hand-authored synthetic fixture; not a public postmortem",
+    "input": {
+      "service": "execution-gateway",
+      "evidence": [
+        {
+          "source": "fixture:throttle:1",
+          "service": "execution-gateway",
+          "observed_at": "2026-10-23T00:00:00+00:00",
+          "content": "WARN simulated exchange HTTP 429; retry-after 5s"
+        }
+      ]
+    },
+    "expected": {
+      "category": "rate_limit",
+      "severity": "medium",
+      "abstained": false
+    }
+  },
+  {
+    "id": "ledger-gap",
+    "family": "nav_mismatch",
+    "origin": "hand-authored synthetic fixture; not a public postmortem",
+    "input": {
+      "service": "portfolio-ledger",
+      "evidence": [
+        {
+          "source": "fixture:ledger-gap:1",
+          "service": "portfolio-ledger",
+          "observed_at": "2026-10-23T00:00:00+00:00",
+          "content": "WARN local ledger differs from exchange snapshot by USD 1250"
+        }
+      ]
+    },
+    "expected": {
+      "category": "nav_mismatch",
+      "severity": "high",
+      "abstained": false
+    }
+  },
+  {
+    "id": "slow-fills",
+    "family": "latency",
+    "origin": "hand-authored synthetic fixture; not a public postmortem",
+    "input": {
+      "service": "execution-gateway",
+      "evidence": [
+        {
+          "source": "fixture:slow-fills:1",
+          "service": "execution-gateway",
+          "observed_at": "2026-10-23T00:00:00+00:00",
+          "content": "WARN order queue backlog; fill latency rising"
+        }
+      ]
+    },
+    "expected": {
+      "category": "latency",
+      "severity": "high",
+      "abstained": false
+    }
+  },
+  {
+    "id": "drift",
+    "family": "ml_degradation",
+    "origin": "hand-authored synthetic fixture; not a public postmortem",
+    "input": {
+      "service": "execution-gateway",
+      "evidence": [
+        {
+          "source": "fixture:drift:1",
+          "service": "execution-gateway",
+          "observed_at": "2026-10-23T00:00:00+00:00",
+          "content": "WARN slippage and heartbeat jitter drifting"
+        }
+      ]
+    },
+    "expected": {
+      "category": "ml_degradation",
+      "severity": "medium",
+      "abstained": false
+    }
+  },
+  {
+    "id": "empty-window",
+    "family": "empty-window",
+    "origin": "hand-authored synthetic fixture; not a public postmortem",
+    "input": {
+      "service": "market-feed",
+      "evidence": []
+    },
+    "expected": {
+      "category": "unknown",
+      "severity": "unknown",
+      "abstained": true
+    }
+  },
+  {
+    "id": "healthy-feed",
+    "family": "healthy-feed",
+    "origin": "hand-authored synthetic fixture; not a public postmortem",
+    "input": {
+      "service": "market-feed",
+      "evidence": [
+        {
+          "source": "fixture:healthy-feed:1",
+          "service": "market-feed",
+          "observed_at": "2026-10-23T00:00:00+00:00",
+          "content": "heartbeat healthy"
+        }
+      ]
+    },
+    "expected": {
+      "category": "unknown",
+      "severity": "unknown",
+      "abstained": true
+    }
+  },
+  {
+    "id": "generic-error",
+    "family": "generic-error",
+    "origin": "hand-authored synthetic fixture; not a public postmortem",
+    "input": {
+      "service": "execution-gateway",
+      "evidence": [
+        {
+          "source": "fixture:generic-error:1",
+          "service": "execution-gateway",
+          "observed_at": "2026-10-23T00:00:00+00:00",
+          "content": "ERROR request failed"
+        }
+      ]
+    },
+    "expected": {
+      "category": "unknown",
+      "severity": "unknown",
+      "abstained": true
+    }
+  },
+  {
+    "id": "recovered-throttle",
+    "family": "recovered-throttle",
+    "origin": "hand-authored synthetic fixture; not a public postmortem",
+    "input": {
+      "service": "execution-gateway",
+      "evidence": [
+        {
+          "source": "fixture:recovered-throttle:1",
+          "service": "execution-gateway",
+          "observed_at": "2026-10-23T00:00:00+00:00",
+          "content": "INFO HTTP 429 observed yesterday; current requests healthy"
+        }
+      ]
+    },
+    "expected": {
+      "category": "unknown",
+      "severity": "unknown",
+      "abstained": true
+    }
+  },
+  {
+    "id": "ambiguous-latency",
+    "family": "ambiguous-latency",
+    "origin": "hand-authored synthetic fixture; not a public postmortem",
+    "input": {
+      "service": "execution-gateway",
+      "evidence": [
+        {
+          "source": "fixture:ambiguous-latency:1",
+          "service": "execution-gateway",
+          "observed_at": "2026-10-23T00:00:00+00:00",
+          "content": "WARN request duration elevated; no order or database metrics available"
+        }
+      ]
+    },
+    "expected": {
+      "category": "unknown",
+      "severity": "unknown",
+      "abstained": true
+    }
+  }
+]
