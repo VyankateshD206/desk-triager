@@ -90,3 +90,25 @@ passed unit checks, the fault demo, and isolated PostgreSQL vector search/recove
 integration run caught an unqualified vector operator; the fixed query qualifies the type
 and operator in public. Both lexical keyword and hash-vector methods score recall@3/MRR
 1.00 on seven development queries; no root-cause improvement is implied.
+
+## v1.7.0 completion checks — 23 October 2026
+
+- Full local suite: **126 passed** in 20.30 seconds. The final run used the unsandboxed test
+  environment after an intermittent sandbox-local ASGI thread stall.
+- Ruff lint and formatting checks passed; JavaScript syntax and wheel asset verification passed.
+- Built `desk_triager-1.7.0-py3-none-any.whl`, including pricing and runbook resources.
+- Browser automation reviewed evidence, approved a simulated recovery, observed the explicit
+  recovered guide state and recorded no page errors. The recording uses isolated local SQLite.
+- [CI run 39945608015](https://github.com/VyankateshD206/desk-triager/actions/runs/39945608015)
+  passed the expanded benchmark checks and Docker/PostgreSQL integration for the console milestone.
+- Two 40-case, three-mode Gemini experiments are retained: initial unpaced and final paced.
+  Thirty cases succeeded in all three paced modes. Six Gemini judge opinions were collected;
+  independent human validation remains zero.
+- Six live injection probes per mode measured a narrow sentinel objective. Three hardened
+  responses fell back and were excluded from ASR. No general resistance claim is made.
+- All 28 deterministic security fixtures passed; both retrieval baselines matched on seven queries.
+- Result artifacts were checked against configured credential values before publication.
+
+See [release measurements](RESULTS.md), [benchmark methodology](BENCHMARK.md), and
+[the human-review rubric](REVIEW_RUBRIC.md) for actual numbers and limitations. Docker
+integration is verified in GitHub Actions because a local Docker daemon is unavailable.

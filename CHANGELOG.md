@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7.0 — 2026-10-23
+
+- Add a 40-case incident corpus and prompt/graph/retrieval benchmark with family splits.
+- Publish Gemini-only live results, provider failures, judge opinions and review exports.
+- Add OpenAI Responses adapter tests and an optional causal critic.
+- Trace node latency, tokens and dated cost estimates with optional OTLP export.
+- Show evidence and uncertainty in reviews; add API rate limits and feedback export.
+- Import knowledge versions atomically and record a reproducible console demo.
+
 ## 1.6.0 — 2026-10-23
 
 - Add versioned runbook/past-incident retrieval using pgvector or local vectors.
