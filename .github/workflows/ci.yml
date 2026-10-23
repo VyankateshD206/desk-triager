@@ -28,3 +28,18 @@ jobs:
         with:
           name: offline-evaluation
           path: eval-results.json
+  demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start demo stack
+        run: docker compose -f infra/compose.yaml up -d --build --wait --wait-timeout 180
+      - name: Verify faults and evidence tools
+        run: docker compose -f infra/compose.yaml exec -T triager python scripts/verify_demo.py
+      - name: Collect demo diagnostics
+        if: failure()
+        run: docker compose -f infra/compose.yaml logs --no-color --tail 100
+      - name: Stop demo stack
+        if: always()
+        run: docker compose -f infra/compose.yaml down

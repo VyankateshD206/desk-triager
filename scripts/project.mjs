@@ -17,8 +17,8 @@ function run(command, args) {
 }
 const task = process.argv[2];
 if (task === "build") {
-  run(python, ["-m", "ruff", "check", "triager", "tests", "scripts", "evals"]);
-  run(python, ["-m", "ruff", "format", "--check", "triager", "tests", "scripts", "evals"]);
+  run(python, ["-m", "ruff", "check", "triager", "tests", "scripts", "evals", "demo"]);
+  run(python, ["-m", "ruff", "format", "--check", "triager", "tests", "scripts", "evals", "demo"]);
   run(process.execPath, ["--check", "triager/static/app.js"]);
   run(python, ["-m", "build", "--wheel", "--no-isolation"]);
   run(python, ["scripts/verify_package.py"]);

@@ -1,0 +1,12 @@
+*
+!Dockerfile
+!pyproject.toml
+!README.md
+!triager/
+!triager/**
+!demo/
+!demo/**
+!scripts/
+!scripts/verify_demo.py
+**/__pycache__
+**/*.pyc
