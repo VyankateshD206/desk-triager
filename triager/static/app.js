@@ -6,6 +6,8 @@ const names = {
   latency: "Slow order fills",
   ml_degradation: "Telemetry feature drift",
 };
+const statusLabels = {open: "Needs review", queued: "Queued", verifying: "Verifying recovery",
+  failed: "Needs attention", resolved: "Resolved"};
 const actions = {
   reconnect_feed: "Reconnect the simulated market feed.",
   enable_backoff: "Apply retry backoff to the simulated gateway.",
@@ -58,12 +60,13 @@ const money = (value) =>
   });
 const help = (value, text) =>
   `<span tabindex="0" data-help="${escape(text)}" aria-describedby="help-tooltip">${escape(value)}</span>`;
-async function api(path, body) {
+async function api(path, body, extraHeaders = {}) {
   const response = await fetch(path, {
     method: body === undefined ? "GET" : "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Desk-Token": $("#token").value,
+      ...extraHeaders,
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
@@ -209,7 +212,11 @@ function render(s) {
     const current = s.incidents.find((i) => i.id === selected.id);
     if (current) {
       selected.status = current.status;
-      if (current.report && !busy) $("#report").textContent = current.report;
+      if (current.report && !busy && current.report !== selected.report) {
+        $("#report").textContent = current.report;
+        if (selected.approval) selected.approval.status = "superseded";
+        $("#modal-message").textContent = "Diagnosis changed. Reopen this incident to review the updated proposal.";
+      }
       updateApproval();
     }
   }
@@ -223,7 +230,7 @@ function renderIncidents() {
     rows
       .map(
         (i) =>
-          `<tr><td>${escape(names[i.kind] || i.kind)}</td><td>${escape(i.service)}</td><td><span class="badge ${escape(i.status)}">${escape(i.status === "open" ? "Needs review" : i.status === "verifying" ? "Verifying" : "Resolved")}</span></td><td><button class="inspect" data-id="${escape(i.id)}">${i.status === "open" ? "Review" : "View"}</button></td></tr>`,
+          `<tr><td>${escape(names[i.kind] || i.kind)}</td><td>${escape(i.service)}</td><td><span class="badge ${escape(i.status)}">${escape(statusLabels[i.status] || i.status)}</span></td><td><button class="inspect" data-id="${escape(i.id)}">${i.status === "open" ? "Review" : "View"}</button></td></tr>`,
       )
       .join("") ||
     '<tr><td class="empty" colspan="4"><strong>No open incidents</strong>Start a scenario to follow detection, diagnosis, and recovery.</td></tr>';
@@ -248,18 +255,14 @@ function renderSupporting(s) {
     '<p class="subtle">Detection and recovery activity will appear here.</p>';
 }
 function updateApproval() {
-  $("#detail-status").textContent =
-    selected.status === "open"
-      ? "Needs review"
-      : selected.status === "verifying"
-        ? "Verifying recovery"
-        : "Resolved";
+  $("#detail-status").textContent = statusLabels[selected.status] || selected.status;
   $("#detail-status").className = "badge " + selected.status;
   $("#approve").disabled =
     busy ||
     selected.status !== "open" ||
     selected.action === "inspect_only" ||
-    state?.mode !== "simulated desk";
+    state?.mode !== "simulated desk" || selected.approval?.status !== "pending";
+  $("#reject").disabled = busy || selected.status !== "open" || selected.approval?.status !== "pending";
   $("#approve").textContent =
     selected.action === "inspect_only"
       ? "Inspection only"
@@ -267,6 +270,8 @@ function updateApproval() {
         ? "Recovery verified"
         : selected.status === "verifying"
           ? "Verifying recovery…"
+          : selected.status === "queued" ? "Recovery queued…"
+          : selected.status === "failed" ? "Escalation required"
           : "Approve recovery";
 }
 async function refresh() {
@@ -349,6 +354,8 @@ $("#triage").onclick = async () => {
   updateApproval();
   try {
     const result = await api("/api/incidents/" + selected.id + "/triage", {});
+    selected = await api("/api/incidents/" + selected.id);
+    $("#script").textContent = selected.script;
     $("#report").textContent =
       `${result.provider === "gemini" ? "Gemini diagnosis" : "Offline diagnosis"}${result.fallback_reason ? " (Gemini unavailable)" : ""}\n\n${result.report}`;
   } catch (e) {
@@ -359,16 +366,23 @@ $("#triage").onclick = async () => {
     updateApproval();
   }
 };
-$("#approve").onclick = async () => {
+async function submitDecision(approved) {
   busy = true;
   updateApproval();
   try {
-    await api("/api/incidents/" + selected.id + "/approve", {
-      action: selected.action,
-      actor: $("#actor").value,
-    });
-    $("#modal-message").textContent =
-      "Recovery applied. Waiting for a fresh healthy sample to confirm success.";
+    if (!selected.approval) throw Error("Reopen the incident to review its proposal.");
+    const keyName = "desk-decision:" + selected.approval.id;
+    let key = sessionStorage.getItem(keyName);
+    if (!key) { key = crypto.randomUUID(); sessionStorage.setItem(keyName, key); }
+    const body = {action: selected.action, actor: $("#actor").value,
+      proposal_id: selected.approval.id};
+    if (!approved) body.reason = $("#feedback-reason").value;
+    await api("/api/incidents/" + selected.id + (approved ? "/approve" : "/reject"), body,
+      {"Idempotency-Key": key});
+    selected = await api("/api/incidents/" + selected.id);
+    $("#modal-message").textContent = approved
+      ? "Recovery queued. The worker will apply it, then check consecutive fresh healthy samples."
+      : "Rejection recorded. Refresh the diagnosis before proposing another recovery.";
     await refresh();
   } catch (e) {
     $("#modal-message").textContent = e.message;
@@ -376,7 +390,9 @@ $("#approve").onclick = async () => {
     busy = false;
     updateApproval();
   }
-};
+}
+$("#approve").onclick = () => submitDecision(true);
+$("#reject").onclick = () => submitDecision(false);
 // Shared tooltip supports pointer hover, keyboard focus, and tap without covering nearby metrics.
 let helpAnchor = null;
 function hideHelp() {

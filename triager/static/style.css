@@ -393,6 +393,7 @@ td small {
   border-radius: 20px;
 }
 .badge.open,
+.badge.queued,
 .badge.verifying {
   color: var(--orange);
   background: #342d24;
