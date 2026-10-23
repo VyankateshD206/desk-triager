@@ -175,7 +175,21 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
     def tools(state):
         calls = state["pending_calls"]
         if len(calls) + state["tool_calls"] > agent.settings.agent_max_tools:
-            return exhausted("ToolBudgetExceeded")
+            return {
+                **exhausted("ToolBudgetExceeded"),
+                "tool_events": state.get("tool_events", [])
+                + [
+                    tool_event(
+                        call.get("name", ""),
+                        call.get("args", {}),
+                        state["service"],
+                        time.perf_counter(),
+                        "blocked",
+                        {"error": "Tool budget exceeded"},
+                    )
+                    for call in calls
+                ],
+            }
         parts, items, trace = [], list(state["evidence_items"]), list(state["tool_trace"])
         available = agent.tools(state["service"])
         events = list(state.get("tool_events", []))

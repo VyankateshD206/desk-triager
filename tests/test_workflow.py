@@ -113,6 +113,8 @@ def test_tool_budget_blocks_entire_batch(agent):
     assert result["fallback_reason"] == "ToolBudgetExceeded"
     assert result["tool_calls"] == 2
     assert "get_service_metrics" not in result["tool_trace"]
+    assert result["tool_events"][-1]["status"] == "blocked"
+    assert "budget exceeded" in result["tool_events"][-1]["result_summary"]
 
 
 def test_unknown_tools_and_arguments_never_execute(agent):
