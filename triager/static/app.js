@@ -85,6 +85,10 @@ function showError(error) {
 }
 function updateGuide() {
   ["detect", "review", "recover"].forEach((step) => {$("#step-" + step).classList.remove("active"); $("#step-"+step).removeAttribute("aria-current");});
+  if (state && state.mode !== "simulated desk") {
+    $("#scenario-hint").textContent = "Simulation controls are disabled for external telemetry.";
+    return;
+  }
   if (!activeScenario) {
     $("#scenario-hint").textContent =
       state && Object.keys(state.faults || {}).length ? "Active simulated faults: " + Object.entries(state.faults).map(([service,kind])=>`${service}: ${names[kind] || kind}`).join(" · ") : "No active scenario. Incident history is retained across sessions.";
@@ -147,26 +151,78 @@ const ageText = (at) => {
   return seconds < 60 ? `${seconds}s ago` : seconds < 3600 ? `${Math.floor(seconds / 60)}m ago` : seconds < 86400 ? `${Math.floor(seconds / 3600)}h ago` : `${Math.floor(seconds / 86400)}d ago`;
 };
 function chartSamples() {
-  return (state?.events || []).filter(e => e.service === metricSpec[$("#chart-metric").value].service);
+  const spec = metricSpec[$("#chart-metric").value];
+  return (state?.events || []).filter(e => e.service === spec.service &&
+    Number.isFinite(e[$("#chart-metric").value]) && Number.isFinite(Date.parse(e.timestamp)))
+    .sort((a,b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
 }
+let chartLayout = null;
 function renderChart() {
   const metric = $("#chart-metric").value, spec = metricSpec[metric], events = chartSamples();
-  const svg = $("#chart"), width = Math.max(240, svg.clientWidth), left = 44, right = width - 12;
-  const rawMax = Math.max(spec.unit === "bps" ? 2 : 20, ...events.map(e => e[metric])) * 1.2;
-  const step = spec.unit === "bps" ? 2 : rawMax < 200 ? 40 : rawMax < 1000 ? 200 : 2000;
-  const max = Math.ceil(rawMax/step)*step;
-  const y = v => 160 - (v / max) * 125;
-  svg.setAttribute("viewBox", `0 0 ${width} 190`);
-  svg.setAttribute("aria-label", `${spec.label} in ${spec.unit}; ${events.length} samples; auto-scaled from zero`);
-  svg.dataset.help = `${spec.label} in ${spec.unit}. Auto-scaled from zero. ${spec.threshold ? `Alert threshold ${spec.threshold} ${spec.unit}; an upward arrow means the threshold is outside the visible range.` : "No fixed numeric alert rule for this metric."}`;
-  const points = events.map((e,i) => `${left + i * (right-left) / Math.max(1,events.length-1)},${y(e[metric])}`).join(" ");
-  const ticks = [0,.25,.5,.75,1].map(f => `<line x1="${left}" y1="${y(max*f)}" x2="${right}" y2="${y(max*f)}" stroke="var(--line)"/><text x="0" y="${y(max*f)+4}" fill="var(--muted)" font-size="13">${max < 10 ? (max*f).toFixed(1) : Math.round(max*f)}</text>`).join("");
-  const thresholdY = spec.threshold ? Math.max(25, y(spec.threshold)) : 0;
-  const threshold = spec.threshold ? `<line x1="${left}" y1="${thresholdY}" x2="${right}" y2="${thresholdY}" stroke="var(--orange)" stroke-dasharray="4 5"/><text x="${right}" y="${thresholdY-8}" text-anchor="end" fill="var(--orange)" font-size="13">${spec.threshold} ${spec.unit} alert${spec.threshold > max ? " ↑ off scale" : ""}</text>` : "";
-  svg.innerHTML = `<text x="0" y="16" fill="var(--muted)" font-size="13">${spec.unit}</text>${ticks}${threshold}<polyline points="${points}" fill="none" stroke="var(--green)" stroke-width="2"/>`;
-  $("#chart-start").textContent = events.length ? clock(events[0].timestamp) : "Waiting for samples";
+  const svg = $("#chart"), width = Math.max(240, svg.clientWidth), height = 224;
+  const left = 58, right = width - 16, top = 30, bottom = height - 40;
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  $("#chart-state").hidden = events.length > 0;
+  $("#chart-state").textContent = state ? "No samples for this service yet" : "Connecting to telemetry…";
+  $("#chart-context").textContent = `${spec.service} · ${events.length} accepted sample${events.length === 1 ? "" : "s"}`;
+  svg.setAttribute("aria-label", `${spec.label} in ${spec.unit}; ${events.length} samples`);
+  svg.dataset.help = events.length ? `${spec.label} in ${spec.unit}. Hover or tap for exact values. Use Left and Right arrow keys to inspect samples.` : "No telemetry samples available for the selected service.";
+  $("#chart-start").textContent = events.length ? `From ${new Date(events[0].timestamp).toLocaleString()}` : "Waiting for telemetry";
+  if (!events.length) {
+    svg.innerHTML = ""; chartLayout = null;
+    $("#chart-threshold").textContent = spec.threshold ? `Alert above ${spec.threshold} ${spec.unit}` : "No fixed alert threshold";
+    return;
+  }
+  const values = events.map(e => e[metric]);
+  const rawMax = Math.max(spec.unit === "bps" ? 1 : 10, ...values) * 1.15;
+  const rawMin = Math.min(0, ...values) * 1.15;
+  const roughStep = (rawMax - rawMin) / 4;
+  const power = 10 ** Math.floor(Math.log10(roughStep));
+  const step = [1, 2, 2.5, 5, 10].map(n => n * power).find(n => n >= roughStep);
+  const min = Math.floor(rawMin / step) * step, max = Math.ceil(rawMax / step) * step;
+  const first = Date.parse(events[0].timestamp), last = Date.parse(events.at(-1).timestamp);
+  const x = at => first === last ? (left+right)/2 : left + (Date.parse(at)-first)/(last-first)*(right-left);
+  const y = value => bottom - (value-min)/(max-min)*(bottom-top);
+  const fmt = value => Number(value.toPrecision(5)).toLocaleString(undefined,{maximumFractionDigits:4, notation: Math.abs(value)>=10000 ? "compact" : "standard"});
+  const ticks = [];
+  for (let value = min; value <= max + step/100; value += step) {
+    ticks.push(`<line x1="${left}" y1="${y(value)}" x2="${right}" y2="${y(value)}" class="chart-grid"/><text x="${left-10}" y="${y(value)+4}" text-anchor="end" class="chart-label">${fmt(value)}</text>`);
+  }
+  const timeTicks = first === last ? [first] : width < 420 ? [first,last] : [first,(first+last)/2,last];
+  const times = timeTicks.map((at,i) => `<text x="${first === last ? (left+right)/2 : left+(at-first)/(last-first)*(right-left)}" y="${bottom+25}" text-anchor="${first === last ? "middle" : i===0 ? "start" : i===timeTicks.length-1 ? "end" : "middle"}" class="chart-label">${clock(at)}</text>`).join("");
+  const thresholdVisible = spec.threshold != null && spec.threshold >= min && spec.threshold <= max;
+  const threshold = thresholdVisible ? `<line x1="${left}" y1="${y(spec.threshold)}" x2="${right}" y2="${y(spec.threshold)}" class="chart-limit"/>` : "";
+  $("#chart-threshold").textContent = spec.threshold ? `Alert > ${spec.threshold} ${spec.unit}${thresholdVisible ? " · dashed line" : " · above visible range"}` : "No fixed alert threshold";
+  const points = events.map(e => `${x(e.timestamp)},${y(e[metric])}`).join(" ");
+  svg.innerHTML = `<text x="${left}" y="17" class="chart-label">${spec.unit}</text>${ticks.join("")}${times}${threshold}<polyline points="${points}" class="chart-series"/>${events.length===1 ? `<circle cx="${x(events[0].timestamp)}" cy="${y(events[0][metric])}" r="3" class="chart-dot"/>` : ""}<g id="chart-cursor" hidden><line y1="${top}" y2="${bottom}" class="chart-crosshair"/><circle r="4" class="chart-dot"/></g>`;
+  chartLayout = {events, left, right, first, last, x, y, metric, spec, index: events.length-1};
+  // A live refresh must never leave a tooltip describing a point that has moved.
+  if (helpAnchor === svg) hideHelp();
+}
+function inspectChart(index, pointer) {
+  if (!chartLayout) return;
+  const c = chartLayout, sample = c.events[index]; c.index = index;
+  const cursor = $("#chart-cursor"), x = c.x(sample.timestamp);
+  cursor.removeAttribute("hidden");
+  cursor.querySelector("line").setAttribute("x1",x);
+  cursor.querySelector("line").setAttribute("x2",x);
+  cursor.querySelector("circle").setAttribute("cx",x);
+  cursor.querySelector("circle").setAttribute("cy",c.y(sample[c.metric]));
+  const time = new Date(sample.timestamp).toISOString();
+  showHelp($("#chart"), `${c.spec.service}\n${time}\n${c.spec.label}: ${sample[c.metric]} ${c.spec.unit}`, pointer?.clientX, pointer?.clientY);
+}
+function inspectChartPointer(event) {
+  if (!chartLayout) return;
+  const c = chartLayout, rect = $("#chart").getBoundingClientRect();
+  const at = c.first + Math.max(0,Math.min(1,(event.clientX-rect.left-c.left)/(c.right-c.left)))*(c.last-c.first);
+  const index = c.events.reduce((best,e,i) => Math.abs(Date.parse(e.timestamp)-at) < Math.abs(Date.parse(c.events[best].timestamp)-at) ? i : best,0);
+  inspectChart(index,event);
 }
 
+function setMetricState(name, label, status) {
+  const badge = $("#"+name+"-state");
+  badge.textContent = label; badge.className = "metric-state " + status;
+}
 function render(s) {
   state = s;
 
@@ -175,8 +231,9 @@ function render(s) {
     ? "var(--orange)"
     : "var(--text)";
   $("#queue-status").textContent = s.open_incident_count
-    ? "Review needed"
+    ? "Unresolved across all services"
     : "No unresolved incidents";
+  setMetricState("open", s.open_incident_count ? "Needs review" : "Clear", s.open_incident_count ? "warning" : "success");
   const gateway = s.events.filter((e) => e.service === "execution-gateway"),
     latest = gateway.at(-1);
   $("#latency").innerHTML = latest
@@ -186,7 +243,9 @@ function render(s) {
     ? "No gateway samples"
     : s.service_age_seconds["execution-gateway"] > s.tick_gap_seconds
       ? "Last known sample · feed stale"
-      : "Latest gateway sample";
+      : "Latest gateway sample · alert above 350 ms";
+  const gatewayStale = s.service_age_seconds["execution-gateway"] == null || s.service_age_seconds["execution-gateway"] > s.tick_gap_seconds;
+  setMetricState("latency", !latest ? "No samples" : gatewayStale ? "Stale sample" : latest.fill_latency_ms > 350 ? "Above threshold" : "Within threshold", !latest ? "waiting" : gatewayStale || latest.fill_latency_ms > 350 ? "warning" : "success");
   const difference = s.balances.reduce(
     (sum, b) => sum + Number(b.difference),
     0,
@@ -202,34 +261,35 @@ function render(s) {
     ? "No ledger accounts"
     : mismatch
       ? "Reconciliation needed"
-      : "Ledger matches exchange";
-  const degraded = Object.keys(s.errors).length;
+      : "Local ledger minus exchange · USD";
+  setMetricState("nav", !s.balances.length ? "No accounts" : mismatch ? "Reconcile" : "Aligned", !s.balances.length ? "waiting" : mismatch ? "warning" : "success");
+  const degraded = Object.keys(s.errors).length || ["market-feed", "execution-gateway", "portfolio-ledger"].some(service => s.service_age_seconds[service] == null || s.service_age_seconds[service] > s.tick_gap_seconds);
   $("#session").textContent = degraded
     ? "Needs attention"
-    : s.mode === "simulated desk"
-      ? "Monitoring"
-      : "Monitoring";
+    : s.last_ingest ? "Monitoring" : "Waiting for telemetry";
   $("#global-mode").textContent = s.mode === "simulated desk" ? "SIMULATED" : "EXTERNAL TELEMETRY";
   $("#sample-age").textContent = s.last_ingest ? "Last sample " + ageText(s.last_ingest) : "No samples yet";
-  $("#session").style.color = degraded ? "var(--orange)" : "var(--green)";
+  $("#session").style.color = degraded ? "var(--orange)" : s.last_ingest ? "var(--green)" : "var(--muted)";
   $("#updated").textContent = s.last_ingest
     ? "Updated " + clock(s.last_ingest)
     : "Waiting for telemetry";
   $("#infrastructure").textContent =
     `${s.database === "postgresql" ? "PostgreSQL" : "Local SQLite"} · ${s.ai_provider === "gemini" ? "Gemini REST" : "Offline triage"} · Direct Python ingestion`;
-  if (degraded)
+  if (Object.keys(s.errors).length)
     showError(
       Error("A background worker needs attention: " + JSON.stringify(s.errors)),
     );
-  for (const [service, age] of Object.entries(s.service_age_seconds)) {
+  for (const service of ["market-feed", "execution-gateway", "portfolio-ledger"]) {
+    const age = s.service_age_seconds[service];
     const node = $("#service-" + service),
       count = s.open_incidents_by_service[service] || 0,
-      stale = age > s.tick_gap_seconds;
-    const status = count ? "Review" : stale ? "Stale" : "Healthy";
-    node.className = "service" + (count || stale ? " attention" : "");
-    node.textContent = service;
+      stale = age > s.tick_gap_seconds,
+      hasSample = s.events.some(e => e.service === service);
+    const status = count ? "Review" : !hasSample || age == null ? "Waiting" : stale ? "Stale" : "Healthy";
+    node.className = "service" + (count || stale ? " attention" : !hasSample || age == null ? " waiting" : "");
+    node.innerHTML = `<span class="service-name">${escape(service)}</span><span class="service-status">${status === "Review" ? "Needs review" : status}</span><span class="service-meta">${hasSample && age != null ? `Last sample ${age.toFixed(1)}s ago` : "No recent samples"} · ${count} open</span>`;
     node.setAttribute("aria-label", `${service}: ${status}`);
-    node.dataset.help = `${service}: ${status.toLowerCase()}. Last accepted sample arrived ${age.toFixed(1)} seconds ago. Silence beyond ${s.tick_gap_seconds} seconds triggers a feed-gap incident. ${count} unresolved incident(s). A service can receive telemetry while its values are anomalous.`;
+    node.dataset.help = `${service}: ${status.toLowerCase()}. ${hasSample && age != null ? `Last accepted sample arrived ${age.toFixed(1)} seconds ago.` : "No recent telemetry samples available."} Silence beyond ${s.tick_gap_seconds} seconds triggers a feed-gap incident. ${count} unresolved incident(s). A service can receive telemetry while its values are anomalous.`;
   }
   renderIncidents();
   renderChart();
@@ -345,6 +405,11 @@ async function refresh() {
   } catch (e) {
     showError(e);
     $("#session").textContent = "Disconnected";
+    $("#session").style.color = "var(--error)";
+    $("#inject").disabled = true;
+    if (!state) $("#global-mode").textContent = "ENV UNKNOWN";
+    $("#chart-context").textContent = state ? "Connection lost · showing last received telemetry" : "Telemetry unavailable · check Settings";
+    if (!state) $("#chart-state").textContent = "Connect in Settings to load telemetry";
   }
 }
 function renderTimeline(incident) {
@@ -465,6 +530,8 @@ $("#inject").onclick = async () => {
   const [kind, service] = $("#fault").value.split("|");
   starting = true;
   $("#inject").disabled = true;
+  $("#inject").textContent = "Starting…";
+  $("#scenario-hint").textContent = "Sending fault to the simulator…";
   try {
     await api("/api/faults", { kind, service });
     activeScenario = { kind, service, since: Date.now() };
@@ -473,8 +540,10 @@ $("#inject").onclick = async () => {
     await refresh();
   } catch (e) {
     showError(e);
+    $("#scenario-hint").textContent = "Scenario could not start. Check the error above and retry.";
   } finally {
     starting = false;
+    $("#inject").textContent = "Run scenario";
     $("#inject").disabled = state?.mode !== "simulated desk";
   }
 };
@@ -532,6 +601,7 @@ let helpAnchor = null;
 function hideHelp() {
   helpAnchor = null;
   $("#help-tooltip").hidden = true;
+  $("#chart-cursor")?.setAttribute("hidden", "");
 }
 function showHelp(anchor, text, x, y) {
   const tooltip = $("#help-tooltip"),
@@ -580,13 +650,13 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") hideHelp();
 });
 window.addEventListener("scroll", hideHelp, true);
-$("#chart").addEventListener("pointermove", (event) => {
-  const events = chartSamples(); if (!events.length) return;
-  const rect = $("#chart").getBoundingClientRect();
-  const fraction = (event.clientX - rect.left - 44) / Math.max(1,rect.width-56);
-  const sample = events[Math.max(0, Math.min(events.length-1, Math.round(fraction*(events.length-1))))];
-  const metric = $("#chart-metric").value, spec = metricSpec[metric];
-  showHelp($("#chart"), `${clock(sample.timestamp)} · ${spec.label} ${sample[metric].toFixed(1)} ${spec.unit}`, event.clientX,event.clientY);
+$("#chart").addEventListener("pointermove", inspectChartPointer);
+$("#chart").addEventListener("click", inspectChartPointer);
+$("#chart").addEventListener("keydown", event => {
+  if (!chartLayout || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  const c = chartLayout;
+  inspectChart(event.key === "Home" ? 0 : event.key === "End" ? c.events.length-1 : Math.max(0,Math.min(c.events.length-1,c.index + (event.key === "ArrowLeft" ? -1 : 1))));
 });
 $("#chart-metric").onchange = renderChart;
 window.addEventListener("resize", renderChart);

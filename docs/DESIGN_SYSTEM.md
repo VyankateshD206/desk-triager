@@ -40,3 +40,28 @@ keyboard, tooltip, modal, sorting, simulation and approval behavior is preserved
   within its container. Review retains its timeline, evidence, trace and approval controls.
 
 No backend, endpoint, dependency, application version or release tag changes are included.
+
+## Phase 2 — main dashboard
+
+The operations overview uses the same tokens with a branded monitoring header, explicit
+metric states, a balanced chart/scenario grid and three labeled service health cards.
+Statuses describe observed telemetry and unresolved incidents separately; no received
+samples never becomes a healthy reading merely because the process just started.
+Simulation is disabled for external telemetry and the environment remains unknown until
+a snapshot succeeds. Metrics show current values only, with no invented trends.
+
+Execution pulse is 224px high. Its x-axis uses real sample timestamps rather than uniform
+sample spacing; the y-axis includes negative slippage and uses metric units. Only finite
+samples with valid timestamps from the selected service are drawn. Single points remain
+visible. Thresholds within the visible range have a dashed line; thresholds outside it are
+annotated in the footer without drawing a misleading line. Hover/tap and keyboard arrows
+inspect the exact stored value and UTC timestamp. Axis labels use local browser time.
+Loading, connection failure, no samples and stale telemetry have explicit states.
+
+Validation includes `scripts/test_dashboard.cjs` through the existing frontend build check:
+empty, zero, single, negative, invalid, uneven-time samples and visible/off-scale thresholds.
+Browser checks cover desktop/375px layouts, metric switching, exact-value inspection,
+scenario triggering, no-telemetry/unauthenticated states and the existing Review dialog.
+All 138 existing regression tests and `make build` pass.
+The review markup, backend and APIs are unchanged. Fixture telemetry is used only by the
+renderer tests; browser validation uses the real local simulator and an isolated empty DB.

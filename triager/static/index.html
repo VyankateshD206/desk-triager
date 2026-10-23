@@ -3,15 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Desk — Trading service observatory</title>
+    <title>Desk Triager — Operations overview</title>
     <link rel="stylesheet" href="/static/style.css" />
     <script defer src="/static/app.js"></script>
   </head>
   <body>
     <main>
       <header>
-        <a class="brand" href="/">desk<span>.</span></a
-        ><div class="status-strip"><span class="live" id="session">Connecting</span><span id="sample-age">No samples yet</span><strong class="pill" id="global-mode">SIMULATED</strong></div>
+        <div class="brand-block"><a class="brand" href="/">Desk Triager<span>.</span></a><p>Trading telemetry &amp; incident operations</p></div>
+        <div class="status-strip"><span class="live" id="session" role="status">Connecting</span><span id="sample-age">No samples yet</span><strong class="pill" id="global-mode">CONNECTING</strong></div>
         <details class="settings">
           <summary>Settings</summary>
           <div class="settings-content">
@@ -29,6 +29,7 @@
         </details>
       </header>
       <div class="error hidden" id="error" role="alert"></div>
+      <div class="dashboard-heading"><h1>Operations overview</h1></div>
       <section class="metrics" aria-label="Key desk metrics">
         <article
           class="metric"
@@ -39,9 +40,9 @@
           <div class="label">
             Open incidents <span class="info" aria-hidden="true">?</span>
           </div>
-          <div class="number" id="open">—</div>
+          <div class="metric-value"><div class="number" id="open">—</div><span class="metric-state" id="open-state">Waiting</span></div>
           <span class="metric-note" id="queue-status"
-            >Waiting for telemetry</span
+            >Unresolved across all services</span
           >
         </article>
         <article
@@ -53,9 +54,9 @@
           <div class="label">
             Fill latency <span class="info" aria-hidden="true">?</span>
           </div>
-          <div class="number" id="latency">—</div>
+          <div class="metric-value"><div class="number" id="latency">—</div><span class="metric-state" id="latency-state">Waiting</span></div>
           <span class="metric-note" id="latency-note"
-            >Latest gateway sample</span
+            >Latest gateway sample · alert above 350 ms</span
           >
         </article>
         <article
@@ -67,24 +68,24 @@
           <div class="label">
             NAV difference <span class="info" aria-hidden="true">?</span>
           </div>
-          <div class="number" id="difference">—</div>
+          <div class="metric-value"><div class="number" id="difference">—</div><span class="metric-state" id="nav-state">Waiting</span></div>
           <span class="metric-note" id="balance-note"
-            >Local ledger vs. exchange</span
+            >Local ledger minus exchange · USD</span
           >
         </article>
       </section>
       <section class="workspace">
         <article class="panel pulse">
           <div class="panel-heading">
-            <h2>Execution pulse</h2>
+            <div><h2>Execution pulse</h2><p class="subtle" id="chart-context">Waiting for telemetry</p></div>
             <label class="sr-only" for="chart-metric">Chart metric</label>
             <select id="chart-metric" aria-label="Chart metric"><option value="fill_latency_ms">Fill latency · ms</option><option value="heartbeat_jitter_ms">Jitter · ms</option><option value="slippage_bps">Slippage · bps</option><option value="tick_age_ms">Tick age · ms</option></select>
-            <span class="subtle">Hover to explore</span>
+
           </div>
-          <div class="chart">
+          <div class="chart"><div id="chart-state" class="chart-state" role="status">Connecting to telemetry…</div>
             <svg
               id="chart"
-              viewBox="0 0 800 170"
+              viewBox="0 0 800 248"
               preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Recent fill latency; hover to inspect individual samples"
@@ -100,15 +101,15 @@
               data-help="Time of the oldest gateway sample currently plotted. Times use your browser timezone."
               aria-describedby="help-tooltip"
               >Waiting for samples</span
-><span>Now</span>
+><span id="chart-threshold">Select a metric to inspect</span>
           </div>
         </article>
         <article class="panel scenario">
           <div class="panel-heading">
-            <h2>Try a scenario</h2>
+            <div><h2>Scenario control</h2><p class="subtle">Inject a fault into the local simulator.</p></div>
             <span class="pill">Simulated</span>
           </div>
-          <div class="scenario-controls">
+          <div class="scenario-controls"><label for="fault">Failure scenario</label>
             <select id="fault" aria-label="Failure scenario">
               <option value="tick_gap|market-feed">Stale market feed</option>
               <option value="silence|market-feed">
@@ -126,7 +127,7 @@
               <option value="ml_degradation|execution-gateway">
                 Subtle feature drift
               </option></select
-            ><button id="inject">Run scenario</button>
+            ><button id="inject" disabled>Run scenario</button>
           </div>
           <p id="scenario-description">
             Market ticks stop updating. The detector flags stale data while the
@@ -143,25 +144,24 @@
         </article>
       </section>
       <section class="service-strip" aria-label="Service health">
-        <span class="subtle">Services</span
-        ><span
+        <div class="service-heading"><h2>Service health</h2><p class="subtle">Telemetry freshness &amp; open signals</p></div><span
           id="service-market-feed"
-          class="service"
+          class="service waiting"
           tabindex="0"
           aria-describedby="help-tooltip"
-        ></span
+        ><span class="service-name">market-feed</span><span class="service-status">Waiting for telemetry</span></span
         ><span
           id="service-execution-gateway"
-          class="service"
+          class="service waiting"
           tabindex="0"
           aria-describedby="help-tooltip"
-        ></span
+        ><span class="service-name">execution-gateway</span><span class="service-status">Waiting for telemetry</span></span
         ><span
           id="service-portfolio-ledger"
-          class="service"
+          class="service waiting"
           tabindex="0"
           aria-describedby="help-tooltip"
-        ></span>
+        ><span class="service-name">portfolio-ledger</span><span class="service-status">Waiting for telemetry</span></span>
       </section>
       <section class="incidents">
         <div class="section-heading">
