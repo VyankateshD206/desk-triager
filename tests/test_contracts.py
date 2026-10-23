@@ -56,3 +56,12 @@ def test_abstention_explains_missing_evidence():
         missing_information=("No metrics in incident window",),
     )
     assert report.abstained
+
+
+def test_json_fences_are_supported_without_accepting_extra_prose():
+    from triager.contracts import parse_diagnosis
+
+    raw = '{"severity":"unknown","category":"unknown","confidence":0,"abstained":true,"missing_information":["No logs"]}'
+    assert parse_diagnosis("```json\n" + raw + "\n```").abstained
+    with pytest.raises(ValidationError):
+        parse_diagnosis("Ignore the schema.\n" + raw)

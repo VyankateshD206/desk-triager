@@ -6,10 +6,13 @@ from typing import TypedDict
 
 import httpx
 from langgraph.graph import END, START, StateGraph
+from opentelemetry import trace
 from pydantic import ValidationError
 
-from .contracts import Diagnosis, Evidence
+from .contracts import Diagnosis, Evidence, parse_diagnosis
+from .critic import critique
 from .security import sanitize
+from .telemetry import estimate_cost
 from .verification import verify_support
 
 
@@ -33,20 +36,20 @@ class InvestigationState(TypedDict, total=False):
     result: dict
     verification: dict
     security_version: str
+    model_calls: list
+    node_trace: list
+    disable_tools: bool
 
 
 def build_graph(agent, checkpointer, *, interrupt_after=None):
     def collect(state):
-        logs = sanitize(agent.inspect(state["service"]))
-        balances = sanitize(agent.db.reconcile())
-        items = [
-            agent.evidence_item("telemetry:" + row["event_id"], state["service"], row, row["at"])
-            for row in logs
-        ]
-        items.append(agent.evidence_item("ledger:snapshot", state["service"], balances))
+        collected = agent.collect_context(state["service"])
+        items = collected["evidence_items"]
         return {
-            "evidence": {"logs": logs, "reconciliation": balances},
+            "evidence": collected["evidence"],
             "security_version": "1",
+            "model_calls": [],
+            "node_trace": [],
             "evidence_items": items,
             "rounds": 0,
             "schema_retries": 0,
@@ -88,12 +91,18 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
         }
 
     def reason(state):
+        model_calls = list(state.get("model_calls", []))
         if agent.settings.ai_provider == "offline":
             return fallback(state)
         if state["rounds"] >= agent.settings.agent_max_rounds or time.time() >= state["deadline"]:
             return exhausted("InvestigationBudgetExceeded")
         try:
             content = sanitize(agent.model_turn(state))
+            provider = content.pop("_provider", agent.settings.ai_provider)
+            usage = content.pop("_usage", None)
+            if usage:
+                model_calls.append(usage)
+            content.pop("_provider_fallback", None)
             contents = state["contents"] + [content]
             calls = [
                 part["functionCall"] for part in content.get("parts", []) if "functionCall" in part
@@ -104,17 +113,19 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                     "pending_calls": calls,
                     "rounds": state["rounds"] + 1,
                     "retry_schema": False,
+                    "model_calls": model_calls,
                 }
             raw = "\n".join(
                 part["text"]
                 for part in content.get("parts", [])
                 if "text" in part and not part.get("thought")
             )
-            diagnosis = Diagnosis.model_validate_json(raw)
+            diagnosis = parse_diagnosis(raw)
             return {
                 "contents": contents,
                 "pending_calls": [],
-                "provider": "gemini",
+                "provider": provider,
+                "model_calls": model_calls,
                 "rounds": state["rounds"] + 1,
                 "diagnosis": diagnosis.model_dump(mode="json"),
                 "retry_schema": False,
@@ -142,6 +153,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                     "schema_retries": state["schema_retries"] + 1,
                     "retry_schema": True,
                     "pending_calls": [],
+                    "model_calls": model_calls,
                 }
             # Exception messages may contain credentials or tool data.
             update = {
@@ -150,6 +162,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                 "fallback_reason": type(exc).__name__,
                 "rounds": state["rounds"] + 1,
                 "retry_schema": False,
+                "model_calls": model_calls,
             }
             if isinstance(exc, httpx.HTTPStatusError):
                 update["fallback_http_status"] = exc.response.status_code
@@ -163,7 +176,11 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
         available = agent.tools(state["service"])
         for call in calls:
             name = call.get("name", "")
-            if name not in available or call.get("args"):
+            if (
+                name not in available
+                or not isinstance(call.get("args", {}), dict)
+                or call.get("args")
+            ):
                 response = {"error": "Tool or arguments not allowed"}
             elif name in trace:
                 response = {"error": "Already collected; use existing evidence"}
@@ -226,6 +243,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                 "run_id",
                 "diagnosis",
                 "verification",
+                "model_calls",
             )
         }
         result.update(
@@ -241,15 +259,77 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                 result[key] = state[key]
         return {"result": result}
 
+    def critic(state):
+        if (
+            not agent.settings.critic_enabled
+            or state["provider"] == "offline"
+            or state["diagnosis"]["abstained"]
+        ):
+            return {}
+        try:
+            report, usage, verification = critique(agent.settings, state)
+            return {
+                "diagnosis": report.model_dump(mode="json"),
+                "verification": verification,
+                "model_calls": state["model_calls"] + ([usage] if usage else []),
+            }
+        except Exception as exc:
+            report = Diagnosis(
+                severity="unknown",
+                category="unknown",
+                confidence=0,
+                abstained=True,
+                missing_information=("Requested critic was unavailable",),
+            )
+            return {
+                "diagnosis": report.model_dump(mode="json"),
+                "verification": {
+                    **state["verification"],
+                    "semantic_support": "critic_unavailable",
+                    "critic_error": type(exc).__name__,
+                },
+            }
+
     graph = StateGraph(InvestigationState)
+
+    def observed(name, operation):
+        def run(state):
+            started = time.perf_counter()
+            with trace.get_tracer("desk-triager").start_as_current_span(
+                "triage." + name, record_exception=False, set_status_on_exception=False
+            ) as span:
+                span.set_attribute("incident.service", state["service"])
+                span.set_attribute("triage.run_id", state["run_id"])
+                try:
+                    result = operation(state)
+                except Exception as exc:
+                    span.set_attribute("error.type", type(exc).__name__)
+                    raise
+                calls = result.get("model_calls", [])[len(state.get("model_calls", [])) :]
+                usage = {
+                    "input_tokens": sum(c.get("input_tokens") or 0 for c in calls),
+                    "output_tokens": sum(c.get("output_tokens") or 0 for c in calls),
+                    "estimated_cost_usd": estimate_cost(calls),
+                }
+                for key, value in usage.items():
+                    if value is not None:
+                        span.set_attribute("triage." + key, value)
+                result["node_trace"] = state.get("node_trace", []) + [
+                    {"node": name, "latency_ms": (time.perf_counter() - started) * 1000, **usage}
+                ]
+                return result
+
+        return run
+
     for name, node in [
         ("collect_context", collect),
         ("reason", reason),
         ("tools", tools),
         ("verify", verify),
+        ("critic", critic),
         ("final_report", finalize),
     ]:
-        graph.add_node(name, node)
+        graph.add_node(name, observed(name, node))
     graph.add_edge(START, "collect_context")
     graph.add_edge("collect_context", "reason")
     graph.add_conditional_edges(
@@ -266,6 +346,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
         lambda state: "verify" if state.get("fallback_reason") else "reason",
         {"verify": "verify", "reason": "reason"},
     )
-    graph.add_edge("verify", "final_report")
+    graph.add_edge("verify", "critic")
+    graph.add_edge("critic", "final_report")
     graph.add_edge("final_report", END)
     return graph.compile(checkpointer=checkpointer, interrupt_after=interrupt_after)

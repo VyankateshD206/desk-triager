@@ -220,7 +220,9 @@ def test_expiration_during_schema_repair_terminates(agent, monkeypatch):
     from triager import workflow
 
     clock = [time.time()]
-    monkeypatch.setattr(workflow, "time", SimpleNamespace(time=lambda: clock[0]))
+    monkeypatch.setattr(
+        workflow, "time", SimpleNamespace(time=lambda: clock[0], perf_counter=time.perf_counter)
+    )
 
     def model(state):
         # Simulate the provider using the rest of the deadline on malformed output.
@@ -247,3 +249,42 @@ def test_legacy_checkpoint_requires_fresh_diagnosis(agent):
         )
     with pytest.raises(ValueError, match="predates security"):
         agent.resume("legacy")
+
+
+def test_critic_can_abstain_on_structurally_valid_causal_claim(agent, monkeypatch):
+    from triager.contracts import Diagnosis
+
+    agent.settings.critic_enabled = True
+    agent.model_turn = report
+
+    def reject(settings, state):
+        return (
+            Diagnosis(
+                severity="unknown",
+                category="unknown",
+                confidence=0,
+                abstained=True,
+                missing_information=("Causality unsupported",),
+            ),
+            {"model": "gemini-3.5-flash-lite", "input_tokens": 10, "output_tokens": 5},
+            {**state["verification"], "semantic_support": "model_critic_assessed"},
+        )
+
+    monkeypatch.setattr("triager.workflow.critique", reject)
+    result = agent.diagnose({"service": "execution-gateway"})
+    assert result["diagnosis"]["abstained"]
+    assert result["verification"]["semantic_support"] == "model_critic_assessed"
+    assert any(n["node"] == "critic" and n["input_tokens"] == 10 for n in result["node_trace"])
+
+
+def test_failed_requested_critic_abstains_and_cost_is_unknown(agent, monkeypatch):
+    agent.settings.critic_enabled = True
+    agent.model_turn = report
+
+    def fail(*args):
+        raise ValueError("invalid verdict")
+
+    monkeypatch.setattr("triager.workflow.critique", fail)
+    result = agent.diagnose({"service": "execution-gateway"})
+    assert result["diagnosis"]["abstained"]
+    assert result["estimated_cost_usd"] is None

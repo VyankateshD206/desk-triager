@@ -5,12 +5,26 @@ Evidence identity proves provenance, not that a hypothesis is true.
 
 import hashlib
 import json
+import re
 from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-Category = Literal["tick_gap", "rate_limit", "nav_mismatch", "latency", "ml_degradation", "unknown"]
+Category = Literal[
+    "tick_gap",
+    "rate_limit",
+    "nav_mismatch",
+    "latency",
+    "ml_degradation",
+    "network",
+    "database",
+    "resource",
+    "deployment",
+    "application",
+    "infrastructure",
+    "unknown",
+]
 
 
 class Contract(BaseModel):
@@ -84,3 +98,9 @@ def unsupported_citations(report: Diagnosis, evidence: tuple[Evidence, ...]) -> 
     """Check reference membership; semantic claim support requires separate verification."""
     available = {item.evidence_id for item in evidence}
     return {ref for hypothesis in report.hypotheses for ref in hypothesis.evidence_ids} - available
+
+
+def parse_diagnosis(text: str) -> Diagnosis:
+    """Accept plain JSON or one entire JSON fence; reject surrounding prose."""
+    fenced = re.fullmatch(r"\s*```(?:json)?\s*\n([\s\S]*?)\n```\s*", text)
+    return Diagnosis.model_validate_json(fenced.group(1) if fenced else text)

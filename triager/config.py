@@ -29,12 +29,22 @@ class Settings:
     verification_samples: int = 2
     retrieval_enabled: bool = os.getenv("RETRIEVAL_ENABLED", "true").lower() == "true"
     embedding_provider: str = os.getenv("EMBEDDING_PROVIDER", "hash")
+    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    fallback_provider: str = os.getenv("FALLBACK_PROVIDER", "offline")
+    critic_enabled: bool = os.getenv("CRITIC_ENABLED", "false").lower() == "true"
+    critic_provider: str = os.getenv("CRITIC_PROVIDER", "")
 
     def validate(self):
+        if self.critic_provider not in {"", "gemini", "openai"}:
+            raise ValueError("Critic provider must be gemini or openai")
         if self.embedding_provider not in {"hash", "gemini"}:
             raise ValueError("Embedding provider must be hash or gemini")
-        if self.ai_provider not in {"offline", "gemini"}:
-            raise ValueError("AI_PROVIDER must be offline or gemini")
+        if self.ai_provider not in {
+            "offline",
+            "gemini",
+            "openai",
+        } or self.fallback_provider not in {"offline", "gemini", "openai"}:
+            raise ValueError("Providers must be offline, gemini, or openai")
         if self.tick_gap_seconds < 3:
             raise ValueError("TICK_GAP_SECONDS must be at least 3")
         if not self.token:
