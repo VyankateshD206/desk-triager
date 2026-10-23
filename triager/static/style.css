@@ -1897,3 +1897,369 @@ main > header .settings {
     justify-self: end;
   }
 }
+
+/* Phase 4: focused incident investigation and human decision workspace. */
+#detail {
+  width: min(1180px, 96vw);
+  max-height: 92vh;
+  padding: var(--space-6);
+  border-color: var(--border-strong);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+#detail .review-header {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+#detail .modal-head {
+  margin-bottom: var(--space-2);
+}
+#detail h2 {
+  font-size: var(--font-title);
+  line-height: 1.35;
+  margin: 0;
+}
+#detail-title:focus {
+  outline: none;
+}
+#detail .review-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+  font-size: var(--font-sm);
+  color: var(--muted);
+}
+#detail-service {
+  color: var(--text-secondary);
+}
+#detail .review-grid {
+  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
+  gap: var(--space-6);
+}
+#detail h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-heading);
+  line-height: 1.4;
+}
+#detail h4 {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: var(--font-base);
+  line-height: 1.5;
+}
+#detail p {
+  font-size: var(--font-base);
+  line-height: 1.65;
+}
+#detail .review-main > section + section {
+  margin-top: var(--space-5);
+}
+#detail .assessment {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  background: var(--surface-inset);
+}
+#detail .section-heading {
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+#detail .section-heading h3 {
+  margin: 0;
+}
+#detail #report {
+  max-height: none;
+  overflow: visible;
+  white-space: pre-line;
+  font-size: var(--font-base);
+  line-height: 1.65;
+}
+#detail #diagnosis {
+  color: var(--text-secondary);
+}
+#detail .review-analysis-source {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
+#detail .review-uncertainty {
+  border-left: 2px solid var(--warning-border);
+  padding-left: var(--space-3);
+}
+#detail .review-claim {
+  padding-block: var(--space-2);
+}
+#detail .review-claim p {
+  margin: 0 0 var(--space-1);
+}
+#detail .evidence-link {
+  font-size: var(--font-sm);
+  margin-right: var(--space-2);
+}
+#detail blockquote {
+  margin: var(--space-2) 0;
+  border-left: 2px solid var(--border-strong);
+  padding-left: var(--space-3);
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+}
+#detail .timeline {
+  margin: 0;
+  padding: var(--space-1) 0;
+  gap: var(--space-2);
+}
+#detail .timeline li {
+  flex: 1;
+  padding: var(--space-2);
+  font-size: var(--font-sm);
+}
+#detail .timeline time {
+  font-size: var(--font-xs);
+}
+#detail .review-technical > details {
+  margin: 0;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+}
+#detail summary {
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+  line-height: 1.6;
+}
+#detail summary:hover {
+  color: var(--text);
+}
+#detail .review-technical details details {
+  margin: var(--space-3) 0;
+}
+#detail .tool-record {
+  padding: var(--space-2) var(--space-3);
+}
+#detail pre {
+  max-height: none;
+  overflow: visible;
+  white-space: pre-wrap;
+  font-size: var(--font-sm);
+  margin-block: var(--space-3);
+}
+#detail .review-evidence-id {
+  font: var(--font-sm)/1.6 var(--mono);
+}
+#detail #evidence-count {
+  color: var(--muted);
+  font-size: var(--font-sm);
+}
+#detail .review-approval {
+  grid-row: auto;
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+}
+#detail .review-approval > .section-heading {
+  margin-bottom: var(--space-4);
+}
+#detail .approval-scope {
+  border-color: var(--warning-border);
+  margin-block: var(--space-3);
+}
+#detail #review-policy {
+  font-size: var(--font-sm);
+}
+#detail .review-recovery-state {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  margin-block: var(--space-4);
+  background: var(--surface-raised);
+}
+#detail .review-recovery-state strong {
+  font-size: var(--font-base);
+}
+#detail .review-recovery-state p {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-sm);
+}
+#detail .review-recovery-state.success {
+  border-color: var(--success-border);
+  background: var(--success-bg);
+}
+#detail .review-recovery-state.success strong {
+  color: var(--green);
+}
+#detail .review-recovery-state.error {
+  border-color: var(--error-border);
+  background: var(--error-bg);
+}
+#detail .review-recovery-state.error strong {
+  color: var(--error);
+}
+#detail .actor {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  font-size: var(--font-base);
+}
+#detail .actor input, #detail textarea {
+  width: 100%;
+  max-width: 100%;
+}
+#detail textarea {
+  resize: vertical;
+  min-height: 88px;
+  padding: var(--space-3);
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: var(--font-base)/1.6 var(--sans);
+}
+#detail textarea::placeholder {
+  color: var(--muted);
+}
+#detail textarea:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+#detail [aria-invalid="true"] {
+  border-color: var(--error);
+}
+#detail #decision-reason-help {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-sm);
+}
+#detail .review-decision-actions {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+#detail #approve, #detail #reject {
+  margin: 0;
+  width: 100%;
+  min-height: 40px;
+  white-space: normal;
+  font-size: var(--font-base);
+}
+#detail #reject {
+  color: var(--error);
+  border-color: var(--error-border);
+}
+#detail #reject:hover:not(:disabled) {
+  background: var(--error-bg);
+}
+#detail .review-field-error {
+  color: var(--error);
+  font-size: var(--font-base);
+  margin: var(--space-2) 0;
+}
+#detail .review-field-error[hidden] {
+  display: none;
+}
+#detail #modal-error {
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+#detail #modal-message {
+  font-size: var(--font-base);
+  line-height: 1.6;
+}
+#detail #modal-message:empty {
+  display: none;
+}
+#detail .badge {
+  border-radius: var(--radius-sm);
+  padding: 3px var(--space-2);
+  font-size: var(--font-sm);
+}
+#detail .badge.open {
+  color: var(--orange);
+  background: var(--warning-bg);
+}
+#detail .badge.queued {
+  color: var(--text-secondary);
+  background: var(--surface-raised);
+}
+#detail .badge.verifying {
+  color: var(--info);
+  background: var(--info-bg);
+}
+#detail .badge.resolved {
+  color: var(--green);
+  background: var(--success-bg);
+}
+#detail .badge.failed {
+  color: var(--error);
+  background: var(--error-bg);
+}
+@media (max-width: 900px) {
+  #detail .review-grid {
+    grid-template-columns: minmax(0,1fr);
+  }
+  #detail .review-approval {
+    grid-row: auto;
+  }
+}
+@media (max-width: 580px) {
+  #detail {
+    width: 96vw;
+    max-height: 94vh;
+    padding: var(--space-4);
+  }
+  #detail .review-grid {
+    gap: var(--space-5);
+  }
+  #detail .review-approval {
+    padding: var(--space-4);
+  }
+  #detail .review-metadata {
+    gap: var(--space-2) var(--space-3);
+  }
+  #detail .timeline li {
+    flex: 1 0 28%;
+  }
+}
+#detail .actor {
+  justify-content: stretch;
+  align-items: stretch;
+}
+#detail .actor input {
+  min-width: 0;
+}
+#detail .review-main {
+  grid-column: 1;
+  grid-row: 1;
+}
+#detail .review-secondary {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+}
+#detail .review-secondary > section + section {
+  margin-top: var(--space-5);
+}
+#detail .review-approval {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+@media (max-width: 900px) {
+  #detail .review-main {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  #detail .review-approval {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  #detail .review-secondary {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
+body:has(#detail[open]) {
+  overflow: hidden;
+}
+#detail #review-policy {
+  cursor: help;
+}

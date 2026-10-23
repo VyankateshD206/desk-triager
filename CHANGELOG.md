@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Redesign incident review with visible diagnosis/evidence, separate technical panels and a clear human decision area (Phase 4).
+
 - Add client-side incident filters, explicit recovery states and responsive incident cards (Phase 3).
 
 - Redesign the main operations dashboard with explicit metric/service states and a time-scaled chart (Phase 2).

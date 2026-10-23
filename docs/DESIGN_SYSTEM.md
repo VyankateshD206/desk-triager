@@ -94,3 +94,43 @@ Browser checks cover pending Review, resolved View details (approval disabled), 
 Enter selection, timestamp tooltip without opening Review, service/severity filters, reset,
 and desktop/375px layouts with no page overflow. Test fixtures stay inside the Node checks;
 UI validation reads actual isolated demo history. No recovery decision was submitted.
+
+## Phase 4 — incident review
+
+The native dialog is a responsive investigation workspace, up to 1180px wide. Its header
+names the service, actual severity/status and detection time. The main column shows the
+observed symptom, verbatim structured findings, cited source links/quotes and uncertainty.
+Abstention, missing information, unsupported claims and provider fallback remain visible.
+The complete original report is retained in its own expandable panel, alongside source
+records/full evidence IDs, tool calls/arguments/results, workflow timings, model usage,
+stored incident telemetry/logs and the fixed recovery script.
+
+The decision panel names the fixed simulated handler and target, displays the server's
+policy disposition/reason, collects an approver and decision reason, and separates the
+submission acknowledgement from current recovery status. Queued is not successful
+recovery; only the backend's verified state is presented as resolved. Rejection still
+requires a nonempty reason and approval remains bound to the existing proposal and
+idempotency key. Frontend validation does not replace server authorization. No backend,
+LangGraph interrupt, execution, verification or API changes are included.
+
+The dialog has a single main scroll area; reports and code blocks have no nested scrolling.
+On narrow screens, the investigation comes first, then the decision, followed by recovery
+progress and optional technical panels. Native modal focus containment and Escape are
+preserved; opening focuses the title and closing restores the invoking row/action (or the
+status filter if that row has disappeared). Evidence links open the appropriate source
+and focus its summary. Field/API errors use alert regions, preserve drafts, and are not
+overwritten by polling. Recovery status is announced only when its presentation changes.
+
+Validation:
+- Node review checks exercise the real decision handler with mocked HTTP: rejection reason,
+  approver, original proposal/action payload, retry key reuse, duplicate in-flight clicks,
+  draft/error preservation, recovery states and late responses after another incident opens.
+- In an isolated SQLite/offline simulator, browser rejection without a reason focused the
+  textarea without submitting. Rejection with a reason was recorded; refreshing created
+  a new reviewable proposal. Approval then displayed queued before actual verification.
+- Read-only SQL inspection confirmed one rejected decision (zero attempts) and one approved
+  recovery (one worker attempt, two healthy verification samples, succeeded). The incident
+  resolved only after those samples. Existing desk history was not used for decisions.
+- Browser checks covered source navigation, native Escape/focus return, initially closed
+  technical panels, and desktop/375px layouts. At 375px the dialog's scroll width equaled
+  its client width; primary report text was 14px and the decision preceded technical panels.

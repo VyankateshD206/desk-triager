@@ -226,59 +226,51 @@
         >
       </footer>
     </main>
-    <dialog id="detail">
-      <div class="modal-head">
-        <span class="subtle">Incident review</span
-        ><button class="quiet" id="close" aria-label="Close incident">
-          Close ×
-        </button>
+    <dialog id="detail" aria-labelledby="detail-title" aria-describedby="review-description">
+      <div class="review-header">
+        <div class="modal-head"><div><span class="subtle">Incident investigation</span><h2 id="detail-title" tabindex="-1"></h2></div><button class="quiet" id="close" aria-label="Close incident">Close ×</button></div>
+        <p id="review-description" class="sr-only">Review the diagnosis and evidence before making a simulated recovery decision. Approval queues recovery; fresh telemetry confirms the outcome.</p>
+        <div class="review-metadata"><span id="detail-service"></span><span id="detail-severity" class="severity"></span><span class="badge" id="detail-status"></span><span>Detected <time id="detail-detected"></time></span></div>
       </div>
-      <h2 id="detail-title"></h2>
-      <p id="detail-service"></p>
-      <span class="badge" id="detail-status"></span>
-      <ol id="incident-timeline" class="timeline" aria-label="Incident timeline"></ol>
-      <div class="review-grid"><div class="review-main">
-      <h3>What happened</h3>
-      <p id="diagnosis"></p>
-      <section class="assessment">
-        <div class="section-heading">
-          <h3>Investigation</h3>
-          <button class="text-button" id="triage">Refresh diagnosis ↗</button>
+      <div class="review-grid">
+        <div class="review-main">
+          <section class="review-section" aria-labelledby="symptom-heading"><h3 id="symptom-heading">What happened</h3><p id="diagnosis"></p></section>
+          <section class="review-section assessment" aria-labelledby="diagnosis-heading">
+            <div class="section-heading"><h3 id="diagnosis-heading">Diagnosis summary</h3><button class="text-button" id="triage">Refresh diagnosis ↗</button></div>
+            <p id="report">Collecting evidence…</p>
+          </section>
+          <section class="review-section" aria-labelledby="evidence-heading"><h3 id="evidence-heading">Evidence &amp; uncertainty</h3><div id="investigation-trace"></div></section>
         </div>
-        <p id="report">Collecting evidence…</p>
-        <details open>
-          <summary>Evidence, confidence & investigation trace</summary>
-          <div id="investigation-trace"></div>
-        </details>
-      </section>
-      <details>
-        <summary>Technical evidence & recovery script</summary>
-        <p class="subtle">
-          This script calls the fixed recovery handler. No model-generated code
-          is executed.
-        </p>
-        <pre id="script"></pre>
-        <pre id="evidence"></pre>
-      </details>
-      </div><aside class="review-approval">
-      <h3>Recommended action</h3>
-      <p id="action"></p>
-      <p id="approval-scope" class="approval-scope"></p>
-      <label class="actor" for="actor"
-        >Approving trader
-        <input id="actor" value="desk-operator" maxlength="80"
-      /></label>
-      <p class="small-note">
-        Recovery affects the simulator. A fresh healthy sample must confirm
-        success.
-      </p>
-      <button id="approve">Approve simulated recovery</button>
-      <label class="actor" for="feedback-reason">Decision reason (required to reject)
-        <input id="feedback-reason" maxlength="2000" placeholder="Why approve or revise this proposal?" />
-      </label>
-      <button id="reject" class="text-button">Reject proposal</button>
-      <p id="modal-message" role="status"></p>
-      </aside></div>
+        <aside class="review-approval" aria-labelledby="recovery-heading">
+          <div class="section-heading"><h3 id="recovery-heading">Recovery decision</h3><span class="pill">SIMULATED</span></div>
+          <h4>Recommended action</h4><p id="action"></p>
+          <p id="approval-scope" class="approval-scope"></p>
+          <p id="review-policy" class="subtle" tabindex="0" aria-describedby="help-tooltip"></p>
+          <h4 id="approval-requirement">Human approval required</h4>
+          <p class="small-note">Approval queues a fixed action; it does not guarantee success. Consecutive fresh healthy telemetry verifies recovery afterward.</p>
+          <label class="actor" for="actor">Approver<input id="actor" value="desk-operator" maxlength="80" required aria-describedby="actor-error" /></label>
+          <p id="actor-error" class="review-field-error" role="alert" hidden></p>
+          <label class="actor" for="feedback-reason">Decision reason<textarea id="feedback-reason" rows="3" maxlength="2000" placeholder="Explain your decision" aria-describedby="decision-reason-help decision-error"></textarea></label>
+          <p id="decision-reason-help" class="subtle">Required to reject. Optional when approving.</p>
+          <p id="decision-error" class="review-field-error" role="alert" hidden></p>
+          <div class="review-decision-actions"><button id="approve">Approve simulated recovery</button><button id="reject" class="quiet">Reject proposal</button></div>
+          <div id="recovery-state" class="review-recovery-state" role="status"></div>
+          <p id="modal-error" class="review-field-error" role="alert" hidden></p>
+          <p id="modal-message" role="status"></p>
+        </aside>
+        <div class="review-secondary">
+          <section class="review-section" aria-labelledby="progress-heading"><h3 id="progress-heading">Recovery progress</h3><ol id="incident-timeline" class="timeline" aria-label="Incident timeline"></ol></section>
+          <section class="review-technical" aria-labelledby="technical-heading">
+            <h3 id="technical-heading">Investigation details</h3>
+            <details id="evidence-library"><summary>Source records &amp; evidence IDs <span id="evidence-count"></span></summary><div id="evidence-items"></div></details>
+            <details id="tool-details"><summary>Tool calls &amp; workflow timings</summary><div id="tool-trace"></div></details>
+            <details><summary>Full diagnosis report</summary><pre id="full-report"></pre></details>
+            <details id="usage-details"><summary>Model usage &amp; estimated cost</summary><div id="model-usage"></div></details>
+            <details><summary>Incident telemetry &amp; raw logs</summary><p class="subtle">Stored incident evidence. Source records above contain the investigation's sanitized query results.</p><pre id="evidence"></pre></details>
+            <details><summary>Fixed recovery script</summary><p class="subtle">This client calls the existing policy-controlled handler. No model-generated code is executed.</p><pre id="script"></pre></details>
+          </section>
+        </div>
+      </div>
     </dialog>
     <div id="help-tooltip" role="tooltip" hidden></div>
   </body>

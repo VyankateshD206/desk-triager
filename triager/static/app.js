@@ -310,7 +310,8 @@ function render(s) {
         }).catch(showError);
       }
       if (current.report && !busy && current.report !== selected.report) {
-        $("#report").textContent = current.report;
+        $("#report").textContent = "The diagnosis changed. Reopen this incident to review the latest evidence and proposal.";
+        $("#full-report").textContent = current.report;
         if (selected.approval) selected.approval.status = "superseded";
         $("#modal-message").textContent = "Diagnosis changed. Reopen this incident to review the updated proposal.";
       }
@@ -427,9 +428,17 @@ function renderSupporting(s) {
     '<p class="subtle">Detection and recovery activity will appear here.</p>';
 }
 function updateApproval() {
-  if (selected.status === "resolved") $("#modal-message").textContent = "Recovery verified by fresh healthy telemetry. The incident is resolved.";
-  else if (selected.status === "verifying") $("#modal-message").textContent = "The fixed handler ran. Checking consecutive fresh healthy samples…";
-  else if (selected.status === "failed") $("#modal-message").textContent = "Recovery needs attention. Check the worker result and verification history.";
+  const [title,description,tone] = recoveryPresentation(selected);
+  const presentation = JSON.stringify([title,description,tone]);
+  if ($("#recovery-state").dataset.presentation !== presentation) {
+    $("#recovery-state").className = "review-recovery-state " + tone;
+    $("#recovery-state").replaceChildren();
+    const statusTitle = document.createElement("strong"); statusTitle.textContent = title;
+    const statusText = document.createElement("p"); statusText.textContent = description;
+    $("#recovery-state").append(statusTitle,statusText);
+    $("#recovery-state").dataset.presentation = presentation;
+  }
+  $("#approval-requirement").textContent = selected.status === "open" && selected.approval?.status === "pending" ? selected.action === "inspect_only" ? "Human review required" : "Human approval required" : ["approved", "rejected"].includes(selected.approval?.status) ? "Decision recorded" : "Proposal review";
   $("#detail-status").textContent = statusLabels[selected.status] || selected.status;
   $("#detail-status").className = "badge " + selected.status;
   $("#approve").disabled =
@@ -472,82 +481,144 @@ function renderTimeline(incident) {
   }).join("");
 }
 
-function renderInvestigation(data) {
-  const host = $("#investigation-trace");
-  host.replaceChildren();
-  const line = (text) => {
-    const p = document.createElement("p");
-    p.textContent = text;
-    host.append(p);
-  };
-  if (!data) { line("No completed investigation yet."); return; }
-  const diagnosis = data.diagnosis || {};
-  line(`${data.provider || "unknown"} · ${diagnosis.abstained ? "Insufficient evidence" : `Confidence ${Math.round((diagnosis.confidence || 0) * 100)}% (uncalibrated)`}`);
-  line(`Causal support: ${data.verification?.semantic_support || "not independently assessed"}`);
-  for (const hypothesis of diagnosis.hypotheses || []) {
-    const claim=document.createElement("p");
-    claim.append(document.createTextNode(hypothesis.cause + " "));
-    for (const id of hypothesis.evidence_ids || []) {
-      const link=document.createElement("a"); link.className="evidence-link";
-      link.href="#evidence-"+id; link.textContent="[source "+id.slice(0,8)+"…] "; claim.append(link);
-    }
-    host.append(claim);
-  }
-  if (data.fallback_reason) line(`Provider fallback: ${data.fallback_reason}`);
-  line(`Budget: ${data.rounds ?? "—"}/${data.budget?.rounds ?? "—"} reasoning rounds · ${data.tool_calls ?? "—"}/${data.budget?.tools ?? "—"} tool calls`);
-  for (const issue of data.verification?.issues || []) line(`Unsupported claim flagged: ${issue}`);
-  for (const tool of data.tool_events || []) {
-    const details=document.createElement("details"); details.className="tool-record";
-    const summary=document.createElement("summary");
-    summary.textContent=`${tool.tool} ${JSON.stringify(tool.arguments)} · ${tool.status} · ${Math.round(tool.latency_ms)} ms`;
-    const pre=document.createElement("pre"); pre.textContent=tool.result_summary + (tool.summary_truncated?" … (truncated)":"");
-    details.append(summary,pre);
-    const links = document.createElement("p");
-    for (const id of tool.evidence_ids || []) {
-      const link = document.createElement("a"); link.className="evidence-link";
-      link.href="#evidence-"+id; link.textContent="Evidence "+id.slice(0,8)+"… "; links.append(link);
-    }
-    details.append(links); host.append(details);
-  }
-  const calls = data.model_calls || [];
-  line(`Tokens: ${calls.reduce((n, c) => n + (c.input_tokens || 0), 0)} input / ${calls.reduce((n, c) => n + (c.output_tokens || 0), 0)} output. Estimated cost: ${data.estimated_cost_usd == null ? "unavailable" : "$" + data.estimated_cost_usd.toFixed(5)}`);
-  for (const node of data.node_trace || []) line(`${node.node}: ${Math.round(node.latency_ms)} ms`);
-  const library=document.createElement("details");
-  const libraryTitle=document.createElement("summary"); libraryTitle.textContent=`Evidence library · ${(data.evidence_items || []).length} sources`;
-  library.append(libraryTitle); host.append(library);
-  for (const item of data.evidence_items || []) {
-    const details = document.createElement("details");
-    const summary = document.createElement("summary");
-    summary.textContent = `${item.source} · ${item.evidence_id.slice(0, 12)}…`;
-    details.id = "evidence-" + item.evidence_id;
-    summary.title = item.evidence_id;
-    const pre = document.createElement("pre");
-    pre.textContent = item.content;
-    details.append(summary, pre);
-    library.append(details);
-  }
-}
-async function inspect(id) {
-  try {
-    selected = await api("/api/incidents/" + id);
-    renderInvestigation(selected.investigation);
-    $("#detail-title").textContent = names[selected.kind] || selected.kind;
-    $("#detail-service").textContent = selected.service;
+function renderReviewMetadata() {
     $("#diagnosis").textContent = selected.diagnosis;
     $("#action").textContent = actions[selected.action] || selected.action;
     const balance = selected.approval?.payload?.balance;
     const balanceChange = balance ? ` Local NAV $${money(balance.local)} → simulated exchange NAV $${money(balance.exchange)}.` : "";
-    $("#approval-scope").textContent = `SIMULATED ONLY · ${selected.service}: ${actions[selected.action] || selected.action} This queues the fixed handler for this service; consecutive fresh healthy samples must confirm recovery. No real exchange action is sent.${balanceChange}`;
+    $("#approval-scope").textContent = `SIMULATED ONLY · ${selected.service}. Fixed handler; no real exchange action.${balanceChange}`;
+
+  $("#detail-title").textContent = selected.signal || names[selected.kind] || selected.kind;
+  $("#detail-service").textContent = selected.service;
+  const severity = selected.investigation?.diagnosis?.severity || selected.severity || "unknown";
+  $("#detail-severity").textContent = severity;
+  $("#detail-severity").className = "severity " + severity;
+  $("#detail-detected").textContent = new Date(selected.opened_at).toLocaleString();
+  $("#detail-detected").dateTime = selected.opened_at;
+  $("#review-policy").textContent = selected.policy ? `Policy ${selected.policy.policy_version || "—"} · ${selected.policy.disposition.replaceAll("_", " ")}` : "Server policy validation required";
+  $("#review-policy").title = selected.policy?.reason || "The server validates the action, incident scope and bound proposal before queuing recovery.";
+  $("#review-policy").dataset.help = $("#review-policy").title;
+}
+function renderDiagnosisSummary(incident) {
+  const diagnosis = incident.investigation?.diagnosis;
+  $("#full-report").textContent = incident.report || "No completed diagnosis report available.";
+  $("#report").textContent = diagnosis?.abstained ? "The investigation abstained because the available evidence is insufficient. Review the missing information below." : diagnosis?.hypotheses?.length ? diagnosis.hypotheses.map(h=>h.cause).join("\n\n") : incident.report || "The investigation is collecting evidence. Refresh the diagnosis when more telemetry is available.";
+}
+function renderInvestigation(data) {
+  const host = $("#investigation-trace"), tools = $("#tool-trace"), usage = $("#model-usage"), library = $("#evidence-items");
+  [host,tools,usage,library].forEach(node => node.replaceChildren());
+  const line = (parent,text,className) => {
+    const p = document.createElement("p"); p.textContent = text;
+    if (className) p.className = className;
+    parent.append(p); return p;
+  };
+  const items = data?.evidence_items || [];
+  $("#evidence-count").textContent = `· ${items.length} sources`;
+  if (!data) {
+    line(host,"No completed investigation yet. Review the observed symptom above while evidence is collected.");
+    [tools,usage,library].forEach(node=>line(node,"No records available yet."));
+    return;
+  }
+  const diagnosis = data.diagnosis || {};
+  const provider = data.provider === "offline" ? "Offline analysis" : data.provider === "gemini" ? "Gemini" : data.provider || "Provider not reported";
+  const confidence = Number.isFinite(diagnosis.confidence) ? `Confidence ${Math.round(diagnosis.confidence*100)}% (uncalibrated)` : "Confidence not reported";
+  line(host,`${provider} · ${diagnosis.abstained ? "Insufficient evidence" : confidence}`,"review-analysis-source");
+  const support = data.verification?.semantic_support;
+  line(host, support === "model_critic_assessed" ? "Causal support assessed by a model critic; this is not a correctness guarantee." : support === "critic_unavailable" ? "The causal critic was unavailable. Causal support remains unverified." : "Causal support has not been independently assessed.","review-uncertainty");
+  const evidenceLink = (parent,id) => {
+    const index = items.findIndex(item=>item.evidence_id===id);
+    if (index<0) {const note=document.createElement("span"); note.textContent=`Unavailable source: ${id}`; note.className="review-uncertainty"; parent.append(note); return;}
+    const link = document.createElement("a"); link.className = "evidence-link";
+    link.href = "#evidence-"+id; link.textContent = `Source ${index+1}`; link.title = items[index].source + " · " + id;
+    parent.append(link,document.createTextNode(" "));
+  };
+  for (const [index,hypothesis] of (diagnosis.hypotheses || []).entries()) {
+    const claim = document.createElement("div"); claim.className = "review-claim";
+    line(claim,`Evidence for finding ${index+1}`,"review-evidence-caption");
+    const links = document.createElement("p");
+    for (const id of hypothesis.evidence_ids || []) evidenceLink(links,id);
+    claim.append(links);
+    for (const quote of hypothesis.supporting_quotes || []) {
+      const block = document.createElement("blockquote"); block.textContent = quote.quote;
+      claim.append(block);
+    }
+    host.append(claim);
+  }
+  for (const missing of diagnosis.missing_information || []) line(host,`Missing information: ${missing}`,"review-uncertainty");
+  for (const issue of data.verification?.issues || []) line(host,`Unsupported claim flagged: ${issue}`,"review-uncertainty");
+  if (data.fallback_reason) line(host,`Provider fallback: ${data.fallback_reason}`,"review-uncertainty");
+  line(tools,`Budget used: ${data.rounds ?? "—"}/${data.budget?.rounds ?? "—"} reasoning rounds · ${data.tool_calls ?? "—"}/${data.budget?.tools ?? "—"} tool calls`);
+  if (!(data.tool_events || []).length) line(tools,"No tool invocations recorded.");
+  for (const tool of data.tool_events || []) {
+    const details = document.createElement("details"); details.className = "tool-record";
+    const summary = document.createElement("summary"); summary.textContent = `${tool.tool} · ${tool.status} · ${Math.round(tool.latency_ms)} ms`;
+    const pre = document.createElement("pre"); pre.textContent = `Arguments\n${JSON.stringify(tool.arguments,null,2)}\n\nResult summary\n${tool.result_summary}${tool.summary_truncated ? " … (truncated)" : ""}`;
+    details.append(summary,pre);
+    const links = document.createElement("p");
+    for (const id of tool.evidence_ids || []) evidenceLink(links,id);
+    details.append(links); tools.append(details);
+  }
+  for (const node of data.node_trace || []) line(tools,`${node.node}: ${Math.round(node.latency_ms)} ms`);
+  const calls = data.model_calls || [];
+  if (!calls.length) line(usage,"No model calls recorded for this investigation.");
+  else {
+    const tokens = key => calls.every(c=>Number.isFinite(c[key])) ? calls.reduce((n,c)=>n+c[key],0).toLocaleString() : "not fully reported";
+    line(usage,`Tokens: ${tokens("input_tokens")} input / ${tokens("output_tokens")} output.`);
+  }
+  line(usage,`Estimated cost: ${data.estimated_cost_usd == null ? "unavailable" : "$"+data.estimated_cost_usd.toFixed(5)}`);
+  for (const call of calls) {
+    const pre = document.createElement("pre"); pre.textContent = JSON.stringify(call,null,2); usage.append(pre);
+  }
+  if (!items.length) line(library,"No source records available.");
+  for (const [index,item] of items.entries()) {
+    const details = document.createElement("details"); details.id = "evidence-"+item.evidence_id;
+    const summary = document.createElement("summary"); summary.textContent = `Source ${index+1} · ${item.source}`;
+    const pre = document.createElement("pre"); pre.textContent = item.content;
+    details.append(summary); line(details,`Evidence ID: ${item.evidence_id}`,"review-evidence-id");
+    details.append(pre); library.append(details);
+  }
+}
+function recoveryPresentation(incident) {
+  const states = {
+    queued: ["Recovery queued", "The worker has not confirmed execution. Queuing is not a successful recovery.", "pending"],
+    verifying: ["Verifying recovery", "The fixed handler ran. Consecutive fresh healthy telemetry must still confirm recovery.", "pending"],
+    resolved: ["Recovery verified", "Fresh healthy telemetry confirmed recovery. This incident is resolved.", "success"],
+    failed: ["Recovery needs attention", "Recovery has not been confirmed. Review the worker result and verification history.", "error"],
+  };
+  if (states[incident.status]) return states[incident.status];
+  if (incident.approval?.status === "rejected") return ["Proposal rejected", "Feedback was recorded. Refresh the diagnosis to review a new proposal.", "pending"];
+  if (incident.action === "inspect_only") return ["Inspection only", "No automated recovery is available for this signal. Review the evidence and record your decision.", "pending"];
+  if (incident.policy?.disposition === "blocked") return ["Recovery unavailable", incident.policy.reason, "error"];
+  if (incident.approval?.status !== "pending") return ["Proposal unavailable", "Reopen this incident or refresh its diagnosis to review the current bound proposal.", "pending"];
+  return ["Awaiting human approval", "No recovery has been queued for this proposal.", "pending"];
+}
+function clearReviewErrors() {
+  ["actor-error","decision-error","modal-error"].forEach(id=>{$("#"+id).textContent=""; $("#"+id).hidden=true;});
+  $("#actor").removeAttribute("aria-invalid"); $("#feedback-reason").removeAttribute("aria-invalid");
+}
+function showReviewError(message) {
+  $("#modal-error").textContent = message; $("#modal-error").hidden = false;
+}
+
+let reviewReturnTarget = null;
+async function inspect(id) {
+  reviewReturnTarget = {id, button: document.activeElement?.tagName === "BUTTON"};
+  try {
+    selected = await api("/api/incidents/" + id);
+    renderInvestigation(selected.investigation);
+    renderReviewMetadata();
     renderTimeline(selected);
     $("#script").textContent = selected.script;
     $("#evidence").textContent = JSON.stringify(selected.evidence, null, 2);
-    $("#report").textContent =
-      selected.report ||
-      "The triage worker is collecting logs and checking ledger balances. You can also refresh the diagnosis.";
+    renderDiagnosisSummary(selected);
     $("#modal-message").textContent = "";
     $("#feedback-reason").value = "";
+    clearReviewErrors();
+    document.querySelectorAll(".review-technical > details").forEach(details=>details.open=false);
     updateApproval();
     $("#detail").showModal();
+    $("#detail").scrollTop = 0;
+    $("#detail-title").focus({preventScroll:true});
   } catch (e) {
     showError(e);
   }
@@ -559,10 +630,16 @@ $("#incident-rows").addEventListener("click", (e) => {
 });
 ["#show-history", "#severity-filter", "#service-filter"].forEach(selector => $(selector).onchange = renderIncidents);
 $("#reset-incidents").onclick = resetIncidentFilters;
-$("#close").onclick = () => {
-  $("#detail").close();
+$("#close").onclick = () => $("#detail").close();
+$("#detail").addEventListener("close", () => {
   hideHelp();
-};
+  if (!reviewReturnTarget) return;
+  const row = [...document.querySelectorAll("#incident-rows tr[data-id]")].find(node=>node.dataset.id===reviewReturnTarget.id);
+  (reviewReturnTarget.button ? row?.querySelector("button") : row)?.focus({preventScroll:true});
+  if (!row) $("#show-history").focus({preventScroll:true});
+});
+$("#actor").addEventListener("input",clearReviewErrors);
+$("#feedback-reason").addEventListener("input",clearReviewErrors);
 const savedToken = sessionStorage.getItem("desk-token");
 $("#token").value = savedToken || "";
 if (!savedToken) document.querySelector(".settings").open = true;
@@ -602,20 +679,28 @@ $("#inject").onclick = async () => {
   }
 };
 $("#triage").onclick = async () => {
+  const incidentId = selected.id;
   $("#triage").disabled = true;
   busy = true;
   $("#report").textContent =
     "Inspecting service logs and reconciling balances…";
   updateApproval();
   try {
-    const result = await api("/api/incidents/" + selected.id + "/triage", {});
-    selected = await api("/api/incidents/" + selected.id);
+    await api("/api/incidents/" + incidentId + "/triage", {});
+    const fresh = await api("/api/incidents/" + incidentId);
+    if (selected?.id !== incidentId || !$("#detail").open) return;
+    selected = fresh;
     $("#script").textContent = selected.script;
-    $("#report").textContent =
-      `${result.provider} diagnosis${result.fallback_reason ? " (provider fallback)" : ""}\n\n${result.report}`;
+    renderDiagnosisSummary(selected);
     renderInvestigation(selected.investigation);
+    renderReviewMetadata();
+    renderTimeline(selected);
+    $("#modal-message").textContent = "Diagnosis refreshed. Review the updated evidence and proposal before deciding.";
+    clearReviewErrors();
   } catch (e) {
-    $("#report").textContent = e.message;
+    if (selected?.id === incidentId && $("#detail").open) {
+      renderDiagnosisSummary(selected); showReviewError(e.message);
+    } else showError(e);
   } finally {
     busy = false;
     $("#triage").disabled = false;
@@ -623,26 +708,42 @@ $("#triage").onclick = async () => {
   }
 };
 async function submitDecision(approved) {
+  if (busy) return;
+  clearReviewErrors();
+  if (!$("#actor").value.trim()) {
+    $("#actor-error").textContent = "Enter the approver's name."; $("#actor-error").hidden = false;
+    $("#actor").setAttribute("aria-invalid","true"); $("#actor").focus(); return;
+  }
+  if (!approved && !$("#feedback-reason").value.trim()) {
+    $("#decision-error").textContent = "Enter a reason before rejecting this proposal."; $("#decision-error").hidden = false;
+    $("#feedback-reason").setAttribute("aria-invalid","true"); $("#feedback-reason").focus(); return;
+  }
+  const incidentId = selected.id, proposal = selected.approval, action = selected.action;
+  $("#modal-message").textContent = approved ? "Submitting approval…" : "Submitting rejection…";
   busy = true;
   updateApproval();
   try {
-    if (!selected.approval) throw Error("Reopen the incident to review its proposal.");
-    const keyName = "desk-decision:" + selected.approval.id;
+    if (!proposal) throw Error("Reopen the incident to review its proposal.");
+    const keyName = "desk-decision:" + proposal.id;
     let key = sessionStorage.getItem(keyName);
     if (!key) { key = crypto.randomUUID(); sessionStorage.setItem(keyName, key); }
-    const body = {action: selected.action, actor: $("#actor").value,
-      proposal_id: selected.approval.id};
+    const body = {action, actor: $("#actor").value,
+      proposal_id: proposal.id};
     body.reason = $("#feedback-reason").value;
-    await api("/api/incidents/" + selected.id + (approved ? "/approve" : "/reject"), body,
+    await api("/api/incidents/" + incidentId + (approved ? "/approve" : "/reject"), body,
       {"Idempotency-Key": key});
-    selected = await api("/api/incidents/" + selected.id);
+    const fresh = await api("/api/incidents/" + incidentId);
+    if (selected?.id !== incidentId || !$("#detail").open) { await refresh(); return; }
+    selected = fresh;
     renderTimeline(selected);
     $("#modal-message").textContent = approved
-      ? "Recovery queued. The worker will apply it, then check consecutive fresh healthy samples."
+      ? "Approval accepted. Recovery was queued; the current verification status is shown above."
       : "Rejection recorded. Refresh the diagnosis before proposing another recovery.";
     await refresh();
   } catch (e) {
-    $("#modal-message").textContent = e.message;
+    if (selected?.id === incidentId && $("#detail").open) {
+      $("#modal-message").textContent = ""; showReviewError(e.message);
+    } else showError(e);
   } finally {
     busy = false;
     updateApproval();
@@ -733,10 +834,16 @@ $("#incident-sort").onchange = () => {
 };
 $("#incident-rows").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("tr[data-id]")) {e.preventDefault(); inspect(e.target.dataset.id);} });
 $("#incident-rows").addEventListener("toggle", e => { const id=e.target.dataset.correlation; if(id) {if(e.target.open) openCorrelations.add(id); else openCorrelations.delete(id);} }, true);
-$("#investigation-trace").addEventListener("click", e => {
-  const link=e.target.closest(".evidence-link"); if(!link) return;
-  e.preventDefault(); const target=document.getElementById(link.hash.slice(1));
-  if(target) {target.open=true; const library=target.parentElement; if(library.tagName==="DETAILS") library.open=true; target.scrollIntoView({block:"nearest"});}
+$("#detail").addEventListener("click", e => {
+  const link = e.target.closest(".evidence-link"); if (!link) return;
+  e.preventDefault();
+  const target = document.getElementById(link.hash.slice(1));
+  if (!target) return;
+  for (let ancestor=target; ancestor && ancestor!==$("#detail"); ancestor=ancestor.parentElement) {
+    if (ancestor.tagName === "DETAILS") ancestor.open=true;
+  }
+  target.scrollIntoView({block:"nearest"});
+  target.querySelector("summary").focus({preventScroll:true});
 });
 const savedScenario = sessionStorage.getItem("desk-scenario-selection");
 if ([...$("#fault").options].some((option) => option.value === savedScenario))
