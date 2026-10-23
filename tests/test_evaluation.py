@@ -37,3 +37,14 @@ def test_scorer_catches_wrong_labels_and_fabricated_citations():
 def test_reject_invalid_case_sets(cases):
     with pytest.raises(ValueError):
         evaluate(cases)
+
+
+def test_security_suite_detects_a_disabled_redactor(monkeypatch):
+    from evals import security
+
+    cases = json.loads(security.DEFAULT_CASES.read_text())
+    result = security.evaluate(cases)
+    assert result["failures"] == 0
+    monkeypatch.setattr(security, "sanitize", lambda value: value)
+    broken = security.evaluate(cases)
+    assert broken["failures"] == len(cases["redaction"])
