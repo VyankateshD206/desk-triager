@@ -81,7 +81,7 @@ header {
   width: 100%;
 }
 .settings-content p {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
@@ -106,7 +106,7 @@ p {
   font-size: 13px;
 }
 .live {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--green);
   white-space: nowrap;
 }
@@ -150,7 +150,7 @@ p {
   border-radius: 50%;
   width: 14px;
   height: 14px;
-  font-size: 10px;
+  font-size: 12px;
   align-items: center;
   justify-content: center;
   color: #a5b0b4;
@@ -166,7 +166,7 @@ p {
   color: var(--muted);
 }
 .metric-note {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 .workspace {
@@ -194,7 +194,7 @@ h2 {
 }
 .subtle {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 .chart {
   height: 145px;
@@ -209,7 +209,7 @@ h2 {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--muted);
   padding: 4px 20px 18px;
 }
@@ -217,7 +217,7 @@ h2 {
   cursor: help;
 }
 .pill {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--green);
   padding: 2px 7px;
   background: #26332b;
@@ -230,13 +230,13 @@ h2 {
 }
 .scenario p {
   padding: 0 20px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
   margin: 11px 0;
 }
 .scenario .scenario-hint {
   color: var(--green);
-  font-size: 11px;
+  font-size: 12px;
   min-height: 19px;
   margin: 8px 0 17px;
 }
@@ -248,7 +248,7 @@ h2 {
   gap: 7px;
 }
 .steps li {
-  font-size: 10px;
+  font-size: 12px;
   color: #8c969b;
   border-top: 2px solid #3a4347;
   padding-top: 6px;
@@ -269,7 +269,7 @@ button {
   color: #19271e;
   border-radius: 5px;
   padding: 9px 12px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -288,7 +288,7 @@ select {
   border: 1px solid #495357;
   border-radius: 5px;
   padding: 9px;
-  font-size: 11px;
+  font-size: 12px;
 }
 select {
   min-width: 0;
@@ -310,7 +310,7 @@ summary:focus-visible {
   flex-wrap: wrap;
 }
 .service {
-  font-size: 11px;
+  font-size: 12px;
   color: #c0c9c9;
   cursor: help;
 }
@@ -332,7 +332,7 @@ summary:focus-visible {
 .service small {
   color: var(--muted);
   margin-left: 6px;
-  font-size: 10px;
+  font-size: 12px;
 }
 .section-heading {
   display: flex;
@@ -345,7 +345,7 @@ summary:focus-visible {
   display: flex;
   gap: 7px;
   align-items: center;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 .history-toggle input {
@@ -363,7 +363,7 @@ table {
   text-align: left;
 }
 th {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--muted);
   background: #151a1c;
@@ -380,13 +380,13 @@ tr:last-child td {
 }
 td small {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
   margin-top: 3px;
 }
 .badge {
   display: inline-block;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--green);
   background: #24342b;
   padding: 3px 8px;
@@ -428,7 +428,7 @@ td small {
 }
 .support-details > summary > span {
   float: right;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--muted);
 }
 .support-grid {
@@ -446,7 +446,7 @@ td small {
 }
 .account {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   margin-bottom: 12px;
 }
 .balance-grid {
@@ -457,7 +457,7 @@ td small {
 .balance-grid small {
   display: block;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
   margin-bottom: 4px;
 }
 .balance-grid strong {
@@ -475,10 +475,10 @@ td small {
   gap: 14px;
   padding: 7px 0;
   border-bottom: 1px solid var(--line);
-  font-size: 10px;
+  font-size: 12px;
 }
 .journal-row time {
-  font: 9px var(--mono);
+  font: 12px var(--mono);
   color: var(--muted);
   cursor: help;
 }
@@ -487,7 +487,7 @@ td small {
   margin-left: 8px;
 }
 .event-total {
-  font-size: 10px;
+  font-size: 12px;
 }
 .event-total span {
   color: var(--green);
@@ -497,8 +497,8 @@ td small {
 footer {
   display: flex;
   justify-content: space-between;
-  color: #849095;
-  font-size: 10px;
+  color: var(--muted);
+  font-size: 12px;
   padding: 16px 0 23px;
   gap: 15px;
 }
@@ -574,7 +574,7 @@ dialog p {
   border: 0;
   padding: 0;
   color: var(--green);
-  font-size: 10px;
+  font-size: 12px;
 }
 #report {
   white-space: pre-wrap;
@@ -584,7 +584,7 @@ dialog p {
 }
 dialog details {
   margin: 20px 0;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 dialog summary {
@@ -594,7 +594,7 @@ pre {
   background: #101518;
   border: 1px solid var(--line);
   padding: 12px;
-  font: 10px/1.7 var(--mono);
+  font: 12px/1.7 var(--mono);
   color: #b9cabc;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -606,14 +606,14 @@ pre {
   align-items: center;
   justify-content: space-between;
   gap: 15px;
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 22px;
 }
 .actor input {
   width: 200px;
 }
 dialog .small-note {
-  font-size: 10px;
+  font-size: 12px;
   margin: 13px 0;
 }
 #approve {
@@ -623,7 +623,7 @@ dialog .small-note {
 }
 #modal-message {
   color: var(--green);
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 10px;
 }
 #help-tooltip {
@@ -668,10 +668,10 @@ dialog .small-note {
     font-size: 23px;
   }
   .label {
-    font-size: 10px;
+    font-size: 12px;
   }
   .metric-note {
-    font-size: 9px;
+    font-size: 12px;
   }
   h1 {
     font-size: 24px;
@@ -680,7 +680,7 @@ dialog .small-note {
     font-size: 12px;
   }
   .live {
-    font-size: 10px;
+    font-size: 12px;
   }
   .service-strip {
     justify-content: flex-start;
@@ -696,10 +696,10 @@ dialog .small-note {
   td,
   th {
     padding: 12px;
-    font-size: 11px;
+    font-size: 12px;
   }
   footer {
-    font-size: 9px;
+    font-size: 12px;
   }
   .chart {
     height: 145px;
@@ -710,13 +710,13 @@ dialog .small-note {
     padding: 0 14px;
   }
   .environment {
-    font-size: 10px;
+    font-size: 12px;
   }
   .heading {
     align-items: flex-start;
   }
   .live {
-    font-size: 9px;
+    font-size: 12px;
     margin-top: 8px;
   }
   h1 {
@@ -731,10 +731,10 @@ dialog .small-note {
   .info {
     width: 12px;
     height: 12px;
-    font-size: 8px;
+    font-size: 12px;
   }
   .service {
-    font-size: 10px;
+    font-size: 12px;
   }
   .support-details > summary > span {
     display: none;
@@ -747,6 +747,70 @@ dialog .small-note {
     width: 100%;
   }
   .balance-grid strong {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
+
+/* Compact operations layout */
+main { max-width: 1360px; }
+header { min-height: 64px; height: auto; padding: 14px 0; margin-bottom: 22px; }
+.status-strip { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 13px; flex-wrap: wrap; }
+.metrics { margin-top: 0; }
+.service-strip { justify-content: flex-start; gap: 9px; padding: 18px 0; }
+.service { border: 1px solid var(--line); padding: 5px 10px; border-radius: 20px; font-size: 13px; }
+.service:before { width: 7px; height: 7px; }
+.steps li { font-size: 13px; border-width: 3px; color: #b0babf; }
+.steps li.active { font-weight: 650; }
+.steps li[aria-current=step] { background: #26332b; border-radius: 3px; padding-left: 6px; }
+.panel-heading { flex-wrap: wrap; }
+#chart-metric { flex: initial; width: auto; padding: 5px 8px; }
+.chart { height: 190px; }
+.table-wrap { max-height: 480px; overflow: auto; }
+table { min-width: 900px; }
+th { position: sticky; top: 0; z-index: 1; font-size: 13px; font-weight: 550; }
+.sort { background: none; color: var(--muted); border: 0; padding: 0; font-size: inherit; }
+.incident-row { cursor: pointer; }
+.incident-row:hover, .incident-row:focus-visible { background: #20282a; }
+.analysis-summary { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.source-badge { display: inline-block; color: #c8d8e5; background: #29343e; padding: 1px 6px; border-radius: 4px; font-size: 12px; margin-top: 4px; }
+.severity { font: 12px var(--mono); text-transform: uppercase; display: inline-flex; gap: 6px; align-items: center; }
+.severity:before { content: ''; width: 4px; height: 20px; background: #99a7ae; border-radius: 2px; }
+.severity.high:before { background: #f3ad7d; }
+.severity.critical:before { background: #ff8e9e; }
+.severity.medium:before { background: #e7d187; }
+.severity.low:before { background: #a5d8d0; }
+.correlation td { background: #1c252a; }
+.correlation summary { cursor: pointer; font-weight: 550; }
+.correlation ul { display: flex; flex-wrap: wrap; gap: 12px; padding: 8px 0; list-style: none; }
+dialog { width: min(960px, 96vw); padding: 24px; }
+.timeline { display: flex; flex-wrap: wrap; list-style: none; padding: 12px 0; gap: 8px; }
+.timeline li { padding: 6px 10px; border: 1px solid var(--line); border-radius: 5px; font-size: 12px; color: var(--muted); }
+.timeline li.done { color: var(--green); border-color: #56705e; }
+.timeline time { display: block; font: 12px var(--mono); }
+.tool-record { border-left: 2px solid #56705e; padding: 8px 12px; margin: 10px 0; }
+#investigation-trace { overflow-wrap: anywhere; }
+.evidence-link { color: var(--green); }
+.approval-scope { border: 1px solid #746049; background: #2e2922; border-radius: 6px; padding: 12px; }
+@media(max-width:760px) {
+  header { gap: 12px; align-items: flex-start; }
+  .status-strip { flex: 1; gap: 5px 12px; }
+  .metrics { grid-template-columns: 1fr; }
+  .metric { padding: 12px 16px; }
+  .number { font-size: 26px; }
+  .chart { height: 190px; }
+  .scenario-controls { flex-wrap: wrap; }
+  .actor input { max-width: 100%; }
+}
+
+.review-grid { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(240px,1fr); gap: 22px; }
+.review-main, .review-approval { min-width: 0; }
+.review-approval { align-self: start; border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: #13191b; }
+.review-approval h3 { margin-top: 0; }
+.review-approval .actor { flex-direction: column; align-items: stretch; gap: 6px; }
+.review-approval .actor input { width: 100%; }
+#report { font-size: 13px; }
+.assessment details { margin: 12px 0; }
+@media(max-width:760px) { .review-grid { grid-template-columns:1fr; } .review-approval { grid-row:1; } dialog { padding: 16px; } }
+small { font-size: 12px; }
+header { position: sticky; top: 0; z-index: 8; background: var(--bg); }
+.settings-content #connect { margin-top: 10px; }

@@ -11,7 +11,7 @@
     <main>
       <header>
         <a class="brand" href="/">desk<span>.</span></a
-        ><span class="environment">Trading service observatory</span>
+        ><div class="status-strip"><span class="live" id="session">Connecting</span><span id="sample-age">No samples yet</span><strong class="pill" id="global-mode">SIMULATED</strong></div>
         <details class="settings">
           <summary>Settings</summary>
           <div class="settings-content">
@@ -22,18 +22,12 @@
               placeholder="Paste the token printed by the server"
               autocomplete="off"
             />
+            <button id="connect">Connect</button>
             <p id="infrastructure">Connecting…</p>
             <a href="/docs">API reference ↗</a>
           </div>
         </details>
       </header>
-      <section class="heading">
-        <div>
-          <h1>A clear view of the desk.</h1>
-          <p>Spot a failure, understand it, and approve a recovery.</p>
-        </div>
-        <span class="live" id="session">Connecting</span>
-      </section>
       <div class="error hidden" id="error" role="alert"></div>
       <section class="metrics" aria-label="Key desk metrics">
         <article
@@ -83,13 +77,15 @@
         <article class="panel pulse">
           <div class="panel-heading">
             <h2>Execution pulse</h2>
+            <label class="sr-only" for="chart-metric">Chart metric</label>
+            <select id="chart-metric" aria-label="Chart metric"><option value="fill_latency_ms">Fill latency · ms</option><option value="heartbeat_jitter_ms">Jitter · ms</option><option value="slippage_bps">Slippage · bps</option><option value="tick_age_ms">Tick age · ms</option></select>
             <span class="subtle">Hover to explore</span>
           </div>
           <div class="chart">
             <svg
               id="chart"
               viewBox="0 0 800 170"
-              preserveAspectRatio="none"
+              preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Recent fill latency; hover to inspect individual samples"
               tabindex="0"
@@ -104,12 +100,7 @@
               data-help="Time of the oldest gateway sample currently plotted. Times use your browser timezone."
               aria-describedby="help-tooltip"
               >Waiting for samples</span
-            ><span
-              tabindex="0"
-              data-help="The latency rule opens an incident when a fill takes more than 350 milliseconds. Isolation Forest can also flag other unusual feature combinations below this threshold."
-              aria-describedby="help-tooltip"
-              >350 ms alert threshold</span
-            ><span>Now</span>
+><span>Now</span>
           </div>
         </article>
         <article class="panel scenario">
@@ -179,14 +170,12 @@
             ><input type="checkbox" id="show-history" /> Show resolved</label
           >
         </div>
+        <p id="history-note" class="subtle"></p>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Signal</th>
-                <th>Service</th>
-                <th>Status</th>
-                <th><span class="sr-only">Action</span></th>
+                <th><button class="sort" data-sort="severity">Severity ↕</button></th><th>Signal / services</th><th><button class="sort" data-sort="opened_at">Detected ↕</button></th><th>Analysis</th><th>Status</th><th><span class="sr-only">Action</span></th>
               </tr>
             </thead>
             <tbody id="incident-rows"></tbody>
@@ -240,6 +229,8 @@
       <h2 id="detail-title"></h2>
       <p id="detail-service"></p>
       <span class="badge" id="detail-status"></span>
+      <ol id="incident-timeline" class="timeline" aria-label="Incident timeline"></ol>
+      <div class="review-grid"><div class="review-main">
       <h3>What happened</h3>
       <p id="diagnosis"></p>
       <section class="assessment">
@@ -248,13 +239,11 @@
           <button class="text-button" id="triage">Refresh diagnosis ↗</button>
         </div>
         <p id="report">Collecting evidence…</p>
-        <details>
+        <details open>
           <summary>Evidence, confidence & investigation trace</summary>
           <div id="investigation-trace"></div>
         </details>
       </section>
-      <h3>Recommended action</h3>
-      <p id="action"></p>
       <details>
         <summary>Technical evidence & recovery script</summary>
         <p class="subtle">
@@ -264,6 +253,10 @@
         <pre id="script"></pre>
         <pre id="evidence"></pre>
       </details>
+      </div><aside class="review-approval">
+      <h3>Recommended action</h3>
+      <p id="action"></p>
+      <p id="approval-scope" class="approval-scope"></p>
       <label class="actor" for="actor"
         >Approving trader
         <input id="actor" value="desk-operator" maxlength="80"
@@ -272,12 +265,13 @@
         Recovery affects the simulator. A fresh healthy sample must confirm
         success.
       </p>
-      <button id="approve">Approve recovery</button>
+      <button id="approve">Approve simulated recovery</button>
       <label class="actor" for="feedback-reason">Decision reason (required to reject)
         <input id="feedback-reason" maxlength="2000" placeholder="Why approve or revise this proposal?" />
       </label>
       <button id="reject" class="text-button">Reject proposal</button>
       <p id="modal-message" role="status"></p>
+      </aside></div>
     </dialog>
     <div id="help-tooltip" role="tooltip" hidden></div>
   </body>
