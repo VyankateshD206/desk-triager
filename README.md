@@ -76,6 +76,25 @@ Events move directly through Python background workers. SQL is authoritative for
 
 See [architecture and tradeoffs](docs/ARCHITECTURE.md) and [operational runbooks](docs/RUNBOOKS.md).
 
+## Agent evaluation foundation (v1.1.0)
+
+Provider-independent diagnosis schemas now validate confidence, abstention, and evidence
+references. Evidence IDs bind content to its source, service, and timestamp. These contracts
+are the foundation for the planned LangGraph migration; the running agent still uses the
+existing Gemini REST workflow.
+
+Run the credential-free seed evaluation from the repository root:
+
+```bash
+python -m evals.run --output /tmp/desk-eval-results.json
+```
+
+The 10 hand-authored synthetic fixtures cover five known symptoms and five cases requiring
+abstention. The rules baseline scores category macro F1 1.00, severity accuracy 1.00, and
+citation validity 1.00 with 50% answer coverage on these fixtures. These are smoke-test
+results on deliberately simple examples, not evidence of LLM accuracy or generalization.
+CI runs the evaluation and retains its JSON report. See [evaluation scope](docs/EVALUATION.md).
+
 ## Configuration
 
 For Neon and Gemini, set these values in `.env` and restart the app:
