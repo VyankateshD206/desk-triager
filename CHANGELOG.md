@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add shared console design tokens, readable typography and consistent dark component states (Phase 1).
+
 - Replace the hero with a compact simulation/status header and enrich the incident queue.
 - Distinguish historical service silence from stale market data and group simultaneous receipt gaps.
 - Add the audit timeline, linked evidence, visible step budget and explicit simulated-action review.

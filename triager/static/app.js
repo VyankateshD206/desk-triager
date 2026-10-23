@@ -160,10 +160,10 @@ function renderChart() {
   svg.setAttribute("aria-label", `${spec.label} in ${spec.unit}; ${events.length} samples; auto-scaled from zero`);
   svg.dataset.help = `${spec.label} in ${spec.unit}. Auto-scaled from zero. ${spec.threshold ? `Alert threshold ${spec.threshold} ${spec.unit}; an upward arrow means the threshold is outside the visible range.` : "No fixed numeric alert rule for this metric."}`;
   const points = events.map((e,i) => `${left + i * (right-left) / Math.max(1,events.length-1)},${y(e[metric])}`).join(" ");
-  const ticks = [0,.25,.5,.75,1].map(f => `<line x1="${left}" y1="${y(max*f)}" x2="${right}" y2="${y(max*f)}" stroke="#30383b"/><text x="0" y="${y(max*f)+4}" fill="#aeb8bc" font-size="12">${max < 10 ? (max*f).toFixed(1) : Math.round(max*f)}</text>`).join("");
+  const ticks = [0,.25,.5,.75,1].map(f => `<line x1="${left}" y1="${y(max*f)}" x2="${right}" y2="${y(max*f)}" stroke="var(--line)"/><text x="0" y="${y(max*f)+4}" fill="var(--muted)" font-size="13">${max < 10 ? (max*f).toFixed(1) : Math.round(max*f)}</text>`).join("");
   const thresholdY = spec.threshold ? Math.max(25, y(spec.threshold)) : 0;
-  const threshold = spec.threshold ? `<line x1="${left}" y1="${thresholdY}" x2="${right}" y2="${thresholdY}" stroke="#efbd8c" stroke-dasharray="4 5"/><text x="${right}" y="${thresholdY-8}" text-anchor="end" fill="#efbd8c" font-size="12">${spec.threshold} ${spec.unit} alert${spec.threshold > max ? " ↑ off scale" : ""}</text>` : "";
-  svg.innerHTML = `<text x="0" y="16" fill="#aeb8bc" font-size="12">${spec.unit}</text>${ticks}${threshold}<polyline points="${points}" fill="none" stroke="#b9dfc4" stroke-width="2"/>`;
+  const threshold = spec.threshold ? `<line x1="${left}" y1="${thresholdY}" x2="${right}" y2="${thresholdY}" stroke="var(--orange)" stroke-dasharray="4 5"/><text x="${right}" y="${thresholdY-8}" text-anchor="end" fill="var(--orange)" font-size="13">${spec.threshold} ${spec.unit} alert${spec.threshold > max ? " ↑ off scale" : ""}</text>` : "";
+  svg.innerHTML = `<text x="0" y="16" fill="var(--muted)" font-size="13">${spec.unit}</text>${ticks}${threshold}<polyline points="${points}" fill="none" stroke="var(--green)" stroke-width="2"/>`;
   $("#chart-start").textContent = events.length ? clock(events[0].timestamp) : "Waiting for samples";
 }
 
