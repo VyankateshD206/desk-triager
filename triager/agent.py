@@ -13,6 +13,7 @@ from sqlalchemy import select
 from .baseline import rules_baseline
 from .contracts import Diagnosis, Evidence, IncidentInput
 from .models import Event, now
+from .observability import DESCRIPTIONS, ObservabilityTools
 from .workflow import build_graph
 
 
@@ -60,6 +61,7 @@ class TriageAgent:
             "inspect_service_logs": lambda: self.inspect(service),
             "reconcile_balances": self.db.reconcile,
             "get_service_metrics": lambda: self.metrics(service),
+            **ObservabilityTools(self.settings).tools(service),
         }
 
     @staticmethod
@@ -106,6 +108,10 @@ class TriageAgent:
                 ("inspect_service_logs", "Read recent service logs; initially collected."),
                 ("reconcile_balances", "Read ledger differences; initially collected."),
                 ("get_service_metrics", "Read fill latency and reject metrics."),
+                *[
+                    (name, DESCRIPTIONS[name])
+                    for name in ObservabilityTools(self.settings).tools(state["service"])
+                ],
             ]
         ]
         instruction = (

@@ -19,6 +19,9 @@ class Settings:
     gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
     tick_gap_seconds: float = float(os.getenv("TICK_GAP_SECONDS", "8"))
     graph_checkpoint_path: str = os.getenv("GRAPH_CHECKPOINT_PATH", "")
+    loki_url: str = os.getenv("LOKI_URL", "")
+    prometheus_url: str = os.getenv("PROMETHEUS_URL", "")
+    demo_service_url: str = os.getenv("DEMO_SERVICE_URL", "")
     agent_max_rounds: int = 4
     agent_max_tools: int = 8
     agent_timeout_seconds: float = 60
