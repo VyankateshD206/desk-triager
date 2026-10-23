@@ -10,7 +10,7 @@ claims that the entire research evaluation or production hardening is complete.
 | 3. Realistic evidence sources | v1.3.0 milestone | Docker demo, controlled faults, Loki, Prometheus, deployment registry, scoped read tools, integration CI. |
 | 4. Verification and injection defenses | Guardrails shipped in v1.4.0 | Redaction, quote/numeric checks, independent typed policy, and 28 deterministic adversarial cases. Semantic verification and live-model before/after attack measurements remain pending. |
 | 5. Durable approval and execution | v1.5.0 milestone | Native approval interrupts, bound proposals, idempotency keys, transactional outbox, lease claims, rejection feedback, consecutive-sample verification and deadlines. See RECOVERY.md. |
-| 6. Retrieval and ablation | Planned | Versioned runbooks and reviewed incidents, pgvector, retrieval metrics, leakage controls. |
+| 6. Retrieval and ablation | Retrieval shipped in v1.6.0 | Immutable reviewed knowledge, pgvector/local vectors, keyword comparison, leakage controls. Live diagnosis ablation is in progress. |
 | 7. Complete evaluation and presentation | Planned | Root-cause rubrics, calibration, multi-provider comparisons, node usage/cost traces, UI timeline, video and release results. |
 
 The demo integration uses scripted reasoning to verify real tool plumbing without paid

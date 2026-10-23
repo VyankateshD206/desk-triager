@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.0 — 2026-10-23
+
+- Add versioned runbook/past-incident retrieval using pgvector or local vectors.
+- Provide a credential-free lexical embedding baseline and optional Gemini embeddings.
+- Enforce reviewed-document imports, immutable versions, and service scoping.
+- Introduce packaged Alembic schema adoption without deleting legacy data.
+- Compare keyword/vector retrieval and verify PostgreSQL vector operators in CI.
+
 ## 1.5.0 — 2026-10-23
 
 - Add native LangGraph approval interrupts with exact proposal binding.

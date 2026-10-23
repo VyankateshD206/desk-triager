@@ -36,7 +36,7 @@ uvicorn triager.app:app --host 127.0.0.1 --port 8000
 Open [the observatory](http://127.0.0.1:8000/). The local access token is `local-access-token`. If you change `DESK_TOKEN`, enter the same value under **Settings**. Restart after changing `.env`.
 
 For the instrumented Docker demo with PostgreSQL, Prometheus, Loki, and injectable service
-faults, see [the demo guide](docs/DEMO.md). Track the agreed implementation phases in
+faults, see [the demo guide](docs/DEMO.md). Versioned [runbook retrieval](docs/RETRIEVAL.md) supports pgvector and local vectors. Track the agreed implementation phases in
 [the roadmap](docs/ROADMAP.md).
 
 The default configuration uses SQLite, synthetic telemetry, and rule-based offline triage. Use **one process / one worker** because simulator state and ingestion ownership are local to that process.

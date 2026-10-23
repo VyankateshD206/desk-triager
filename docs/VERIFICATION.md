@@ -81,3 +81,12 @@ passed unit/build/security checks, the full fault demo, and the isolated Postgre
 recovery test. The latter verified interrupt resume, idempotency, competing worker claims,
 ledger execution, and fresh-telemetry resolution. Local regression coverage also includes
 stale proposals, rejected decisions, expired leases, and verification timeouts.
+
+
+## v1.6.0 retrieval milestone
+
+[CI run 39940687269](https://github.com/VyankateshD206/desk-triager/actions/runs/39940687269)
+passed unit checks, the fault demo, and isolated PostgreSQL vector search/recovery. A prior
+integration run caught an unqualified vector operator; the fixed query qualifies the type
+and operator in public. Both lexical keyword and hash-vector methods score recall@3/MRR
+1.00 on seven development queries; no root-cause improvement is implied.

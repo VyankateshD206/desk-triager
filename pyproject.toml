@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "desk-triager"
-version = "1.5.0"
+version = "1.6.0"
 readme = "README.md"
 description = "Trading service telemetry, anomaly detection and approval-gated incident triage"
 requires-python = ">=3.11"
-dependencies = ["fastapi>=0.115,<1", "uvicorn[standard]>=0.30,<1", "sqlalchemy>=2.0,<3", "psycopg[binary]>=3.2,<4", "scikit-learn>=1.5,<2", "numpy>=1.26,<3", "httpx>=0.27,<1", "python-dotenv>=1,<2", "langgraph>=1.2.16,<2", "langgraph-checkpoint-sqlite>=3.1.2,<4", "pgvector>=0.4,<1", "alembic>=1.14,<2", "opentelemetry-api>=1.30,<2"]
+dependencies = ["fastapi>=0.115,<1", "uvicorn[standard]>=0.30,<1", "sqlalchemy>=2.0,<3", "psycopg[binary]>=3.2,<4", "scikit-learn>=1.5,<2", "numpy>=1.26,<3", "httpx>=0.27,<1", "python-dotenv>=1,<2", "langgraph>=1.2.16,<2", "langgraph-checkpoint-sqlite>=3.1.2,<4", "pgvector>=0.4,<1", "alembic>=1.14,<2", "opentelemetry-api>=1.30,<2", "opentelemetry-sdk>=1.30,<2", "opentelemetry-exporter-otlp-proto-http>=1.30,<2"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<9", "httpx>=0.27,<1", "ruff>=0.9,<1", "build>=1.2,<2", "setuptools>=68", "wheel>=0.43"]
