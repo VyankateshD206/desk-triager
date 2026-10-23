@@ -25,6 +25,7 @@ jobs:
       - run: npm test
       - run: python -m evals.run --output eval-results.json
       - run: python -m evals.security --output security-results.json
+      - run: python -m evals.benchmark --output benchmark-results.json
       - run: python -m evals.retrieval
       - uses: actions/upload-artifact@v4
         with:
@@ -32,6 +33,7 @@ jobs:
           path: |
             eval-results.json
             security-results.json
+            benchmark-results.json
   demo:
     runs-on: ubuntu-latest
     timeout-minutes: 15

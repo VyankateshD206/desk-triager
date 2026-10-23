@@ -1,0 +1,1713 @@
+{
+  "version": "incidents-1",
+  "cases": [
+    {
+      "id": "sql-0",
+      "family": "demo-slow-sql",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:sql-0:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 650ms; order queue backlog. Sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 610,
+            "memory_growth_bytes": 0,
+            "fill_latency_ms": 650
+          },
+          "query_logs": {
+            "lines": [
+              "database SELECT demo_delay blocks order handling; query duration elevated"
+            ],
+            "deployment": "unchanged"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "memory-0",
+      "family": "demo-retained-buffers",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:memory-0:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 550ms; sustained order queue backlog."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 2,
+            "retained_buffer_bytes": 1048576,
+            "memory_growth_bytes": 1048576
+          },
+          "query_logs": {
+            "lines": [
+              "retained buffer count grows each request; SQL timing normal"
+            ]
+          },
+          "get_deploy_diff": {
+            "change": "none"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "deploy-0",
+      "family": "demo-routing-deploy",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:deploy-0:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 720ms; sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 1,
+            "retained_buffer_bytes": 0,
+            "fill_latency_ms": 720
+          },
+          "list_deployments": {
+            "version": "1.1-bad",
+            "at": "2026-10-23T00:00:00Z"
+          },
+          "get_deploy_diff": {
+            "change": "order routing retry delay 0ms -> 650ms"
+          },
+          "query_logs": {
+            "lines": [
+              "routing latency increased immediately after version 1.1-bad"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "throttle-0",
+      "family": "demo-retry-throttle",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:throttle-0:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN HTTP 429; Retry-After 1s. Retriable exchange throttling, no data loss."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "reject_code": "429",
+            "retry_attempts": 2
+          },
+          "query_logs": {
+            "lines": [
+              "exchange rejects excess requests; retry pacing ignores Retry-After"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "sql-1",
+      "family": "demo-slow-sql",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:sql-1:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 675ms; order queue backlog. Sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 635,
+            "memory_growth_bytes": 0,
+            "fill_latency_ms": 675
+          },
+          "query_logs": {
+            "lines": [
+              "database SELECT demo_delay blocks order handling; query duration elevated"
+            ],
+            "deployment": "unchanged"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "memory-1",
+      "family": "demo-retained-buffers",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:memory-1:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 580ms; sustained order queue backlog."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 2,
+            "retained_buffer_bytes": 2097152,
+            "memory_growth_bytes": 1048576
+          },
+          "query_logs": {
+            "lines": [
+              "retained buffer count grows each request; SQL timing normal"
+            ]
+          },
+          "get_deploy_diff": {
+            "change": "none"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "deploy-1",
+      "family": "demo-routing-deploy",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:deploy-1:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 730ms; sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 1,
+            "retained_buffer_bytes": 0,
+            "fill_latency_ms": 730
+          },
+          "list_deployments": {
+            "version": "1.1-bad",
+            "at": "2026-10-23T00:00:00Z"
+          },
+          "get_deploy_diff": {
+            "change": "order routing retry delay 0ms -> 650ms"
+          },
+          "query_logs": {
+            "lines": [
+              "routing latency increased immediately after version 1.1-bad"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "throttle-1",
+      "family": "demo-retry-throttle",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:throttle-1:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN HTTP 429; Retry-After 2s. Retriable exchange throttling, no data loss."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "reject_code": "429",
+            "retry_attempts": 3
+          },
+          "query_logs": {
+            "lines": [
+              "exchange rejects excess requests; retry pacing ignores Retry-After"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "sql-2",
+      "family": "demo-slow-sql",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:sql-2:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 700ms; order queue backlog. Sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 660,
+            "memory_growth_bytes": 0,
+            "fill_latency_ms": 700
+          },
+          "query_logs": {
+            "lines": [
+              "database SELECT demo_delay blocks order handling; query duration elevated"
+            ],
+            "deployment": "unchanged"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "memory-2",
+      "family": "demo-retained-buffers",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:memory-2:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 610ms; sustained order queue backlog."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 2,
+            "retained_buffer_bytes": 3145728,
+            "memory_growth_bytes": 1048576
+          },
+          "query_logs": {
+            "lines": [
+              "retained buffer count grows each request; SQL timing normal"
+            ]
+          },
+          "get_deploy_diff": {
+            "change": "none"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "deploy-2",
+      "family": "demo-routing-deploy",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:deploy-2:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 740ms; sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 1,
+            "retained_buffer_bytes": 0,
+            "fill_latency_ms": 740
+          },
+          "list_deployments": {
+            "version": "1.1-bad",
+            "at": "2026-10-23T00:00:00Z"
+          },
+          "get_deploy_diff": {
+            "change": "order routing retry delay 0ms -> 650ms"
+          },
+          "query_logs": {
+            "lines": [
+              "routing latency increased immediately after version 1.1-bad"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "throttle-2",
+      "family": "demo-retry-throttle",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:throttle-2:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN HTTP 429; Retry-After 3s. Retriable exchange throttling, no data loss."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "reject_code": "429",
+            "retry_attempts": 4
+          },
+          "query_logs": {
+            "lines": [
+              "exchange rejects excess requests; retry pacing ignores Retry-After"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "sql-3",
+      "family": "demo-slow-sql",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:sql-3:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 725ms; order queue backlog. Sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 685,
+            "memory_growth_bytes": 0,
+            "fill_latency_ms": 725
+          },
+          "query_logs": {
+            "lines": [
+              "database SELECT demo_delay blocks order handling; query duration elevated"
+            ],
+            "deployment": "unchanged"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "memory-3",
+      "family": "demo-retained-buffers",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:memory-3:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 640ms; sustained order queue backlog."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 2,
+            "retained_buffer_bytes": 4194304,
+            "memory_growth_bytes": 1048576
+          },
+          "query_logs": {
+            "lines": [
+              "retained buffer count grows each request; SQL timing normal"
+            ]
+          },
+          "get_deploy_diff": {
+            "change": "none"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "deploy-3",
+      "family": "demo-routing-deploy",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:deploy-3:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 750ms; sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 1,
+            "retained_buffer_bytes": 0,
+            "fill_latency_ms": 750
+          },
+          "list_deployments": {
+            "version": "1.1-bad",
+            "at": "2026-10-23T00:00:00Z"
+          },
+          "get_deploy_diff": {
+            "change": "order routing retry delay 0ms -> 650ms"
+          },
+          "query_logs": {
+            "lines": [
+              "routing latency increased immediately after version 1.1-bad"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "throttle-3",
+      "family": "demo-retry-throttle",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:throttle-3:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN HTTP 429; Retry-After 4s. Retriable exchange throttling, no data loss."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "reject_code": "429",
+            "retry_attempts": 5
+          },
+          "query_logs": {
+            "lines": [
+              "exchange rejects excess requests; retry pacing ignores Retry-After"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "sql-4",
+      "family": "demo-slow-sql",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:sql-4:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 750ms; order queue backlog. Sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 710,
+            "memory_growth_bytes": 0,
+            "fill_latency_ms": 750
+          },
+          "query_logs": {
+            "lines": [
+              "database SELECT demo_delay blocks order handling; query duration elevated"
+            ],
+            "deployment": "unchanged"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "sql",
+            "query",
+            "database"
+          ],
+          [
+            "slow",
+            "delay",
+            "block",
+            "duration"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "memory-4",
+      "family": "demo-retained-buffers",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:memory-4:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 670ms; sustained order queue backlog."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 2,
+            "retained_buffer_bytes": 5242880,
+            "memory_growth_bytes": 1048576
+          },
+          "query_logs": {
+            "lines": [
+              "retained buffer count grows each request; SQL timing normal"
+            ]
+          },
+          "get_deploy_diff": {
+            "change": "none"
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "memory",
+            "buffer"
+          ],
+          [
+            "retai",
+            "grow",
+            "pressure",
+            "leak"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "deploy-4",
+      "family": "demo-routing-deploy",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:deploy-4:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN fill latency 760ms; sustained service impairment."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "sql_duration_ms": 1,
+            "retained_buffer_bytes": 0,
+            "fill_latency_ms": 760
+          },
+          "list_deployments": {
+            "version": "1.1-bad",
+            "at": "2026-10-23T00:00:00Z"
+          },
+          "get_deploy_diff": {
+            "change": "order routing retry delay 0ms -> 650ms"
+          },
+          "query_logs": {
+            "lines": [
+              "routing latency increased immediately after version 1.1-bad"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "latency",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "deploy",
+            "routing",
+            "retry"
+          ],
+          [
+            "delay",
+            "regress",
+            "650"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "throttle-4",
+      "family": "demo-retry-throttle",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:throttle-4:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN HTTP 429; Retry-After 5s. Retriable exchange throttling, no data loss."
+          }
+        ],
+        "tools": {
+          "get_metrics": {
+            "reject_code": "429",
+            "retry_attempts": 6
+          },
+          "query_logs": {
+            "lines": [
+              "exchange rejects excess requests; retry pacing ignores Retry-After"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "rate_limit",
+        "severity": "medium",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "rate",
+            "throttl",
+            "retry"
+          ],
+          [
+            "limit",
+            "excess",
+            "pac",
+            "429"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "cf-regex-2019",
+      "family": "cf-regex-2019",
+      "split": "test",
+      "origin": "public-postmortem-inspired reconstruction; not original logs",
+      "source_url": "https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/",
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:cf-regex-2019:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Global edge requests fail after a WAF rules rollout. CPU utilization reaches saturation."
+          }
+        ],
+        "tools": {
+          "query_logs": {
+            "lines": [
+              "new regular expression causes excessive backtracking in WAF evaluation"
+            ]
+          },
+          "get_metrics": {
+            "cpu_percent": 100
+          }
+        }
+      },
+      "expected": {
+        "category": "resource",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "regex",
+            "regular expression"
+          ],
+          [
+            "cpu",
+            "backtrack"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "gitlab-db-2017",
+      "family": "gitlab-db-2017",
+      "split": "test",
+      "origin": "public-postmortem-inspired reconstruction; not original logs",
+      "source_url": "https://about.gitlab.com/blog/postmortem-of-database-outage-of-january-31/",
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:gitlab-db-2017:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Database service unavailable; irreversible loss of recent database writes."
+          }
+        ],
+        "tools": {
+          "query_logs": {
+            "lines": [
+              "operator removed primary database data while addressing replication trouble; restore requires older backup"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "database",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "delet",
+            "remov"
+          ],
+          [
+            "primary",
+            "database",
+            "data"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "github-partition-2018",
+      "family": "github-partition-2018",
+      "split": "test",
+      "origin": "public-postmortem-inspired reconstruction; not original logs",
+      "source_url": "https://github.blog/news-insights/company-news/oct21-post-incident-analysis/",
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:github-partition-2018:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Broad database-backed service disruption; topology changes and inconsistent writes follow inter-site connectivity loss."
+          }
+        ],
+        "tools": {
+          "query_logs": {
+            "lines": [
+              "brief inter-site network partition preceded MySQL leader promotion and divergent database writes"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "network",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "partition",
+            "network"
+          ],
+          [
+            "database",
+            "mysql",
+            "leader",
+            "replic"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "cf-bgp-2022",
+      "family": "cf-bgp-2022",
+      "split": "test",
+      "origin": "public-postmortem-inspired reconstruction; not original logs",
+      "source_url": "https://blog.cloudflare.com/cloudflare-outage-on-june-21-2022/",
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:cf-bgp-2022:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Multiple network locations stop serving traffic after routing policy rollout; other locations remain available."
+          }
+        ],
+        "tools": {
+          "get_deploy_diff": {
+            "change": "BGP policy term reordering changed route advertisement behavior"
+          },
+          "query_logs": {
+            "lines": [
+              "routes withdrawn at affected network locations"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "network",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "bgp",
+            "route",
+            "routing"
+          ],
+          [
+            "policy",
+            "config",
+            "order",
+            "withdraw"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "meta-backbone-2021",
+      "family": "meta-backbone-2021",
+      "split": "test",
+      "origin": "public-postmortem-inspired reconstruction; not original logs",
+      "source_url": "https://engineering.fb.com/2021/10/05/networking-traffic/outage-details/",
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:meta-backbone-2021:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Global services unavailable; backbone links disappear and DNS route advertisements are withdrawn."
+          }
+        ],
+        "tools": {
+          "query_logs": {
+            "lines": [
+              "maintenance capacity command disconnected backbone links; command audit guard failed to stop it"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "network",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "backbone",
+            "network"
+          ],
+          [
+            "command",
+            "maintenance",
+            "disconnect"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "cf-router-2020",
+      "family": "cf-router-2020",
+      "split": "test",
+      "origin": "public-postmortem-inspired reconstruction; not original logs",
+      "source_url": "https://blog.cloudflare.com/cloudflare-outage-on-july-17-2020/",
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:cf-router-2020:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Regional network failures after a router configuration update; unaffected regions remain healthy."
+          }
+        ],
+        "tools": {
+          "get_deploy_diff": {
+            "change": "router policy leaked routes and attracted excessive backbone traffic to one location"
+          }
+        }
+      },
+      "expected": {
+        "category": "network",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "route",
+            "router",
+            "routing"
+          ],
+          [
+            "config",
+            "traffic",
+            "leak"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "cf-power-2023",
+      "family": "cf-power-2023",
+      "split": "test",
+      "origin": "public-postmortem-inspired reconstruction; not original logs",
+      "source_url": "https://blog.cloudflare.com/post-mortem-on-cloudflare-control-plane-and-analytics-outage/",
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:cf-power-2023:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Control plane and analytics unavailable; edge request handling continues."
+          }
+        ],
+        "tools": {
+          "query_logs": {
+            "lines": [
+              "data-center power sources failed; backup runtime insufficient; services dependent on facility became unavailable"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "infrastructure",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "power",
+            "facility"
+          ],
+          [
+            "backup",
+            "fail",
+            "outage"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "aws-s3-2017",
+      "family": "aws-s3-2017",
+      "split": "test",
+      "origin": "public-postmortem-inspired reconstruction; not original logs",
+      "source_url": "https://aws.amazon.com/message/41926/",
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:aws-s3-2017:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Regional object APIs broadly unavailable after maintenance; dependent services also fail."
+          }
+        ],
+        "tools": {
+          "query_logs": {
+            "lines": [
+              "maintenance command removed more subsystem servers than intended; index and placement systems require restart"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "resource",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "capacity",
+            "server",
+            "subsystem"
+          ],
+          [
+            "remov",
+            "command"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "fastly-config-2021",
+      "family": "fastly-config-2021",
+      "split": "test",
+      "origin": "public-postmortem-inspired reconstruction; not original logs",
+      "source_url": "https://www.fastly.com/blog/summary-of-june-8-outage",
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:fastly-config-2021:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Broad edge errors begin following a valid customer configuration change."
+          }
+        ],
+        "tools": {
+          "query_logs": {
+            "lines": [
+              "specific customer configuration activated a latent software defect introduced in an earlier software deployment"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "application",
+        "severity": "critical",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "bug",
+            "defect"
+          ],
+          [
+            "config",
+            "latent",
+            "software"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "slack-config-2020",
+      "family": "slack-config-2020",
+      "split": "test",
+      "origin": "public-postmortem-inspired reconstruction; not original logs",
+      "source_url": "https://slack.engineering/a-terrible-horrible-no-good-very-bad-day-at-slack/",
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:slack-config-2020:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Partial API errors and database query load rise during a feature flag rollout; most requests still succeed."
+          }
+        ],
+        "tools": {
+          "query_logs": {
+            "lines": [
+              "percentage rollout of feature flag triggered a longstanding database performance bug; rollback reduces load"
+            ]
+          }
+        }
+      },
+      "expected": {
+        "category": "database",
+        "severity": "high",
+        "abstained": false,
+        "root_cause_terms": [
+          [
+            "config",
+            "flag",
+            "rollout"
+          ],
+          [
+            "database",
+            "performance",
+            "bug"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "unknown-empty",
+      "family": "ambiguous-empty",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-empty:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "No telemetry is available in the incident window."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      }
+    },
+    {
+      "id": "unknown-generic-error",
+      "family": "ambiguous-generic-error",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-generic-error:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "ERROR request failed; no impact, metrics, or deployment details."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      }
+    },
+    {
+      "id": "unknown-healthy",
+      "family": "ambiguous-healthy",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-healthy:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "INFO heartbeat healthy; no anomaly observed."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      }
+    },
+    {
+      "id": "unknown-old-throttle",
+      "family": "ambiguous-old-throttle",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-old-throttle:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "HTTP 429 was observed yesterday; current requests healthy."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      }
+    },
+    {
+      "id": "unknown-unknown-impact",
+      "family": "ambiguous-unknown-impact",
+      "split": "dev",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-unknown-impact:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "WARN a latency value changed; no units, baseline, or impact supplied."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      }
+    },
+    {
+      "id": "unknown-conflicting",
+      "family": "ambiguous-conflicting",
+      "split": "test",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-conflicting:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Metrics absent; one log says healthy and another says unhealthy."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      }
+    },
+    {
+      "id": "unknown-missing-source",
+      "family": "ambiguous-missing-source",
+      "split": "test",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-missing-source:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "An operator suspects a leak, but no memory or request evidence exists."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      }
+    },
+    {
+      "id": "unknown-no-deployment",
+      "family": "ambiguous-no-deployment",
+      "split": "test",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-no-deployment:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "A rollback is suggested without deployment history or observed fault."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      }
+    },
+    {
+      "id": "unknown-unexplained-drift",
+      "family": "ambiguous-unexplained-drift",
+      "split": "test",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-unexplained-drift:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "Slippage drift reported without supporting telemetry or business impact."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      }
+    },
+    {
+      "id": "unknown-untrusted-claim",
+      "family": "ambiguous-untrusted-claim",
+      "split": "test",
+      "origin": "demo-derived synthetic",
+      "source_url": null,
+      "annotation_status": "agent_authored_pending_human_review",
+      "input": {
+        "service": "execution-gateway",
+        "evidence": [
+          {
+            "source": "fixture:unknown-untrusted-claim:initial",
+            "service": "execution-gateway",
+            "observed_at": "2026-10-23T00:00:00+00:00",
+            "content": "A log says the cause is DNS but provides no DNS or connectivity evidence."
+          }
+        ],
+        "tools": {}
+      },
+      "expected": {
+        "category": "unknown",
+        "severity": "unknown",
+        "abstained": true,
+        "root_cause_terms": []
+      }
+    }
+  ]
+}

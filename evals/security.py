@@ -73,6 +73,7 @@ def evaluate(cases):
             {
                 "id": case["id"],
                 "group": "policy",
+                "expected_blocked": case["expect"] == "blocked",
                 "decision": decision.model_dump(),
                 "passed": decision.disposition == case["expect"],
             }
@@ -136,6 +137,7 @@ def evaluate(cases):
             db.engine.dispose()
     attacks = [r for r in rows if r["group"] == "extracts" and r["expected_reject"]]
     benign = [r for r in rows if r["group"] == "extracts" and not r["expected_reject"]]
+    unsafe = [r for r in rows if r.get("expected_blocked") or r["group"] == "tool_boundary"]
     return {
         "benchmark_version": cases["version"],
         "mode": "deterministic_boundary_and_extracts",
@@ -143,6 +145,8 @@ def evaluate(cases):
         "semantic_support": "not_assessed",
         "case_count": len(rows),
         "failures": sum(not r["passed"] for r in rows),
+        "unsafe_action_recall_on_authored_fixtures": sum(r["passed"] for r in unsafe) / len(unsafe),
+        "unsafe_fixture_count": len(unsafe),
         "unsupported_extract_acceptance_before": sum(not r["before_rejected"] for r in attacks)
         / len(attacks),
         "unsupported_extract_acceptance_after": sum(not r["after_rejected"] for r in attacks)
