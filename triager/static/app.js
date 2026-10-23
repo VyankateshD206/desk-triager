@@ -501,8 +501,41 @@ function renderReviewMetadata() {
 }
 function renderDiagnosisSummary(incident) {
   const diagnosis = incident.investigation?.diagnosis;
+  $("#diagnosis-profile").textContent = `${window.DeskInvestigation.providerLabel(incident.investigation)} · Predicted ${diagnosis?.severity ?? "not recorded"} / ${diagnosis?.category ?? "not recorded"}`;
   $("#full-report").textContent = incident.report || "No completed diagnosis report available.";
   $("#report").textContent = diagnosis?.abstained ? "The investigation abstained because the available evidence is insufficient. Review the missing information below." : diagnosis?.hypotheses?.length ? diagnosis.hypotheses.map(h=>h.cause).join("\n\n") : incident.report || "The investigation is collecting evidence. Refresh the diagnosis when more telemetry is available.";
+}
+function renderAgentTimeline(data) {
+  const host = $("#agent-timeline"); host.replaceChildren();
+  const nodes = window.DeskInvestigation.trace(data);
+  $("#agent-run-summary").textContent = nodes.length ? `${nodes.length} recorded graph operations · ${data.workflow || "workflow version not recorded"}${data.run_id ? " · Run " + data.run_id : ""}` : "No node trace recorded for this investigation. No execution stages are inferred.";
+  for (const node of nodes) {
+    const li=document.createElement("li"), details=document.createElement("details"), summary=document.createElement("summary");
+    const name=document.createElement("span"); name.className="agent-node-name"; name.textContent=`${node.index+1}. ${node.name}`;
+    const meta=document.createElement("span"); meta.className="agent-node-meta"; meta.textContent=`${node.status} · ${node.duration}`;
+    summary.append(name,meta); details.append(summary);
+    const explanation=document.createElement("p"); explanation.textContent=node.explanation; details.append(explanation);
+    const metrics=document.createElement("pre"); metrics.textContent=JSON.stringify({node:node.node,...node.metrics},null,2); details.append(metrics);
+    if (["collect_context","tools","verify"].includes(node.node)) {
+      const link=document.createElement("a"); link.className="investigation-jump";
+      link.href=node.node === "verify" ? "#investigation-trace" : "#tool-details";
+      link.textContent=node.node === "verify" ? "Review evidence and uncertainty" : "Inspect recorded tool calls";
+      details.append(link);
+    }
+    li.append(details); host.append(li);
+  }
+}
+function filterEvidence() {
+  const kind=$("#evidence-kind").value, relation=$("#evidence-relation").value;
+  const records=[...document.querySelectorAll("#evidence-items > details")];
+  let shown=0;
+  for (const record of records) {
+    record.hidden = (kind !== "all" && kind !== record.dataset.kind) || (relation === "cited" && record.dataset.cited !== "yes") || (relation === "uncited" && record.dataset.cited !== "no");
+    if (!record.hidden) shown++;
+  }
+  const count=`${shown} of ${records.length} recorded sources`;
+  if ($("#evidence-filter-count").textContent !== count) $("#evidence-filter-count").textContent=count;
+  $("#evidence-filter-empty").hidden=shown>0;
 }
 function renderInvestigation(data) {
   const host = $("#investigation-trace"), tools = $("#tool-trace"), usage = $("#model-usage"), library = $("#evidence-items");
@@ -513,14 +546,17 @@ function renderInvestigation(data) {
     parent.append(p); return p;
   };
   const items = data?.evidence_items || [];
+  renderAgentTimeline(data);
+  $("#evidence-kind").value = "all"; $("#evidence-relation").value = "all";
   $("#evidence-count").textContent = `· ${items.length} sources`;
   if (!data) {
     line(host,"No completed investigation yet. Review the observed symptom above while evidence is collected.");
     [tools,usage,library].forEach(node=>line(node,"No records available yet."));
+    filterEvidence();
     return;
   }
   const diagnosis = data.diagnosis || {};
-  const provider = data.provider === "offline" ? "Offline analysis" : data.provider === "gemini" ? "Gemini" : data.provider || "Provider not reported";
+  const provider = window.DeskInvestigation.providerLabel(data);
   const confidence = Number.isFinite(diagnosis.confidence) ? `Confidence ${Math.round(diagnosis.confidence*100)}% (uncalibrated)` : "Confidence not reported";
   line(host,`${provider} · ${diagnosis.abstained ? "Insufficient evidence" : confidence}`,"review-analysis-source");
   const support = data.verification?.semantic_support;
@@ -540,43 +576,68 @@ function renderInvestigation(data) {
     claim.append(links);
     for (const quote of hypothesis.supporting_quotes || []) {
       const block = document.createElement("blockquote"); block.textContent = quote.quote;
-      claim.append(block);
+      if (quote.quote.length > 120) {
+        const expanded = document.createElement("details"), title = document.createElement("summary");
+        title.textContent = `Supporting quote · ${quote.quote.length} characters`; expanded.append(title,block); claim.append(expanded);
+      } else claim.append(block);
     }
     host.append(claim);
   }
   for (const missing of diagnosis.missing_information || []) line(host,`Missing information: ${missing}`,"review-uncertainty");
   for (const issue of data.verification?.issues || []) line(host,`Unsupported claim flagged: ${issue}`,"review-uncertainty");
-  if (data.fallback_reason) line(host,`Provider fallback: ${data.fallback_reason}`,"review-uncertainty");
+  if (data.fallback_reason) line(host,`Provider fallback: ${data.fallback_reason}${data.fallback_http_status ? " · HTTP " + data.fallback_http_status : ""}`,"review-uncertainty");
   line(tools,`Budget used: ${data.rounds ?? "—"}/${data.budget?.rounds ?? "—"} reasoning rounds · ${data.tool_calls ?? "—"}/${data.budget?.tools ?? "—"} tool calls`);
-  if (!(data.tool_events || []).length) line(tools,"No tool invocations recorded.");
+  if (!(data.tool_events || []).length) line(tools,(data.tool_trace || []).length ? "Detailed tool-event records are not available." : "No tool invocations recorded.");
   for (const tool of data.tool_events || []) {
-    const details = document.createElement("details"); details.className = "tool-record";
-    const summary = document.createElement("summary"); summary.textContent = `${tool.tool} · ${tool.status} · ${Math.round(tool.latency_ms)} ms`;
+    const details = document.createElement("details"); details.className = "tool-record"; details.dataset.status = tool.status || "unknown";
+    const summary = document.createElement("summary"); summary.textContent = `${tool.tool} · ${tool.status || "Outcome not recorded"} · ${window.DeskInvestigation.duration(tool.latency_ms)}`;
     const pre = document.createElement("pre"); pre.textContent = `Arguments\n${JSON.stringify(tool.arguments,null,2)}\n\nResult summary\n${tool.result_summary}${tool.summary_truncated ? " … (truncated)" : ""}`;
-    details.append(summary,pre);
+    details.append(summary);
+    line(details,window.DeskInvestigation.toolSource(tool));
+    if (tool.at) line(details,`Recorded ${new Date(tool.at).toLocaleString()} · ${tool.at}`,"subtle");
+    if (tool.scope?.service) line(details,`Scope: ${tool.scope.service}`);
+    details.append(pre);
     const links = document.createElement("p");
     for (const id of tool.evidence_ids || []) evidenceLink(links,id);
     details.append(links); tools.append(details);
   }
-  for (const node of data.node_trace || []) line(tools,`${node.node}: ${Math.round(node.latency_ms)} ms`);
+  if (!(data.tool_events || []).length && (data.tool_trace || []).length) {
+    for (const name of data.tool_trace) line(tools,`${name} · Recorded name only; source, duration and outcome are not available.`);
+  }
   const calls = data.model_calls || [];
-  if (!calls.length) line(usage,"No model calls recorded for this investigation.");
+  if (!calls.length) line(usage,"No model-call usage records available for this investigation.");
   else {
     const tokens = key => calls.every(c=>Number.isFinite(c[key])) ? calls.reduce((n,c)=>n+c[key],0).toLocaleString() : "not fully reported";
     line(usage,`Tokens: ${tokens("input_tokens")} input / ${tokens("output_tokens")} output.`);
   }
   line(usage,`Estimated cost: ${data.estimated_cost_usd == null ? "unavailable" : "$"+data.estimated_cost_usd.toFixed(5)}`);
   for (const call of calls) {
-    const pre = document.createElement("pre"); pre.textContent = JSON.stringify(call,null,2); usage.append(pre);
+    const pre = document.createElement("pre"); pre.textContent = JSON.stringify(window.DeskInvestigation.usage(call),null,2); usage.append(pre);
   }
   if (!items.length) line(library,"No source records available.");
   for (const [index,item] of items.entries()) {
     const details = document.createElement("details"); details.id = "evidence-"+item.evidence_id;
-    const summary = document.createElement("summary"); summary.textContent = `Source ${index+1} · ${item.source}`;
+    const type = window.DeskInvestigation.evidenceType(item), related = window.DeskInvestigation.relatedFindings(item,data);
+    details.dataset.kind = type.kind; details.dataset.cited = related.length ? "yes" : "no";
+    const summary = document.createElement("summary"); summary.textContent = `Source ${index+1} · ${type.label}`;
     const pre = document.createElement("pre"); pre.textContent = item.content;
-    details.append(summary); line(details,`Evidence ID: ${item.evidence_id}`,"review-evidence-id");
+    details.append(summary);
+    line(details,`Source: ${item.source}`);
+    line(details,`Evidence ID: ${item.evidence_id}`,"review-evidence-id");
+    if (item.observed_at) line(details,`Observed ${new Date(item.observed_at).toLocaleString()} · ${item.observed_at}`,"subtle");
+    if (related.length) for (const {hypothesis,index: findingIndex} of related) line(details,`Finding ${findingIndex+1}: ${hypothesis.cause}`);
+    else line(details,"Not cited by the final findings; collection or retrieval does not prove relevance.","subtle");
+    for (const doc of type.documents) {
+      const record = document.createElement("details"), title = document.createElement("summary"); title.textContent = doc.title || doc.document_id;
+      record.append(title);
+      line(record,`Reference: ${doc.source || "not recorded"} · Document ${doc.document_id} · Version ${doc.version ?? "not recorded"}`);
+      if (Number.isFinite(doc.score)) line(record,`Recorded retrieval similarity: ${doc.score} (not diagnosis accuracy)`,"subtle");
+      if (doc.embedding_version) line(record,`Embedding version: ${doc.embedding_version}`,"subtle");
+      const excerpt = document.createElement("pre"); excerpt.textContent = doc.content; record.append(excerpt); details.append(record);
+    }
     details.append(pre); library.append(details);
   }
+  filterEvidence();
 }
 function recoveryPresentation(incident) {
   const states = {
@@ -835,16 +896,20 @@ $("#incident-sort").onchange = () => {
 $("#incident-rows").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("tr[data-id]")) {e.preventDefault(); inspect(e.target.dataset.id);} });
 $("#incident-rows").addEventListener("toggle", e => { const id=e.target.dataset.correlation; if(id) {if(e.target.open) openCorrelations.add(id); else openCorrelations.delete(id);} }, true);
 $("#detail").addEventListener("click", e => {
-  const link = e.target.closest(".evidence-link"); if (!link) return;
+  const link = e.target.closest(".evidence-link, .investigation-jump"); if (!link) return;
   e.preventDefault();
   const target = document.getElementById(link.hash.slice(1));
   if (!target) return;
+  $("#evidence-kind").value = "all"; $("#evidence-relation").value = "all"; filterEvidence();
   for (let ancestor=target; ancestor && ancestor!==$("#detail"); ancestor=ancestor.parentElement) {
     if (ancestor.tagName === "DETAILS") ancestor.open=true;
   }
-  target.scrollIntoView({block:"nearest"});
-  target.querySelector("summary").focus({preventScroll:true});
+  target.scrollIntoView({block:link.classList.contains("investigation-jump") ? "start" : "nearest"});
+  const focusTarget = target.tagName === "DETAILS" ? target.querySelector("summary") : target;
+  if (!focusTarget.hasAttribute("tabindex") && focusTarget.tagName !== "SUMMARY") focusTarget.setAttribute("tabindex","-1");
+  focusTarget.focus({preventScroll:true});
 });
+["#evidence-kind", "#evidence-relation"].forEach(selector=>$(selector).onchange=filterEvidence);
 const savedScenario = sessionStorage.getItem("desk-scenario-selection");
 if ([...$("#fault").options].some((option) => option.value === savedScenario))
   $("#fault").value = savedScenario;

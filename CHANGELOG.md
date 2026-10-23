@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Visualize recorded agent operations and add a provenance-aware evidence explorer with secondary model usage (Phase 5).
+
 - Redesign incident review with visible diagnosis/evidence, separate technical panels and a clear human decision area (Phase 4).
 
 - Add client-side incident filters, explicit recovery states and responsive incident cards (Phase 3).

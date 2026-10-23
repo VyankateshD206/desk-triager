@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Desk Triager — Operations overview</title>
     <link rel="stylesheet" href="/static/style.css" />
+    <script defer src="/static/investigation.js"></script>
     <script defer src="/static/app.js"></script>
   </head>
   <body>
@@ -234,10 +235,11 @@
       </div>
       <div class="review-grid">
         <div class="review-main">
+          <nav class="investigation-nav" aria-label="Investigation views"><a class="investigation-jump" href="#diagnosis-heading">Summary</a><a class="investigation-jump" href="#agent-workflow-heading">Workflow</a><a class="investigation-jump" href="#evidence-library">Evidence</a><a class="investigation-jump" href="#tool-details">Tools</a></nav>
           <section class="review-section" aria-labelledby="symptom-heading"><h3 id="symptom-heading">What happened</h3><p id="diagnosis"></p></section>
           <section class="review-section assessment" aria-labelledby="diagnosis-heading">
             <div class="section-heading"><h3 id="diagnosis-heading">Diagnosis summary</h3><button class="text-button" id="triage">Refresh diagnosis ↗</button></div>
-            <p id="report">Collecting evidence…</p>
+            <p id="diagnosis-profile" class="subtle"></p><p id="report">Collecting evidence…</p>
           </section>
           <section class="review-section" aria-labelledby="evidence-heading"><h3 id="evidence-heading">Evidence &amp; uncertainty</h3><div id="investigation-trace"></div></section>
         </div>
@@ -259,11 +261,24 @@
           <p id="modal-message" role="status"></p>
         </aside>
         <div class="review-secondary">
+          <section class="review-section agent-workspace" aria-labelledby="agent-workflow-heading">
+            <h3 id="agent-workflow-heading">Agent investigation</h3>
+            <p class="agent-process-guide">Detect → Investigate → Validate → Human review → Recover → Verify</p>
+            <p class="subtle">Process guide, not an execution trace. Investigation is read-only; human decisions and recovery are recorded separately below.</p>
+            <p id="agent-run-summary" class="subtle"></p>
+            <ol id="agent-timeline" class="agent-steps" aria-label="Recorded investigation nodes"></ol>
+            <p class="subtle">Nodes follow recorded graph order. Tool timestamps are listed separately; exact node-to-tool timing is not recorded.</p>
+          </section>
           <section class="review-section" aria-labelledby="progress-heading"><h3 id="progress-heading">Recovery progress</h3><ol id="incident-timeline" class="timeline" aria-label="Incident timeline"></ol></section>
           <section class="review-technical" aria-labelledby="technical-heading">
             <h3 id="technical-heading">Investigation details</h3>
-            <details id="evidence-library"><summary>Source records &amp; evidence IDs <span id="evidence-count"></span></summary><div id="evidence-items"></div></details>
-            <details id="tool-details"><summary>Tool calls &amp; workflow timings</summary><div id="tool-trace"></div></details>
+            <details id="evidence-library"><summary>Evidence explorer <span id="evidence-count"></span></summary>
+              <div class="evidence-filters">
+                <label for="evidence-kind">Source type<select id="evidence-kind" aria-label="Evidence source type"><option value="all">All sources</option><option value="collected">Collected data</option><option value="retrieval">Runbook searches</option><option value="other">Other sources</option></select></label>
+                <label for="evidence-relation">Finding reference<select id="evidence-relation" aria-label="Evidence finding reference"><option value="all">All records</option><option value="cited">Cited by findings</option><option value="uncited">Not cited by findings</option></select></label>
+              </div>
+              <p id="evidence-filter-count" class="subtle" role="status"></p><p id="evidence-filter-empty" class="subtle" hidden>No source records match these filters.</p><div id="evidence-items"></div></details>
+            <details id="tool-details"><summary>Recorded tool calls</summary><div id="tool-trace"></div></details>
             <details><summary>Full diagnosis report</summary><pre id="full-report"></pre></details>
             <details id="usage-details"><summary>Model usage &amp; estimated cost</summary><div id="model-usage"></div></details>
             <details><summary>Incident telemetry &amp; raw logs</summary><p class="subtle">Stored incident evidence. Source records above contain the investigation's sanitized query results.</p><pre id="evidence"></pre></details>

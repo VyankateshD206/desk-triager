@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 class Element {
-  constructor(){this.value='';this.attrs={};this.dataset={};this.children=[];this.hidden=false;this.open=true;this.classList={remove(){},add(){}};}
+  constructor(tag='div'){this.tagName=tag.toUpperCase();this.value='';this.attrs={};this.dataset={};this.children=[];this.hidden=false;this.open=true;this.classList={remove(){},add(){}};}
   setAttribute(k,v){this.attrs[k]=v;}
   removeAttribute(k){delete this.attrs[k];}
   replaceChildren(...children){this.children=children;}
@@ -14,9 +14,10 @@ const elements = new Map();
 function element(selector){if(!elements.has(selector))elements.set(selector,new Element());return elements.get(selector);}
 const storage = new Map();
 const source = fs.readFileSync('triager/static/app.js','utf8');
-const context = vm.createContext({document:{querySelector:element,createElement:()=>new Element(),createTextNode:text=>({textContent:text})},
+const context = vm.createContext({window:{},document:{querySelector:element,querySelectorAll:selector=>selector==='#evidence-items > details'?element('#evidence-items').children.filter(e=>e.tagName==='DETAILS'):[],createElement:tag=>new Element(tag),createTextNode:text=>({textContent:text})},
   sessionStorage:{getItem:key=>storage.get(key)||null,setItem:(k,v)=>storage.set(k,v),removeItem:key=>storage.delete(key)},
   crypto:{randomUUID:()=> 'decision-key-1'}});
+vm.runInContext(fs.readFileSync('triager/static/investigation.js','utf8'),context);
 vm.runInContext(source.slice(0,source.indexOf('function setMetricState'))+
   source.slice(source.indexOf('function updateApproval()'),source.indexOf('async function refresh()'))+
   source.slice(source.indexOf('function renderReviewMetadata()'),source.indexOf('let reviewReturnTarget'))+
@@ -29,7 +30,24 @@ function select(overrides={}){
   element('#actor').value='reviewer';element('#feedback-reason').value='';element('#detail').open=true;
   element('#modal-message').textContent='';
 }
+const text=node=>(node.textContent || '')+(node.children || []).map(text).join(' ');
 async function main(){
+  context.legacy={provider:'offline',tool_trace:['inspect_service_logs'],evidence_items:[],diagnosis:{hypotheses:[]}};
+  evaluate('renderInvestigation(legacy)');
+  assert.match(text(element('#tool-trace')),/Recorded name only/);
+  assert.equal(element('#agent-timeline').children.length,0);
+  const rag={source:'tool:search_runbooks',evidence_id:'rag1',content:JSON.stringify([{document_id:'doc1',source:'reviewed:runbook',version:'1',title:'Gateway runbook',content:'A recorded retrieval excerpt',score:.7}])};
+  context.traced={provider:'gemini',diagnosis:{hypotheses:[{cause:'Fixture finding',evidence_ids:['rag1']}]},evidence_items:[rag],
+    tool_events:[{tool:'get_metrics',status:'blocked',result_summary:'Tool or arguments not allowed',arguments:{},evidence_ids:[]}],
+    model_calls:[{provider:'gemini',input_tokens:20,output_tokens:5,reasoning:'DO_NOT_RENDER_PRIVATE_CONTENT',parts:[{thought:true,text:'DO_NOT_RENDER_PRIVATE_CONTENT'}]}]};
+  evaluate('renderInvestigation(traced)');
+  assert.match(text(element('#tool-trace')),/not confirmed/);
+  assert.match(text(element('#tool-trace')),/Tool or arguments not allowed/);
+  assert.match(text(element('#evidence-items')),/Knowledge retrieval/);
+  assert.match(text(element('#evidence-items')),/Fixture finding/);
+  assert.match(text(element('#evidence-items')),/A recorded retrieval excerpt/);
+  assert.doesNotMatch(text(element('#model-usage')),/DO_NOT_RENDER_PRIVATE_CONTENT/);
+
   context.diagnosed={report:'Original full report [source-id]',investigation:{diagnosis:{hypotheses:[{cause:'Observed fixture symptom'}]}}};
   evaluate('renderDiagnosisSummary(diagnosed)');
   assert.equal(element('#report').textContent,'Observed fixture symptom');

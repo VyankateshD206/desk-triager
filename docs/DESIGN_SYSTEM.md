@@ -134,3 +134,51 @@ Validation:
 - Browser checks covered source navigation, native Escape/focus return, initially closed
   technical panels, and desktop/375px layouts. At 375px the dialog's scroll width equaled
   its client width; primary report text was 14px and the decision preceded technical panels.
+
+## Phase 5 — observable investigation visualization
+
+The review adds Summary/Workflow/Evidence/Tools navigation and an expandable, numbered
+view of the existing `node_trace`, preserving recorded order and repeated reasoning/tool
+passes. Every card names the operation, recorded status, available duration and explanation.
+Missing traces do not produce inferred stages. Node records have no wall-clock timestamps
+or tool-parent IDs, so the UI keeps tool records/timestamps separate rather than inventing
+an exact combined timeline. The six-stage process guide is explicitly labeled as a guide,
+not a run trace; human authorization and recovery remain separate from investigation.
+
+The critic wrapper is always visited by the current graph, even if the critic model is
+not requested. A record of that gate is labeled "No assessment recorded" unless the final
+verification metadata records a critic assessment or unavailability. Node completion is
+not presented as causal correctness or as proof that every tool succeeded.
+
+Tool entries retain actual name, scope, timestamp, arguments, status, result summary,
+truncation marker and evidence links. Blocked/duplicate/error outcomes do not imply a
+source was accessed. Legacy name-only traces explicitly lack detailed outcomes/timings.
+The evidence explorer filters collected data, runbook searches and other sources, and
+cited/uncited records. It shows exact source, observed time, evidence ID, excerpt and
+related final findings. Only the recorded `tool:search_runbooks` source can be classified
+as knowledge retrieval, with structured returned documents; ordinary logs/metrics are not
+RAG. Empty/malformed retrieval results are distinguished. Returned document/version/source,
+embedding metadata and similarity are inspectable; similarity is not diagnosis accuracy.
+Following a citation resets filters and opens/focuses its source record.
+
+The final provider, predicted severity/category, hypotheses, uncertainty, missing information
+and fallback reason remain visible. Offline output is labeled rule-based, and uncalibrated
+confidence remains explicitly uncalibrated. Model usage stays secondary. Only allowlisted
+public call metadata and node metrics are rendered; model messages, response parts and
+private reasoning fields are never serialized by the visualization. No model architecture,
+backend/API, model execution permissions or recovery behavior is changed.
+
+Validation on 24 October 2026:
+- UI/adapter checks used actual offline history: five node records, no model calls and two
+  context tool records. Offline rules and the unassessed critic gate were labeled correctly.
+- One isolated live Gemini smoke run recorded seven nodes, two model calls, three tool
+  records and fourteen evidence records. The model made a read-only service-metrics request
+  between reasoning passes. The explorer correctly found three cited records and zero
+  runbook searches. This was UI smoke validation, not an accuracy benchmark.
+- Positive, empty and malformed runbook retrieval, fallback, critic outcomes, blocked tools,
+  missing timings, legacy records and private-field exclusion have labeled Node fixtures;
+  fixtures are never injected into the live UI.
+- Browser checks covered stage expansion, tool/source inspection, citation/filter reset,
+  secondary token/cost records, keyboard focus and desktop/mobile layout. At 375px the
+  offline trace stacked in one column and dialog scroll width matched client width.
+- No recovery decisions were submitted during this phase.

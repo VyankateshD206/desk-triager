@@ -2263,3 +2263,119 @@ body:has(#detail[open]) {
 #detail #review-policy {
   cursor: help;
 }
+
+/* Phase 5: observable graph operations and evidence provenance. */
+#detail .agent-process-guide {
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  border-left: 2px solid var(--success-border);
+  padding-left: var(--space-3);
+}
+#detail #agent-run-summary {
+  overflow-wrap: anywhere;
+  font-size: var(--font-xs);
+}
+#detail .agent-steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  padding: 0;
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+}
+#detail .agent-steps li {
+  min-width: 0;
+}
+#detail .agent-steps details {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+}
+#detail .agent-steps summary {
+  font-size: var(--font-base);
+}
+#detail .agent-node-name {
+  color: var(--text);
+  font-weight: 600;
+}
+#detail .agent-node-meta {
+  display: block;
+  color: var(--muted);
+  font-size: var(--font-xs);
+  margin-top: var(--space-1);
+}
+#detail .agent-steps p {
+  font-size: var(--font-sm);
+}
+#detail .agent-steps pre {
+  font-size: var(--font-xs);
+}
+#detail .investigation-jump {
+  font-size: var(--font-sm);
+}
+#detail .evidence-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+#detail .evidence-filters label {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--muted);
+  font-size: var(--font-sm);
+  min-width: 0;
+}
+#detail .evidence-filters select {
+  width: 100%;
+}
+#detail #evidence-filter-count, #detail #evidence-filter-empty {
+  font-size: var(--font-sm);
+}
+#detail #evidence-items > details {
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+#detail #evidence-items > details[hidden] {
+  display: none;
+}
+#detail #diagnosis-profile {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+@media (max-width: 580px) {
+  #detail .agent-steps, #detail .evidence-filters {
+    grid-template-columns: minmax(0,1fr);
+  }
+}
+#detail .investigation-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+#detail .investigation-nav a {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-secondary);
+  background: var(--surface-inset);
+}
+#detail .investigation-nav a:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+#detail .review-claim details {
+  margin: var(--space-2) 0;
+}
+#detail .review-claim summary {
+  font-size: var(--font-sm);
+}
+#detail .tool-record[data-status="error"], #detail .tool-record[data-status="blocked"] {
+  border-left-color: var(--error-border);
+}

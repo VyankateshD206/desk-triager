@@ -14,6 +14,7 @@ with ZipFile(wheel) as archive:
         "triager/runtime.py",
         "triager/static/index.html",
         "triager/static/app.js",
+        "triager/static/investigation.js",
         "triager/static/style.css",
         "triager/migrations/env.py",
         "triager/migrations/versions/0001_schema.py",
