@@ -8,5 +8,6 @@
 !demo/**
 !scripts/
 !scripts/verify_demo.py
+!scripts/verify_recovery.py
 **/__pycache__
 **/*.pyc

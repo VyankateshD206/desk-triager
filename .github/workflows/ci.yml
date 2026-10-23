@@ -40,6 +40,8 @@ jobs:
         run: docker compose -f infra/compose.yaml up -d --build --wait --wait-timeout 180
       - name: Verify faults and evidence tools
         run: docker compose -f infra/compose.yaml exec -T triager python scripts/verify_demo.py
+      - name: Verify durable PostgreSQL recovery
+        run: docker compose -f infra/compose.yaml exec -T triager python scripts/verify_recovery.py
       - name: Collect demo diagnostics
         if: failure()
         run: docker compose -f infra/compose.yaml logs --no-color --tail 100
