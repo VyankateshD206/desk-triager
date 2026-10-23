@@ -63,6 +63,12 @@ class Recovery:
         return {"configurable": {"thread_id": "approval:" + proposal_id}}
 
     def payload(self, session, incident):
+        diagnosis = session.scalar(
+            select(Audit)
+            .where(Audit.incident_id == incident.id, Audit.action == "diagnosed")
+            .order_by(Audit.id.desc())
+            .limit(1)
+        )
         fault = session.get(SimulatorFault, incident.service)
         balance = (
             session.get(Balance, "desk-primary") if incident.action == "resync_ledger" else None
@@ -73,6 +79,7 @@ class Recovery:
             "kind": incident.kind,
             "action": incident.action,
             "report_hash": digest(incident.report),
+            "diagnosis_run_id": diagnosis.detail.get("run_id") if diagnosis else None,
             "policy": action_policy(
                 {"action": incident.action, "target": incident.service},
                 incident_service=incident.service,

@@ -401,7 +401,20 @@ class Desk:
                     .group_by(Incident.service)
                 ).all()
             )
+            decisions = dict(
+                db.execute(
+                    select(RecoveryJob.decision, func.count()).group_by(RecoveryJob.decision)
+                ).all()
+            )
+            decision_count = sum(decisions.values())
             return {
+                "approval_feedback": {
+                    "approved": decisions.get("approved", 0),
+                    "rejected": decisions.get("rejected", 0),
+                    "approval_rate": decisions.get("approved", 0) / decision_count
+                    if decision_count
+                    else None,
+                },
                 "mode": "simulated desk" if self.settings.simulator else "external telemetry",
                 "ai_provider": self.settings.ai_provider,
                 "database": self.db.engine.dialect.name,

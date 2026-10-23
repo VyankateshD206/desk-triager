@@ -168,3 +168,21 @@ def test_sql_commit_replay_cannot_create_second_outbox_record(desk):
         state = desk.recovery.graph(saver).get_state(desk.recovery.config(item["approval"]["id"]))
     replay = desk.recovery.record_decision(state.values["decision"])
     assert replay["execution_id"] == result["execution_id"]
+
+
+def test_same_text_retriage_creates_new_proposal_after_rejection(desk):
+    desk.triage_next()
+    item = proposal(desk)
+    desk.reject(
+        item["id"],
+        item["action"],
+        "operator",
+        item["approval"]["id"],
+        str(uuid4()),
+        "Review again with independent evidence",
+    )
+    desk.triage(item["id"])
+    revised = desk.proposal(item["id"])
+    assert revised["approval"]["status"] == "pending"
+    assert revised["approval"]["id"] != item["approval"]["id"]
+    assert desk.snapshot()["approval_feedback"]["rejected"] == 1
