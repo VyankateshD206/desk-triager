@@ -36,7 +36,10 @@ cp -n .env.example .env
 uvicorn triager.app:app --host 127.0.0.1 --port 8000
 ```
 
-Open [the observatory](http://127.0.0.1:8000/). The local access token is `local-access-token`. If you change `DESK_TOKEN`, enter the same value under **Settings**. Restart after changing `.env`.
+Open [the observatory](http://127.0.0.1:8000/). On first startup, the server generates a random token, saves it to `.desk-token` with mode 0600,
+and prints it once in the terminal. Paste it into **Settings**. Subsequent starts reuse the file.
+An explicit `DESK_TOKEN` takes precedence. Keep the token file private; it is ignored by Git.
+Docker demo credentials are explicitly configured separately. Restart after changing `.env`.
 
 For the instrumented Docker demo with PostgreSQL, Prometheus, Loki, and injectable service
 faults, see [the demo guide](docs/DEMO.md). Versioned [runbook retrieval](docs/RETRIEVAL.md) supports pgvector and local vectors. Track the agreed implementation phases in

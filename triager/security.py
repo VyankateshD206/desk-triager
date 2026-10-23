@@ -26,7 +26,17 @@ URL_AUTH = re.compile(r"([a-zA-Z][a-zA-Z0-9+.-]*://)[^\s/@]+:[^\s/@]+@")
 TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|AIza[A-Za-z0-9_-]{30,})\b")
 
 
+_RUNTIME_SECRETS = set()
+
+
+def register_secret(value):
+    if len(value) >= 8:
+        _RUNTIME_SECRETS.add(value)
+
+
 def redact_text(text):
+    for value in tuple(_RUNTIME_SECRETS):
+        text = text.replace(value, "[REDACTED]")
     for name in ("GEMINI_API_KEY", "OPENAI_API_KEY", "DESK_TOKEN", "DATABASE_URL"):
         value = os.getenv(name, "")
         if len(value) >= 8:

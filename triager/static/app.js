@@ -304,6 +304,13 @@ function renderInvestigation(data) {
   const diagnosis = data.diagnosis || {};
   line(`${data.provider || "unknown"} · ${diagnosis.abstained ? "Insufficient evidence" : `Confidence ${Math.round((diagnosis.confidence || 0) * 100)}% (uncalibrated)`}`);
   line(`Causal support: ${data.verification?.semantic_support || "not independently assessed"}`);
+  if (data.fallback_reason) line(`Provider fallback: ${data.fallback_reason}`);
+  for (const issue of data.verification?.issues || []) line(`Unsupported claim flagged: ${issue}`);
+  for (const tool of data.tool_events || []) {
+    line(`${tool.tool} ${JSON.stringify(tool.arguments)} · ${tool.status} · ${Math.round(tool.latency_ms)} ms`);
+    line(tool.result_summary + (tool.summary_truncated ? " … (truncated)" : ""));
+    line(`Evidence: ${(tool.evidence_ids || []).join(", ") || "none collected"}`);
+  }
   const calls = data.model_calls || [];
   line(`Tokens: ${calls.reduce((n, c) => n + (c.input_tokens || 0), 0)} input / ${calls.reduce((n, c) => n + (c.output_tokens || 0), 0)} output. Estimated cost: ${data.estimated_cost_usd == null ? "unavailable" : "$" + data.estimated_cost_usd.toFixed(5)}`);
   for (const node of data.node_trace || []) line(`${node.node}: ${Math.round(node.latency_ms)} ms`);
@@ -349,10 +356,8 @@ $("#close").onclick = () => {
   hideHelp();
 };
 const savedToken = sessionStorage.getItem("desk-token");
-$("#token").value =
-  savedToken && savedToken !== "local-demo-token"
-    ? savedToken
-    : "local-access-token";
+$("#token").value = savedToken || "";
+if (!savedToken) document.querySelector(".settings").open = true;
 $("#token").onchange = () => {
   sessionStorage.setItem("desk-token", $("#token").value);
   refresh();

@@ -35,3 +35,6 @@ node_modules/
 
 # Local career and publishing notes
 /.local-notes/
+
+# First-run local credential
+.desk-token

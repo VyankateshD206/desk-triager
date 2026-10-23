@@ -16,6 +16,9 @@ const errors = [];
 page.on("pageerror", error => errors.push(error.message));
 try {
   await page.goto(process.env.DEMO_URL || "http://127.0.0.1:18080");
+  if (!process.env.DEMO_TOKEN) throw Error("Set DEMO_TOKEN to the isolated server token");
+  await page.locator("#token").fill(process.env.DEMO_TOKEN);
+  await page.locator("#token").press("Tab");
   await page.locator("#inject").waitFor();
   await page.waitForTimeout(1500);
   await page.locator("select").first().selectOption("rate_limit|execution-gateway");
