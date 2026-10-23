@@ -1535,3 +1535,365 @@ main > header .settings {
     padding: var(--space-3);
   }
 }
+
+/* Phase 3: incident queue only. */
+.incidents .section-heading {
+  margin-bottom: var(--space-4);
+}
+.incidents .section-heading p {
+  margin: var(--space-1) 0 0;
+}
+.incident-filters {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.incident-filters label {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--muted);
+  font-size: var(--font-sm);
+}
+.incident-filters select {
+  min-width: 150px;
+  min-height: 38px;
+}
+#service-filter {
+  min-width: 210px;
+}
+.incident-filters button {
+  min-height: 38px;
+  padding-inline: var(--space-3);
+}
+.incident-filters button:disabled:hover {
+  background: transparent;
+  border-color: var(--border-strong);
+}
+.incident-filter-note, .incident-scroll-note {
+  color: var(--muted);
+  font-size: var(--font-sm);
+  margin: var(--space-3) 0;
+}
+.incident-scroll-note {
+  display: none;
+}
+.incidents #history-note:empty {
+  display: none;
+}
+.incidents #history-note {
+  margin-bottom: var(--space-3);
+}
+.incidents .table-wrap {
+  margin-top: var(--space-4);
+  max-height: 560px;
+  background: var(--panel);
+}
+.incidents table {
+  min-width: 1040px;
+}
+.incidents th {
+  padding: var(--space-3) var(--space-4);
+  white-space: nowrap;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.incidents td {
+  padding: var(--space-4);
+  vertical-align: middle;
+  line-height: 1.5;
+}
+.incidents .incident-row:hover, .incidents .incident-row:focus-within {
+  background: var(--surface-hover);
+}
+.incidents .severity-cell {
+  width: 100px;
+}
+.incidents .severity {
+  font-size: var(--font-xs);
+}
+.incidents .incident-name {
+  display: block;
+  font-weight: 600;
+  color: var(--text);
+}
+.incidents .signal-cell {
+  min-width: 230px;
+  max-width: 360px;
+}
+.incidents .analysis-summary {
+  color: var(--muted);
+  font-size: var(--font-sm);
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin-block: var(--space-1);
+}
+.incidents .source-badge {
+  font-size: var(--font-xs);
+}
+.incidents .service-cell {
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
+.incidents .detected-cell {
+  min-width: 155px;
+  white-space: nowrap;
+}
+.incidents time {
+  cursor: help;
+  text-underline-offset: 4px;
+  text-decoration: underline dotted var(--border-strong);
+}
+.incidents .detected-cell small {
+  font-size: var(--font-xs);
+}
+.incidents .status-cell {
+  white-space: nowrap;
+}
+.incidents .badge {
+  font-size: var(--font-sm);
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 3px var(--space-2);
+  cursor: help;
+}
+.incidents .badge.open {
+  color: var(--orange);
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+}
+.incidents .badge.queued {
+  color: var(--text-secondary);
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+}
+.incidents .badge.verifying {
+  color: var(--info);
+  background: var(--info-bg);
+  border-color: var(--border-strong);
+}
+.incidents .badge.resolved {
+  color: var(--green);
+  background: var(--success-bg);
+  border-color: var(--success-border);
+}
+.incidents .badge.failed {
+  color: var(--error);
+  background: var(--error-bg);
+  border-color: var(--error-border);
+}
+.incidents .incident-action {
+  position: sticky;
+  right: 0;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  text-align: right;
+  width: 130px;
+  z-index: 1;
+}
+.incidents th.incident-action {
+  z-index: 2;
+  background: var(--surface-inset);
+}
+.incidents .incident-row:hover .incident-action, .incidents .incident-row:focus-within .incident-action {
+  background: var(--surface-hover);
+}
+.incidents .inspect {
+  min-height: 36px;
+  color: var(--text-secondary);
+  border-color: var(--border-strong);
+  font-size: var(--font-sm);
+}
+.incidents .review-action {
+  color: var(--green);
+  border-color: var(--success-border);
+  background: var(--success-bg);
+}
+.incidents .inspect:focus-visible {
+  outline-offset: 2px;
+}
+.incidents .empty {
+  padding: var(--space-8) var(--space-6) !important;
+  text-align: center;
+}
+.incidents .empty strong {
+  font-size: var(--font-heading);
+  font-weight: 600;
+}
+.incidents .empty p {
+  max-width: 520px;
+  margin: var(--space-2) auto;
+  font-size: var(--font-base);
+}
+.incidents .correlation td {
+  padding-block: var(--space-3);
+  font-size: var(--font-sm);
+}
+.incidents .correlation p {
+  max-width: 760px;
+}
+@media (max-width: 1100px) {
+  .incident-scroll-note {
+    display: block;
+  }
+}
+@media (max-width: 580px) {
+  .incident-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+  .incident-filters label:last-of-type {
+    grid-column: 1 / -1;
+  }
+  .incident-filters select, #service-filter {
+    width: 100%;
+    min-width: 0;
+  }
+  .incident-filters button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  .incidents th, .incidents td {
+    padding: var(--space-3);
+  }
+  .incidents .table-wrap {
+    max-height: 520px;
+  }
+  .incidents .incident-action {
+    width: 114px;
+  }
+  .incidents .empty {
+    text-align: left;
+    padding: var(--space-6) !important;
+  }
+  .incidents .empty strong, .incidents .empty p, .incidents .empty small {
+    display: block;
+    max-width: calc(100vw - 84px);
+    margin-inline: 0;
+  }
+}
+.incident-filters .incident-mobile-sort, .mobile-cell-label {
+  display: none;
+}
+@media (max-width: 680px) {
+  .incident-filters .incident-mobile-sort {
+    display: grid;
+  }
+  .incident-scroll-note {
+    display: none;
+  }
+  .incidents .table-wrap {
+    overflow-x: hidden;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+  .incidents table {
+    display: block;
+    min-width: 0;
+  }
+  .incidents thead {
+    display: none;
+  }
+  .incidents tbody {
+    display: block;
+  }
+  .incidents tr.incident-row {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    gap: var(--space-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--panel);
+    padding: var(--space-4);
+    margin-bottom: var(--space-3);
+  }
+  .incidents .incident-row td {
+    display: block;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    border: 0;
+    padding: 0;
+  }
+  .incidents .severity-cell {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+  }
+  .incidents .status-cell {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .incidents .signal-cell {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .incidents .service-cell {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .incidents .detected-cell {
+    grid-column: 1;
+    grid-row: 4;
+    white-space: normal;
+    align-self: center;
+  }
+  .incidents .incident-action {
+    grid-column: 2;
+    grid-row: 4;
+    position: static;
+    background: transparent;
+    align-self: center;
+  }
+  .incidents .incident-row:hover .incident-action, .incidents .incident-row:focus-within .incident-action {
+    background: transparent;
+  }
+  .incidents .badge {
+    white-space: normal;
+    max-width: 170px;
+    text-align: right;
+  }
+  .incidents .mobile-cell-label {
+    display: inline;
+    font-size: var(--font-xs);
+    color: var(--muted);
+  }
+  .incidents .correlation, .incidents .correlation td {
+    display: block;
+  }
+  .incidents .correlation td {
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-3);
+  }
+  .incidents .empty-row {
+    display: block;
+  }
+  .incidents .empty {
+    display: block;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+  }
+}
+@media (max-width: 580px) {
+  .incident-filters .service-filter-control {
+    grid-column: 1 / -1;
+  }
+  .incident-filters .incident-mobile-sort {
+    grid-column: 1;
+  }
+  .incident-filters button {
+    grid-column: 2;
+    align-self: end;
+    justify-self: end;
+  }
+}

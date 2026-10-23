@@ -163,19 +163,26 @@
           aria-describedby="help-tooltip"
         ><span class="service-name">portfolio-ledger</span><span class="service-status">Waiting for telemetry</span></span>
       </section>
-      <section class="incidents">
+      <section class="incidents" aria-labelledby="incidents-heading">
         <div class="section-heading">
-          <h2>Incidents</h2>
-          <label class="history-toggle"
-            ><input type="checkbox" id="show-history" /> Show resolved</label
-          >
+          <div><h2 id="incidents-heading">Incidents</h2><p class="subtle" id="incident-count" role="status">Loading incident history…</p></div>
         </div>
+        <div class="incident-filters" aria-label="Incident filters">
+          <label for="show-history">Status<select id="show-history" aria-label="Incident status"><option value="open">Open</option><option value="all">All</option><option value="resolved">Resolved</option></select></label>
+          <label for="severity-filter">Severity<select id="severity-filter" aria-label="Incident severity"><option value="all">All severities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="unknown">Unknown</option></select></label>
+          <label class="service-filter-control" for="service-filter">Service<select id="service-filter" aria-label="Incident service"><option value="all">All services</option></select></label>
+          <label class="incident-mobile-sort" for="incident-sort">Sort<select id="incident-sort" aria-label="Incident sort"><option value="opened_at:-1">Newest first</option><option value="opened_at:1">Oldest first</option><option value="severity:1">Highest severity</option><option value="severity:-1">Lowest severity</option></select></label>
+          <button id="reset-incidents" class="quiet" disabled>Reset filters</button>
+        </div>
+        <p class="incident-filter-note">Open includes needs review, queued, verifying and failed incidents. Filters apply to loaded history.</p>
         <p id="history-note" class="subtle"></p>
-        <div class="table-wrap">
-          <table>
+        <p class="incident-scroll-note" id="incident-scroll-note">Scroll horizontally for all fields. Review actions stay visible on the right.</p>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Incident list" aria-describedby="incident-scroll-note">
+          <table role="table">
+            <caption class="sr-only">Incident history with severity, signal, affected service, detection time, status and review actions</caption>
             <thead>
               <tr>
-                <th><button class="sort" data-sort="severity">Severity ↕</button></th><th>Signal / services</th><th><button class="sort" data-sort="opened_at">Detected ↕</button></th><th>Analysis</th><th>Status</th><th><span class="sr-only">Action</span></th>
+                <th scope="col"><button class="sort" data-sort="severity">Severity ↕</button></th><th scope="col">Incident / signal</th><th scope="col">Affected service</th><th scope="col" aria-sort="descending"><button class="sort" data-sort="opened_at">Detected ↕</button></th><th scope="col">Status</th><th scope="col" class="incident-action">Action</th>
               </tr>
             </thead>
             <tbody id="incident-rows"></tbody>

@@ -320,36 +320,88 @@ function render(s) {
 }
 let incidentSort = {key: "opened_at", direction: -1};
 const openCorrelations = new Set();
+function filterIncidents(incidents, filters, sort) {
+  const severity = {critical:0, high:1, medium:2, low:3, unknown:4};
+  return incidents.filter(i =>
+    (filters.status === "all" || (filters.status === "resolved" ? i.status === "resolved" : i.status !== "resolved")) &&
+    (filters.severity === "all" || (i.severity || "unknown") === filters.severity) &&
+    (filters.service === "all" || i.service === filters.service)
+  ).sort((a,b) => {
+    if (sort.key !== "severity") return sort.direction * a.opened_at.localeCompare(b.opened_at);
+    const left = severity[a.severity] ?? 4, right = severity[b.severity] ?? 4;
+    if (left === 4 || right === 4) return left === right ? 0 : left === 4 ? 1 : -1;
+    return sort.direction * (left-right);
+  });
+}
+function incidentAction(incident) {
+  return ["open", "failed"].includes(incident.status) ? "Review" : "View details";
+}
 function incidentRow(i) {
-  const source = i.analysis_source ? (i.analysis_source === "offline" ? "Offline analysis" : i.analysis_source === "gemini" ? "Gemini" : i.analysis_source) : "Pending";
-  return `<tr class="incident-row" tabindex="0" data-id="${escape(i.id)}" aria-label="Review ${escape(i.signal || names[i.kind] || i.kind)} on ${escape(i.service)}">
-  <td><span class="severity ${escape(i.severity || "unknown")}">${escape(i.severity || "unknown")}</span></td>
-  <td>${escape(i.signal || names[i.kind] || i.kind)}<small>${escape(i.service)}</small></td>
-  <td><time datetime="${escape(i.opened_at)}" title="${escape(new Date(i.opened_at).toLocaleString())}">${clock(i.opened_at)}</time><small>${ageText(i.opened_at)}</small></td>
-  <td><div class="analysis-summary" title="${escape(i.summary)}">${escape(i.summary)}</div><span class="source-badge">${escape(source)}</span> ${i.abstained ? '<span class="source-badge">Insufficient evidence</span>' : ""}${i.fallback_reason ? ' <span class="source-badge">Fallback</span>' : ""}</td>
-  <td><span class="badge ${escape(i.status)}">${escape(statusLabels[i.status] || i.status)}</span></td>
-  <td><button class="inspect" data-id="${escape(i.id)}">${i.status === "open" ? "Review" : "View"}</button></td></tr>`;
+  const source = i.analysis_source ? (i.analysis_source === "offline" ? "Offline analysis" : i.analysis_source === "gemini" ? "Gemini" : i.analysis_source) : "Analysis pending";
+  const signal = i.signal || names[i.kind] || i.kind;
+  const exactTime = new Date(i.opened_at).toLocaleString();
+  const action = incidentAction(i);
+  const statusHints = {open:"Awaiting incident review", queued:"Recovery queued; not executed yet", verifying:"Handler ran; healthy telemetry must confirm recovery", resolved:"Recovery confirmed by fresh telemetry", failed:"Recovery failed or needs further attention"};
+  return `<tr role="row" class="incident-row" tabindex="0" data-id="${escape(i.id)}" aria-label="${action} ${escape(signal)} on ${escape(i.service)}">
+  <td role="cell" class="severity-cell"><span class="severity ${escape(i.severity || "unknown")}">${escape(i.severity || "unknown")}</span></td>
+  <td role="cell" class="signal-cell"><strong class="incident-name">${escape(signal)}</strong><div class="analysis-summary" title="${escape(i.summary || "Awaiting diagnosis")}">${escape(i.summary || "Awaiting diagnosis")}</div><span class="source-badge">${escape(source)}</span> ${i.abstained ? '<span class="source-badge">Insufficient evidence</span>' : ""}${i.fallback_reason ? ' <span class="source-badge">Fallback</span>' : ""}</td>
+  <td role="cell" class="service-cell"><span class="mobile-cell-label">Service · </span><span>${escape(i.service)}</span></td>
+  <td role="cell" class="detected-cell"><span class="mobile-cell-label">Detected </span><time tabindex="0" datetime="${escape(i.opened_at)}" data-help="${escape(exactTime + " (browser local time) · " + i.opened_at)}" aria-describedby="help-tooltip" title="${escape(exactTime)}">${ageText(i.opened_at)}</time><small>${escape(new Date(i.opened_at).toLocaleDateString(undefined,{month:"short",day:"numeric"}))} · ${clock(i.opened_at)}</small></td>
+  <td role="cell" class="status-cell"><span class="badge ${escape(i.status)}" tabindex="0" data-help="${escape(statusHints[i.status] || i.status)}" aria-describedby="help-tooltip">${escape(statusLabels[i.status] || i.status)}</span></td>
+  <td role="cell" class="incident-action"><button class="inspect ${action === "Review" ? "review-action" : ""}" data-id="${escape(i.id)}" aria-label="${action} ${escape(signal)} on ${escape(i.service)}">${action}</button></td></tr>`;
+}
+function incidentEmptyState(filters, loadedCount, openCount) {
+  const narrowed = filters.severity !== "all" || filters.service !== "all";
+  if (narrowed) return ["No incidents match these filters", "Choose another severity or service, or reset the filters to see open incidents."];
+  if (filters.status === "resolved") return ["No resolved incidents in loaded history", "Resolved incidents will appear here after recovery has been verified."];
+  if (filters.status === "all") return ["No incidents in loaded history", "Detected signals will appear here with their service, status and review action."];
+  if (openCount > 0) return ["No open incidents in loaded history", `${openCount} unresolved incident(s) reported across the desk. Filters apply only to the ${loadedCount} incidents in this snapshot.`];
+  return ["No incidents require attention", "There are no unresolved incidents across the desk. New signals will appear here for review."];
+}
+function resetIncidentFilters() {
+  $("#show-history").value = "open";
+  $("#severity-filter").value = "all";
+  $("#service-filter").value = "all";
+  renderIncidents();
 }
 function renderIncidents() {
   if (!state) return;
-  const severity = {critical:0, high:1, medium:2, low:3, unknown:4};
-  const rows = state.incidents.filter(i => $("#show-history").checked || i.status !== "resolved").sort((a,b) => incidentSort.direction * (incidentSort.key === "severity" ? (severity[a.severity] ?? 4) - (severity[b.severity] ?? 4) : a.opened_at.localeCompare(b.opened_at)));
+  const serviceSelect = $("#service-filter");
+  const services = [...new Set([...Object.keys(state.service_age_seconds || {}), ...state.incidents.map(i=>i.service), ...(serviceSelect.value !== "all" ? [serviceSelect.value] : [])])].sort();
+  const options = '<option value="all">All services</option>' + services.map(service=>`<option value="${escape(service)}">${escape(service)}</option>`).join("");
+  if (serviceSelect.dataset.options !== options) {
+    const value = serviceSelect.value;
+    serviceSelect.innerHTML = options; serviceSelect.value = value || "all";
+    serviceSelect.dataset.options = options;
+  }
+  $("#incident-sort").value = incidentSort.key + ":" + incidentSort.direction;
+  const filters = {status: $("#show-history").value, severity: $("#severity-filter").value, service: serviceSelect.value};
+  const rows = filterIncidents(state.incidents, filters, incidentSort);
+  $("#incident-count").textContent = `${rows.length} of ${state.incidents.length} loaded incidents`;
+  $("#reset-incidents").disabled = filters.status === "open" && filters.severity === "all" && filters.service === "all";
   const earlier = rows.filter(i => i.opened_at < state.started_at).length;
-  $("#history-note").textContent = earlier ? `${earlier} shown incident(s) retained from earlier sessions. No history is deleted when the server restarts.` : "";
+  $("#history-note").textContent = earlier ? `${earlier} shown incident(s) retained from earlier sessions.` : "";
   const focused = document.activeElement;
   const focusId = focused?.closest("[data-id]")?.dataset.id;
   const focusWasButton = focused?.tagName === "BUTTON";
+  const focusWasTime = focused?.tagName === "TIME";
+  const focusWasBadge = focused?.classList?.contains("badge");
   const shown = new Set();
   $("#incident-rows").innerHTML = rows.map(i => {
-    if (!i.correlation) return incidentRow(i);
-    const group = i.correlation;
-    if (shown.has(group.id)) return "";
-    shown.add(group.id);
-    return `<tr class="correlation"><td colspan="6"><details data-correlation="${escape(group.id)}" ${openCorrelations.has(group.id) ? "open" : ""}><summary>Telemetry interruption · ${group.impacted_services.length} impacted services</summary><p>${escape(group.basis)}. Historical incidents remain until reviewed; approval is per service.</p><ul>${rows.filter(r=>r.correlation?.id===group.id).map(r=>`<li>${escape(r.service)} · ${escape(statusLabels[r.status])} <button class="inspect" data-id="${escape(r.id)}">Review service</button></li>`).join("")}</ul></details><small>${group.impacted_services.map(escape).join(" · ")} · Detected ${ageText(i.opened_at)}</small></td></tr>`;
-  }).join("") || `<tr><td class="empty" colspan="6"><strong>No open incidents ✓</strong>Last checked ${clock(new Date().toISOString())}</td></tr>`;
+    let context = "";
+    if (i.correlation && !shown.has(i.correlation.id)) {
+      const group = i.correlation;
+      shown.add(group.id);
+      context = `<tr class="correlation"><td colspan="6"><details data-correlation="${escape(group.id)}" ${openCorrelations.has(group.id) ? "open" : ""}><summary>Related telemetry interruption · ${group.impacted_services.length} impacted services</summary><p>${escape(group.basis)}. Common cause is unconfirmed; review and approval remain per service. Filters may show only part of this group.</p><small>${group.impacted_services.map(escape).join(" · ")}</small></details></td></tr>`;
+    }
+    return context + incidentRow(i);
+  }).join("") || (() => {
+    const [title, description] = incidentEmptyState(filters, state.incidents.length, state.open_incident_count);
+    return `<tr class="empty-row" role="row"><td role="cell" class="empty" colspan="6"><strong>${escape(title)}</strong><p>${escape(description)}</p><small>Last checked ${clock(new Date().toISOString())} · Browser local time</small></td></tr>`;
+  })();
   if (focusId) {
     const row=[...$("#incident-rows").querySelectorAll("tr[data-id]")].find(r=>r.dataset.id===focusId);
-    (focusWasButton ? row?.querySelector("button") : row)?.focus({preventScroll:true});
+    (focusWasButton ? row?.querySelector("button") : focusWasTime ? row?.querySelector("time") : focusWasBadge ? row?.querySelector(".badge") : row)?.focus({preventScroll:true});
   }
 }
 
@@ -501,10 +553,12 @@ async function inspect(id) {
   }
 }
 $("#incident-rows").addEventListener("click", (e) => {
+  if (e.target.closest("[data-help]")) return;
   const button = e.target.closest("[data-id]");
   if (button) inspect(button.dataset.id);
 });
-$("#show-history").onchange = renderIncidents;
+["#show-history", "#severity-filter", "#service-filter"].forEach(selector => $(selector).onchange = renderIncidents);
+$("#reset-incidents").onclick = resetIncidentFilters;
 $("#close").onclick = () => {
   $("#detail").close();
   hideHelp();
@@ -660,11 +714,23 @@ $("#chart").addEventListener("keydown", event => {
 });
 $("#chart-metric").onchange = renderChart;
 window.addEventListener("resize", renderChart);
+function setIncidentSort(key, direction) {
+  incidentSort = {key, direction};
+  document.querySelectorAll("[data-sort]").forEach(button => {
+    const th = button.closest("th");
+    th.removeAttribute("aria-sort");
+    if (button.dataset.sort === key) th.setAttribute("aria-sort", direction === 1 ? "ascending" : "descending");
+  });
+  renderIncidents();
+}
 document.querySelectorAll("[data-sort]").forEach(button => button.onclick = () => {
-  incidentSort = {key:button.dataset.sort, direction:incidentSort.key === button.dataset.sort ? -incidentSort.direction : button.dataset.sort === "severity" ? 1 : -1};
-  document.querySelectorAll("[data-sort]").forEach(b=>b.closest("th").removeAttribute("aria-sort"));
-  button.closest("th").setAttribute("aria-sort",incidentSort.direction===1?"ascending":"descending"); renderIncidents();
+  const key = button.dataset.sort;
+  setIncidentSort(key, incidentSort.key === key ? -incidentSort.direction : key === "severity" ? 1 : -1);
 });
+$("#incident-sort").onchange = () => {
+  const [key,direction] = $("#incident-sort").value.split(":");
+  setIncidentSort(key,Number(direction));
+};
 $("#incident-rows").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("tr[data-id]")) {e.preventDefault(); inspect(e.target.dataset.id);} });
 $("#incident-rows").addEventListener("toggle", e => { const id=e.target.dataset.correlation; if(id) {if(e.target.open) openCorrelations.add(id); else openCorrelations.delete(id);} }, true);
 $("#investigation-trace").addEventListener("click", e => {

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add client-side incident filters, explicit recovery states and responsive incident cards (Phase 3).
+
 - Redesign the main operations dashboard with explicit metric/service states and a time-scaled chart (Phase 2).
 
 - Add shared console design tokens, readable typography and consistent dark component states (Phase 1).

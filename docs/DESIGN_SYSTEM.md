@@ -65,3 +65,32 @@ scenario triggering, no-telemetry/unauthenticated states and the existing Review
 All 138 existing regression tests and `make build` pass.
 The review markup, backend and APIs are unchanged. Fixture telemetry is used only by the
 renderer tests; browser validation uses the real local simulator and an isolated empty DB.
+
+## Phase 3 — incident management
+
+The queue presents severity, signal/diagnosis/source, affected service, detection time,
+status and action in six readable columns. Relative times expose the exact local and
+original ISO timestamp through pointer and keyboard tooltips. Queued is explicitly waiting
+for execution; verifying is waiting for healthy telemetry; only resolved means confirmed
+recovery. Failed incidents retain a Review action and their existing backend restrictions.
+Unknown severity is displayed as unknown and sorts after known severities in both directions.
+
+Client-side filters provide All/Open/Resolved, severity and service. Open means every
+unresolved status, including queued, verifying and failed. Counts explicitly refer to the
+loaded snapshot, not the entire database; this preserves the backend's existing history
+limit. Filters and sort survive polling. No-match, no-resolved-history, and no-attention
+states have different explanations. If the desk reports unresolved incidents outside loaded
+history, the empty state reports that limit rather than claiming the desk is clear.
+
+Temporal correlation context is retained, with every individual incident row and action
+still visible. This grouping does not infer a shared root cause or merge approvals.
+On intermediate widths, the action column stays visible while the table scrolls. At 680px
+and below the same rows become labeled cards, retaining status/action and an equivalent
+sort selector. The Review dialog and all other dashboard sections are unchanged.
+
+Validation: renderer checks cover all five statuses, filter combinations, sorting, unknown
+severity, escaping, exact timestamps, action labels, empty states and correlation rows.
+Browser checks cover pending Review, resolved View details (approval disabled), keyboard
+Enter selection, timestamp tooltip without opening Review, service/severity filters, reset,
+and desktop/375px layouts with no page overflow. Test fixtures stay inside the Node checks;
+UI validation reads actual isolated demo history. No recovery decision was submitted.
