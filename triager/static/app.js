@@ -80,10 +80,15 @@ async function api(path, body, extraHeaders = {}) {
   return value;
 }
 function showError(error) {
-  $("#error").textContent = error.message;
+  $("#error").textContent = error.message === "Valid X-Desk-Token required"
+    ? "Connect in Settings using the desk access token printed by the server. The token is missing or invalid."
+    : ["Failed to fetch", "NetworkError when attempting to fetch resource."].includes(error.message)
+      ? "Cannot reach the desk server. Check that it is running, then reconnect in Settings."
+      : error.message;
   $("#error").classList.remove("hidden");
 }
 function updateGuide() {
+  $("#scenario-state").textContent = window.DeskInvestigation.activeFaults(state);
   ["detect", "review", "recover"].forEach((step) => {$("#step-" + step).classList.remove("active"); $("#step-"+step).removeAttribute("aria-current");});
   if (state && state.mode !== "simulated desk") {
     $("#scenario-hint").textContent = "Simulation controls are disabled for external telemetry.";
@@ -91,7 +96,7 @@ function updateGuide() {
   }
   if (!activeScenario) {
     $("#scenario-hint").textContent =
-      state && Object.keys(state.faults || {}).length ? "Active simulated faults: " + Object.entries(state.faults).map(([service,kind])=>`${service}: ${names[kind] || kind}`).join(" · ") : "No active scenario. Incident history is retained across sessions.";
+      state && Object.keys(state.faults || {}).length ? "Review detected incidents below. Changing the selection does not stop an active fault." : "Select a fault and choose Run scenario, or review a retained incident below.";
     return;
   }
   $("#step-detect").classList.add("active");
@@ -124,7 +129,7 @@ function updateGuide() {
     $("#step-review").removeAttribute("aria-current");
     $("#step-recover").setAttribute("aria-current", "step");
     $("#scenario-hint").textContent =
-      "Recovered. A fresh healthy sample confirmed success.";
+      "Recovery verified by fresh healthy telemetry. The incident remains in history.";
   } else if (incident.status === "queued" || incident.status === "verifying") {
     $("#step-recover").classList.add("active");
     $("#step-review").removeAttribute("aria-current");
@@ -137,7 +142,7 @@ function updateGuide() {
     $("#scenario-hint").textContent =
       incident.action === "inspect_only"
         ? "Drift detected. Open the incident to inspect the evidence."
-        : "Incident detected. Open Review below to approve recovery.";
+        : "Incident detected. Open Review below to check the evidence and decide on recovery.";
   }
 }
 const metricSpec = {
@@ -267,6 +272,8 @@ function render(s) {
   $("#session").textContent = degraded
     ? "Needs attention"
     : s.last_ingest ? "Monitoring" : "Waiting for telemetry";
+  $("#service-context").textContent = "Telemetry freshness & open signals";
+  $("#analysis-mode").textContent = "Configured analysis: " + window.DeskInvestigation.configuredProvider(s.ai_provider);
   $("#global-mode").textContent = s.mode === "simulated desk" ? "SIMULATED" : "EXTERNAL TELEMETRY";
   $("#sample-age").textContent = s.last_ingest ? "Last sample " + ageText(s.last_ingest) : "No samples yet";
   $("#session").style.color = degraded ? "var(--orange)" : s.last_ingest ? "var(--green)" : "var(--muted)";
@@ -274,7 +281,7 @@ function render(s) {
     ? "Updated " + clock(s.last_ingest)
     : "Waiting for telemetry";
   $("#infrastructure").textContent =
-    `${s.database === "postgresql" ? "PostgreSQL" : "Local SQLite"} · ${s.ai_provider === "gemini" ? "Gemini REST" : "Offline triage"} · Direct Python ingestion`;
+    `${s.database === "postgresql" ? "PostgreSQL" : "Local SQLite"} · ${window.DeskInvestigation.configuredProvider(s.ai_provider)} · Direct Python ingestion`;
   if (Object.keys(s.errors).length)
     showError(
       Error("A background worker needs attention: " + JSON.stringify(s.errors)),
@@ -465,10 +472,19 @@ async function refresh() {
     render(s);
   } catch (e) {
     showError(e);
+    $("#incident-count").textContent = state ? "Connection lost · showing last received incident history" : "Connect in Settings to load incident history";
+    if (!state) $("#infrastructure").textContent = "Connection required to read server configuration.";
+    $("#sample-age").textContent = state?.last_ingest ? "Last received sample " + ageText(state.last_ingest) : "No samples received";
+    $("#service-context").textContent = "Last received health · connection unavailable";
     $("#session").textContent = "Disconnected";
     $("#session").style.color = "var(--error)";
     $("#inject").disabled = true;
-    if (!state) $("#global-mode").textContent = "ENV UNKNOWN";
+    if (!state) {
+      $("#global-mode").textContent = "ENV UNKNOWN";
+      $("#analysis-mode").textContent = "Analysis: not connected";
+    } else $("#analysis-mode").textContent = "Last configured analysis: " + window.DeskInvestigation.configuredProvider(state.ai_provider);
+    $("#scenario-state").textContent = "Connection unavailable. Active faults cannot be confirmed; check Settings.";
+    $("#scenario-hint").textContent = "Run scenario is disabled until the connection is restored.";
     $("#chart-context").textContent = state ? "Connection lost · showing last received telemetry" : "Telemetry unavailable · check Settings";
     if (!state) $("#chart-state").textContent = "Connect in Settings to load telemetry";
   }
@@ -510,9 +526,9 @@ function renderAgentTimeline(data) {
   const nodes = window.DeskInvestigation.trace(data);
   $("#agent-run-summary").textContent = nodes.length ? `${nodes.length} recorded graph operations · ${data.workflow || "workflow version not recorded"}${data.run_id ? " · Run " + window.DeskInvestigation.shortRunId(data.run_id) : ""}` : "No node trace recorded for this investigation. No execution stages are inferred.";
   const copy = $("#copy-run-id");
-  copy.hidden = !data.run_id; copy.dataset.runId = data.run_id || "";
-  copy.title = data.run_id || "";
-  $("#agent-run-summary").title = data.run_id || "";
+  copy.hidden = !data?.run_id; copy.dataset.runId = data?.run_id || "";
+  copy.title = data?.run_id || "";
+  $("#agent-run-summary").title = data?.run_id || "";
   $("#run-copy-status").textContent = "";
   for (const node of nodes) {
     const li=document.createElement("li"), details=document.createElement("details"), summary=document.createElement("summary");
@@ -592,13 +608,13 @@ function renderInvestigation(data) {
   }
   for (const missing of diagnosis.missing_information || []) line(host,`Missing information: ${missing}`,"review-uncertainty");
   for (const issue of data.verification?.issues || []) line(host,`Unsupported claim flagged: ${issue}`,"review-uncertainty");
-  if (data.fallback_reason) line(host,`Provider fallback: ${data.fallback_reason}${data.fallback_http_status ? " · HTTP " + data.fallback_http_status : ""}`,"review-uncertainty");
+  if (data.fallback_reason) line(host,`This diagnosis used a fallback result. ${data.provider === "offline" ? "Offline rules produced this result." : "The recorded provider above produced this result."} Fallback reason: ${data.fallback_reason}${data.fallback_http_status ? " · HTTP " + data.fallback_http_status : ""}`,"review-uncertainty");
   line(tools,`Budget used: ${data.rounds ?? "—"}/${data.budget?.rounds ?? "—"} reasoning rounds · ${data.tool_calls ?? "—"}/${data.budget?.tools ?? "—"} tool calls`);
   if (!(data.tool_events || []).length) line(tools,(data.tool_trace || []).length ? "Detailed tool-event records are not available." : "No tool invocations recorded.");
   for (const tool of data.tool_events || []) {
     const details = document.createElement("details"); details.className = "tool-record"; details.dataset.status = tool.status || "unknown";
     const summary = document.createElement("summary"); summary.textContent = `${tool.tool} · ${tool.status || "Outcome not recorded"} · ${window.DeskInvestigation.duration(tool.latency_ms)}`;
-    const pre = document.createElement("pre"); pre.textContent = `Arguments\n${JSON.stringify(tool.arguments,null,2)}\n\nResult summary\n${tool.result_summary}${tool.summary_truncated ? " … (truncated)" : ""}`;
+    const pre = document.createElement("pre"); pre.textContent = `Arguments\n${tool.arguments == null ? "Not recorded" : JSON.stringify(tool.arguments,null,2)}\n\nResult summary\n${tool.result_summary ?? "Not recorded"}${tool.summary_truncated ? " … (truncated)" : ""}`;
     details.append(summary);
     line(details,window.DeskInvestigation.toolSource(tool));
     if (tool.at) line(details,`Recorded ${new Date(tool.at).toLocaleString()} · ${tool.at}`,"subtle");

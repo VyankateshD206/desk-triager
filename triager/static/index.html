@@ -12,7 +12,7 @@
     <main>
       <header>
         <div class="brand-block"><a class="brand" href="/">Desk Triager<span>.</span></a><p>Trading telemetry &amp; incident operations</p></div>
-        <div class="status-strip"><span class="live" id="session" role="status">Connecting</span><span id="sample-age">No samples yet</span><strong class="pill" id="global-mode">CONNECTING</strong></div>
+        <div class="status-strip"><span class="live" id="session" role="status">Connecting</span><span id="sample-age">No samples yet</span><strong class="pill" id="global-mode">CONNECTING</strong><span id="analysis-mode" tabindex="0" data-help="Configured analysis for new investigations. Each incident records the provider actually used, including any fallback." aria-describedby="help-tooltip">Analysis: connecting</span></div>
         <details class="settings">
           <summary>Settings</summary>
           <div class="settings-content">
@@ -30,7 +30,7 @@
         </details>
       </header>
       <div class="error hidden" id="error" role="alert"></div>
-      <div class="dashboard-heading"><h1>Operations overview</h1></div>
+      <div class="dashboard-heading"><h1>Operations overview</h1><p>Monitors market data, order execution and ledger balances. Incidents flag detected signals for investigation and human-reviewed recovery.</p></div>
       <section class="metrics" aria-label="Key desk metrics">
         <article
           class="metric"
@@ -107,7 +107,7 @@
         </article>
         <article class="panel scenario">
           <div class="panel-heading">
-            <div><h2>Scenario control</h2><p class="subtle">Inject a fault into the local simulator.</p></div>
+            <div><h2>Scenario control</h2><p class="subtle">Choose a fault, then run it in the simulator. No real trades.</p></div>
             <span class="pill">Simulated</span>
           </div>
           <div class="scenario-controls"><label for="fault">Failure scenario</label>
@@ -130,6 +130,7 @@
               </option></select
             ><button id="inject" disabled>Run scenario</button>
           </div>
+          <p id="scenario-state" class="subtle">Connect in Settings to check active faults.</p>
           <p id="scenario-description">
             Market ticks stop updating. The detector flags stale data while the
             service still appears to be running.
@@ -140,12 +141,12 @@
             <li id="step-recover">Recover</li>
           </ol>
           <p class="scenario-hint" id="scenario-hint" role="status">
-            Choose a failure to see how the desk responds.
+            Run scenario is available after connecting to a simulated desk.
           </p>
         </article>
       </section>
       <section class="service-strip" aria-label="Service health">
-        <div class="service-heading"><h2>Service health</h2><p class="subtle">Telemetry freshness &amp; open signals</p></div><span
+        <div class="service-heading"><h2>Service health</h2><p id="service-context" class="subtle">Telemetry freshness &amp; open signals</p></div><span
           id="service-market-feed"
           class="service waiting"
           tabindex="0"
@@ -166,7 +167,7 @@
       </section>
       <section class="incidents" aria-labelledby="incidents-heading">
         <div class="section-heading">
-          <div><h2 id="incidents-heading">Incidents</h2><p class="subtle" id="incident-count" role="status">Loading incident history…</p></div>
+          <div><h2 id="incidents-heading">Incidents</h2><p class="subtle">Review a detected signal to inspect the diagnosis, tool calls and cited evidence before deciding on recovery.</p><p class="subtle" id="incident-count" role="status">Loading incident history…</p></div>
         </div>
         <div class="incident-filters" aria-label="Incident filters">
           <label for="show-history">Status<select id="show-history" aria-label="Incident status"><option value="open">Open</option><option value="all">All</option><option value="resolved">Resolved</option></select></label>
@@ -230,7 +231,7 @@
     <dialog id="detail" aria-labelledby="detail-title" aria-describedby="review-description">
       <div class="review-header">
         <div class="modal-head"><div><span class="subtle">Incident investigation</span><h2 id="detail-title" tabindex="-1"></h2></div><button class="quiet" id="close" aria-label="Close incident">Close ×</button></div>
-        <p id="review-description" class="sr-only">Review the diagnosis and evidence before making a simulated recovery decision. Approval queues recovery; fresh telemetry confirms the outcome.</p>
+        <p id="review-description" class="subtle">Read the diagnosis, check the evidence, then decide on recovery. Approval queues a fixed simulated action; fresh telemetry must confirm the outcome.</p>
         <div class="review-metadata"><span id="detail-service"></span><span id="detail-severity" class="severity"></span><span class="badge" id="detail-status"></span><span>Detected <time id="detail-detected"></time></span></div>
       </div>
       <nav class="investigation-nav" aria-label="Investigation views"><a class="investigation-jump" href="#diagnosis-heading">Summary</a><a class="investigation-jump" href="#agent-workflow-heading">Workflow</a><a class="investigation-jump" href="#evidence-library">Evidence</a><a class="investigation-jump" href="#tool-details">Tools</a><a class="investigation-jump" href="#recovery-heading">Recovery decision</a></nav>
@@ -249,6 +250,7 @@
           <p id="approval-scope" class="approval-scope"></p>
           <p id="review-policy" class="subtle" tabindex="0" aria-describedby="help-tooltip"></p>
           <h4 id="approval-requirement">Human approval required</h4>
+          <p class="subtle">Recovery changes simulator state. A named human decision is required by policy.</p>
           <p class="small-note">Approval queues a fixed action; it does not guarantee success. Consecutive fresh healthy telemetry verifies recovery afterward.</p>
           <label class="actor" for="actor">Approver<input id="actor" value="desk-operator" maxlength="80" required aria-describedby="actor-error" /></label>
           <p id="actor-error" class="review-field-error" role="alert" hidden></p>
@@ -264,7 +266,7 @@
           <section class="review-section agent-workspace" aria-labelledby="agent-workflow-heading">
             <h3 id="agent-workflow-heading">Agent investigation</h3>
             <p class="agent-process-guide">Detect → Investigate → Validate → Human review → Recover → Verify</p>
-            <p class="subtle">Process guide, not an execution trace. Investigation is read-only; human decisions and recovery are recorded separately below.</p>
+            <p class="subtle">The LangGraph workflow investigates with read-only tools. The steps below are recorded operations; the guide above also shows the later human decision and recovery stages.</p>
             <div class="agent-run"><p id="agent-run-summary" class="subtle"></p><button id="copy-run-id" class="quiet" type="button" hidden>Copy run ID</button><span id="run-copy-status" class="subtle" role="status"></span></div>
             <ol id="agent-timeline" class="agent-steps" aria-label="Recorded investigation nodes"></ol>
             <p class="subtle">Nodes follow recorded graph order. Tool timestamps are listed separately; exact node-to-tool timing is not recorded.</p>

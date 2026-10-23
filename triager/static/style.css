@@ -2484,3 +2484,30 @@ body:has(#detail[open]) {
   #detail .agent-steps li { padding-left: 34px; }
   #detail .agent-steps details { padding: var(--space-3); }
 }
+
+/* Phase 6B: first-visit context without another dashboard panel. */
+#analysis-mode {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  cursor: help;
+}
+.status-strip { max-width: 650px; }
+.dashboard-heading p {
+  max-width: 86ch;
+  line-height: 1.6;
+  color: var(--muted);
+}
+#scenario-state {
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--line);
+  font-size: var(--font-sm);
+  line-height: 1.6;
+}
+#review-description {
+  max-width: 92ch;
+  font-size: var(--font-base);
+}
+.incidents .section-heading .subtle {
+  max-width: 90ch;
+  line-height: 1.6;
+}

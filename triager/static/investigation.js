@@ -3,6 +3,15 @@
   const number = value => Number.isFinite(value) && value >= 0;
   const duration = value => number(value) ? `${value.toLocaleString(undefined, {maximumFractionDigits: 1})} ms` : 'Duration not recorded';
   const shortRunId = value => typeof value === 'string' ? (value.length > 16 ? `${value.slice(0,8)}…${value.slice(-4)}` : value) : '';
+  function configuredProvider(provider) {
+    return provider === 'offline' ? 'Offline rules · no LLM' : provider === 'gemini' ? 'Gemini' : provider === 'openai' ? 'OpenAI' : 'Unknown';
+  }
+  function activeFaults(state) {
+    if (!state) return 'Connect in Settings to check active faults.';
+    if (state.mode !== 'simulated desk') return 'External telemetry · simulator controls unavailable.';
+    const faults=Object.entries(state.faults || {});
+    return faults.length ? 'Active simulator faults: ' + faults.map(([service,kind])=>`${service}: ${String(kind).replaceAll('_',' ')}`).join(' · ') : 'No active simulator faults. Retained incidents may still need review.';
+  }
   function providerLabel(data) {
     if (data?.provider === 'offline') return 'Offline rule-based analysis';
     if (['gemini','openai'].includes(data?.provider)) return `${data.provider === 'gemini' ? 'Gemini' : 'OpenAI'} · model-backed diagnosis`;
@@ -71,5 +80,5 @@
     return Object.fromEntries(['provider','model','input_tokens','output_tokens','latency_ms','prior_failed_attempts','estimated_cost_usd']
       .filter(key=>['provider','model'].includes(key) ? typeof call[key]==='string' : Object.hasOwn(call,key) && (call[key]===null || number(call[key]))).map(key=>[key,call[key]]));
   }
-  window.DeskInvestigation = Object.freeze({duration,shortRunId,providerLabel,trace,evidenceType,relatedFindings,toolSource,usage});
+  window.DeskInvestigation = Object.freeze({duration,shortRunId,configuredProvider,activeFaults,providerLabel,trace,evidenceType,relatedFindings,toolSource,usage});
 })();

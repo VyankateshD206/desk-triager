@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Clarify first-visit monitoring, configured versus recorded providers, active simulator faults and retained history; fix missing-investigation rendering and disconnected loading labels (Phase 6B).
+
 - Refine investigation order, persistent review section links, readable technical panels and copyable run references (Phase 6A).
 
 - Visualize recorded agent operations and add a provenance-aware evidence explorer with secondary model usage (Phase 5).

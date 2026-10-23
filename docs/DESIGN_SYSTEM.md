@@ -211,3 +211,56 @@ Limitations: expanded raw sources can still make the dialog long. On small scree
 buttons remain in the stacked decision section, reachable through the persistent link;
 they are not permanently pinned over the content. Exact node-to-tool correlation and
 per-stage timestamps remain unavailable where the backend did not record them.
+
+## Phase 6B: first-visit clarity and final QA
+
+The overview explains the monitored domains (market data, execution, ledger balances) and
+what an incident means. Review instructions connect diagnosis, tool calls, cited sources,
+human policy approval and telemetry verification without requiring a README. No tour,
+extra navigation, canned investigations or fabricated telemetry is added.
+
+The header shows configured analysis separately from each investigation's recorded provider.
+Offline configuration explicitly says no LLM. OpenAI configuration is no longer mislabeled
+as offline in Settings. The fault summary uses the snapshot's active fault map; changing the
+scenario selection does not imply a fault has started or stopped. Historical incidents stay
+visible independently. Fallback wording describes the recorded fallback without inventing a
+network failure (validation failures can also cause fallback).
+
+A missing investigation now renders an empty state instead of dereferencing a null record.
+Missing tool arguments/results say Not recorded. Authentication errors provide a Settings
+instruction. Failed snapshot loads replace indefinite loading labels, identify last received
+history/health/configuration, and explain why scenario execution is disabled.
+
+Recorded-data audit:
+
+| Display | Source and interpretation |
+| --- | --- |
+| Environment / configured analysis / active faults | Snapshot mode, ai_provider and faults; configuration is not a claim of successful model execution |
+| Incident title, severity, status and detection time | Incident record / diagnosis; missing values remain unknown |
+| Investigation order and duration | node_trace in stored order; absent timing is not estimated |
+| Critic assessment | verification.semantic_support; visiting the gate does not imply assessment |
+| Evidence and findings | evidence_items and explicit hypothesis evidence_ids; retrieval requires structured search_runbooks records |
+| Tool calls, outcomes and budgets | tool_events and recorded counters; unrecorded details remain unavailable |
+| Model usage and cost | Allowlisted recorded model_calls metadata; no hidden reasoning or invented usage |
+| Recovery | Incident state and audit entries; queued and verifying remain distinct from resolved |
+
+QA on 24 October 2026:
+- 138 Python tests passed. Frontend suites cover filtering/statuses, chart edge cases,
+  decision binding/idempotency/rejection validation, providers/fallback/critic semantics,
+  source provenance and private-field exclusion. New checks cover null investigation,
+  missing run ID, authentication instructions and configured-provider/active-fault labels.
+- Previously recorded offline (5 nodes, no model calls) and live Gemini (7 nodes, 2 model
+  calls) exports pass the adapter checks. No new provider calls were made in this phase.
+- Browser checks at desktop 1280px, tablet 768px and mobile 375px found no page or dialog
+  horizontal overflow. Review navigation destinations remain below the sticky links.
+- Verified token-free first visit, reconnect, stale authenticated snapshot failure, filter
+  empty state, no retrieved documents, completed-incident details and disabled decisions.
+  Required rejection feedback was checked without submitting a decision. Keyboard Tab,
+  Escape/focus return and chart Home inspection were checked in the browser.
+- Lint, frontend validation, CSS parsing, wheel build and packaged-asset verification pass.
+
+Assessment: the existing interface communicates monitoring, investigation and controlled
+recovery with factual labels and visible primary actions. This is UI QA, not a diagnosis
+accuracy benchmark or a full assistive-technology audit. Remaining limitations include long
+expanded source payloads, stored-history limits, missing per-node/tool correlation and a
+stacked mobile decision area. No backend or recovery behavior changed.

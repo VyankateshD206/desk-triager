@@ -33,6 +33,12 @@ function select(overrides={}){
 }
 const text=node=>(node.textContent || '')+(node.children || []).map(text).join(' ');
 async function main(){
+  evaluate('showError(new Error("Valid X-Desk-Token required"))');
+  assert.match(element('#error').textContent,/Connect in Settings.*missing or invalid/);
+  evaluate('renderInvestigation(null)');
+  assert.match(text(element('#investigation-trace')),/No completed investigation/);
+  assert.equal(element('#copy-run-id').hidden,true);
+
   const runId='12345678-1234-5678-9012-123456789abc';
   context.record={run_id:runId,node_trace:[{node:'critic',latency_ms:2}],verification:{semantic_support:'not_assessed'}};
   evaluate('renderAgentTimeline(record)');
