@@ -100,6 +100,11 @@ citation validity 1.00 with 50% answer coverage on these fixtures. These are smo
 results on deliberately simple examples, not evidence of LLM accuracy or generalization.
 CI runs the evaluation and retains its JSON report. See [evaluation scope](docs/EVALUATION.md).
 
+Version 1.4.0 adds evidence redaction, independent quote/numeric checks, a typed recovery
+policy, and 28 deterministic security cases. Run `python -m evals.security` or see
+[security boundaries and results](docs/SECURITY.md). Live-model attack success and semantic
+causal support remain unmeasured.
+
 ## Configuration
 
 For Neon and Gemini, set these values in `.env` and restart the app:

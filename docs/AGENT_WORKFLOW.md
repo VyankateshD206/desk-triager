@@ -19,9 +19,10 @@ tools and nonempty arguments receive errors. No node executes recovery actions.
 
 Provider output must validate as `Diagnosis`, including bounded finite confidence,
 explicit abstention reasons, and cited hypotheses. A malformed response gets one repair
-attempt within the same total round budget. Invalid evidence references replace the
-model diagnosis with the offline symptom baseline. This checks reference membership,
-not semantic support or causal correctness.
+attempt within the same total round budget. Invalid evidence references or extracts replace the model diagnosis with the offline
+symptom baseline. Since v1.4.0, each cited ID also needs a verified quote or structured
+numeric claim. Semantic support and causal correctness are not established by these checks.
+See [security boundaries](SECURITY.md).
 
 Default settings allow four model rounds, eight total tool attempts (including the two
 initial reads), and a 60-second investigation deadline. Duplicate and rejected attempts
@@ -41,7 +42,8 @@ are retained in the incident audit. A manual retriage creates a fresh run rather
 overwriting an old conversation.
 
 `TriageAgent.resume(run_id)` resumes a failed or interrupted read-only investigation.
-Completed runs return their stored result. Original deadlines remain in force after
+Completed security-versioned runs return their stored result. Runs created before the
+v1.4.0 redaction boundary require a fresh diagnosis. Original deadlines remain in force after
 restart. There is no public resume endpoint yet; existing authenticated triage endpoints
 start fresh investigations.
 

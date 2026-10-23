@@ -61,3 +61,14 @@ injected four faults, matched current event IDs in Loki, checked Prometheus gaug
 PostgreSQL incident ingestion, and exercised all four external tools through LangGraph with
 a scripted planner. It also called the authenticated triage API in offline mode. No paid
 model calls or LLM accuracy claims are included in that result.
+
+
+## v1.4.0 security milestone
+
+[Integration run 39936854394](https://github.com/VyankateshD206/desk-triager/actions/runs/39936854394)
+passed the unit/build/evaluation job and the Docker demo job. The unit suite has 96 tests.
+The security benchmark passes 28 deterministic fixtures, including deliberately compromised
+planner requests. All five constructed unsupported extracts that passed membership-only
+checking are rejected by the new extract verifier; two valid extracts remain accepted.
+These are seed fixture results, not a live-model attack success measurement. The demo
+planner now supplies verified quotations, and the external tool integration still passes.

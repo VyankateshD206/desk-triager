@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.0 — 2026-10-23
+
+- Redact common secrets and email addresses before new model/checkpoint state.
+- Require fresh diagnoses for checkpoints predating the redaction boundary.
+- Validate cited quotes and structured numeric values independently of model confidence.
+- Add typed action policy, incident-scope checks, and approval-time revalidation.
+- Reject approval request fields that attempt to override policy.
+- Gate 28 deterministic adversarial cases in CI and publish scoped before/after results.
+- Keep semantic verification and live-model attack success explicitly unmeasured.
+
 ## 1.3.0 — 2026-10-23
 
 - Add a Docker Compose fault laboratory with PostgreSQL, Prometheus, and Loki.

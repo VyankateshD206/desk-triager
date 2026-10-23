@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "desk-triager"
-version = "1.3.0"
+version = "1.4.0"
 readme = "README.md"
 description = "Trading service telemetry, anomaly detection and approval-gated incident triage"
 requires-python = ">=3.11"

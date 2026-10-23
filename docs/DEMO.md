@@ -63,8 +63,8 @@ With the configured source URLs, Gemini can request these additional argument-fr
 Each tool uses only GET, rejects redirects, times out after five seconds, and caps response
 content at 256 KiB. Models cannot provide a URL, service override, LogQL, PromQL, or shell
 command. Tool errors consume the investigation budget and are exposed as exception types.
-These sources remain untrusted evidence. Full redaction and attack evaluation are the next
-planned milestone. The log window is relative to query time, not a historical incident
+These sources remain untrusted evidence. Version 1.4.0 adds best-effort evidence redaction
+and deterministic adversarial evaluation; see [the security scope](SECURITY.md). The log window is relative to query time, not a historical incident
 replay; historical time-window querying remains follow-up work.
 
 For an existing non-Docker installation, configure `LOKI_URL`, `PROMETHEUS_URL`, and

@@ -19,7 +19,13 @@ Each report records predictions, labels, per-case latency, and invalid reference
 Aggregate metrics include severity accuracy, category macro F1 over the union of observed
 and predicted labels, abstention accuracy, answer coverage, and citation validity. Citation
 validity is null when no citations are produced; abstaining cannot earn perfect grounding.
-Citation membership verifies provenance, not whether the cited text supports a claim.
+The seed scorer still measures citation membership. The live workflow additionally checks
+quotes and structured numeric values; neither establishes causal support.
+
+Version 1.4.0 adds `python -m evals.security` for deterministic boundary, redaction, extract,
+and policy cases. Its before/after comparison targets the old membership-only verifier,
+not model susceptibility. Live-model attack success remains unmeasured. See
+[security evaluation](SECURITY.md).
 
 ## Seed limitations
 
