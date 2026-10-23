@@ -39,6 +39,11 @@ class Evidence(Contract):
         return hashlib.sha256(canonical.encode()).hexdigest()
 
 
+class IncidentInput(Contract):
+    service: str
+    evidence: tuple[Evidence, ...]
+
+
 class Hypothesis(Contract):
     cause: str = Field(min_length=1)
     evidence_ids: tuple[str, ...] = Field(min_length=1)
