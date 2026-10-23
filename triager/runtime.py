@@ -380,6 +380,7 @@ class Desk:
                         "estimated_cost_usd": result["estimated_cost_usd"],
                         "evidence_items": result["evidence_items"],
                         "tools": result["tool_trace"],
+                        "tool_events": result.get("tool_events", []),
                         "fallback_reason": result.get("fallback_reason"),
                         "fallback_http_status": result.get("fallback_http_status"),
                     },

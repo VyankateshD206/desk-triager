@@ -37,3 +37,12 @@ and six manual triage requests/minute. HTTP 429 includes Retry-After. Forwarded 
 are not trusted. These limits, simulator ownership and worker lifecycle assume one process;
 scale-out needs coordinated limits and ingestion ownership. Approval is an authenticated
 operator attribution label, not a multi-user identity system.
+
+## Per-tool audit records
+
+Each collected or rejected tool invocation has its actual arguments, service scope, timestamp,
+status, latency, up to 600 redacted result-preview characters and evidence IDs in `tool_events`.
+The checkpoint and SQL diagnosis audit retain these records. Raw tool output remains in the
+sanitized evidence payload. The UI uses text rendering for previews and flags unsupported
+extracts. Model planning tokens are recorded on reasoning calls, not attributed to HTTP/SQL
+tools that consume no model tokens. Failed and duplicate requests remain visible.

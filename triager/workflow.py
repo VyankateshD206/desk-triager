@@ -13,6 +13,7 @@ from .contracts import Diagnosis, Evidence, parse_diagnosis
 from .critic import critique
 from .security import sanitize
 from .telemetry import estimate_cost
+from .tool_trace import event as tool_event
 from .verification import verify_support
 
 
@@ -28,6 +29,7 @@ class InvestigationState(TypedDict, total=False):
     evidence: dict
     evidence_items: list
     tool_trace: list
+    tool_events: list
     pending_calls: list
     diagnosis: dict
     provider: str
@@ -51,6 +53,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
             "model_calls": [],
             "node_trace": [],
             "evidence_items": items,
+            "tool_events": collected.get("tool_events", []),
             "rounds": 0,
             "schema_retries": 0,
             "retry_schema": False,
@@ -111,6 +114,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                 return {
                     "contents": contents,
                     "pending_calls": calls,
+                    "provider": provider,
                     "rounds": state["rounds"] + 1,
                     "retry_schema": False,
                     "model_calls": model_calls,
@@ -174,15 +178,19 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
             return exhausted("ToolBudgetExceeded")
         parts, items, trace = [], list(state["evidence_items"]), list(state["tool_trace"])
         available = agent.tools(state["service"])
+        events = list(state.get("tool_events", []))
         for call in calls:
+            started, status = time.perf_counter(), "ok"
             name = call.get("name", "")
             if (
                 name not in available
                 or not isinstance(call.get("args", {}), dict)
                 or call.get("args")
             ):
+                status = "blocked"
                 response = {"error": "Tool or arguments not allowed"}
             elif name in trace:
+                status = "duplicate"
                 response = {"error": "Already collected; use existing evidence"}
             else:
                 try:
@@ -191,7 +199,19 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                     trace.append(name)
                     response = {"result": item}
                 except Exception as exc:
+                    status = "error"
                     response = {"error": type(exc).__name__}
+            events.append(
+                tool_event(
+                    name,
+                    call.get("args", {}),
+                    state["service"],
+                    started,
+                    status,
+                    response,
+                    [response["result"]["evidence_id"]] if "result" in response else [],
+                )
+            )
             part = {"name": name, "response": response}
             if "id" in call:
                 part["id"] = call["id"]
@@ -200,6 +220,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
             "contents": state["contents"] + [{"role": "user", "parts": parts}],
             "evidence_items": items,
             "tool_trace": trace,
+            "tool_events": events,
             "tool_calls": state["tool_calls"] + len(calls),
             "pending_calls": [],
         }
@@ -240,6 +261,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                 "evidence",
                 "evidence_items",
                 "tool_trace",
+                "tool_events",
                 "run_id",
                 "diagnosis",
                 "verification",

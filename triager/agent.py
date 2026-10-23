@@ -15,6 +15,7 @@ from .providers import complete
 from .retrieval import Knowledge
 from .security import redact_text, sanitize
 from .telemetry import estimate_cost
+from .tool_trace import event as tool_event
 from .workflow import build_graph
 
 
@@ -71,14 +72,24 @@ class TriageAgent:
         return tools
 
     def collect_context(self, service):
+        started = time.perf_counter()
         logs = sanitize(self.inspect(service))
+        logs_event = tool_event("inspect_service_logs", {}, service, started, "ok", logs)
+        started = time.perf_counter()
         balances = sanitize(self.db.reconcile())
+        balances_event = tool_event("reconcile_balances", {}, service, started, "ok", balances)
         items = [
             self.evidence_item("telemetry:" + row["event_id"], service, row, row["at"])
             for row in logs
         ]
         items.append(self.evidence_item("ledger:snapshot", service, balances))
-        return {"evidence": {"logs": logs, "reconciliation": balances}, "evidence_items": items}
+        logs_event["evidence_ids"] = [item["evidence_id"] for item in items[:-1]]
+        balances_event["evidence_ids"] = [items[-1]["evidence_id"]]
+        return {
+            "evidence": {"logs": logs, "reconciliation": balances},
+            "evidence_items": items,
+            "tool_events": [logs_event, balances_event],
+        }
 
     @staticmethod
     def evidence_item(source, service, content, at=None):

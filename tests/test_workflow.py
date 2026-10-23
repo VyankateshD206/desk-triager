@@ -288,3 +288,24 @@ def test_failed_requested_critic_abstains_and_cost_is_unknown(agent, monkeypatch
     result = agent.diagnose({"service": "execution-gateway"})
     assert result["diagnosis"]["abstained"]
     assert result["estimated_cost_usd"] is None
+
+
+def test_tool_events_capture_scope_results_and_rejected_arguments(agent):
+    def model(state):
+        if state["rounds"] == 0:
+            return call("get_service_metrics", api_key="private-tool-secret")
+        if state["rounds"] == 1:
+            return call("get_service_metrics")
+        return report(state)
+
+    agent.model_turn = model
+    result = agent.diagnose({"service": "execution-gateway"})
+    events = result["tool_events"]
+    assert [e["tool"] for e in events[:2]] == ["inspect_service_logs", "reconcile_balances"]
+    assert events[2]["status"] == "blocked"
+    assert events[2]["arguments"]["api_key"] == "[REDACTED]"
+    assert events[3]["status"] == "ok"
+    assert events[3]["scope"] == {"service": "execution-gateway"}
+    assert events[3]["latency_ms"] >= 0
+    assert events[3]["evidence_ids"]
+    assert "private-tool-secret" not in json.dumps(events)

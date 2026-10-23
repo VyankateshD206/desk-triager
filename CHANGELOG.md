@@ -5,7 +5,9 @@
 - Measure rules, forest and combined detection over 20 independent seeds.
 - Add a pinned chronological NAB series, provenance, license and CI smoke evaluation.
 - Replace npm command wrappers with Make and move career/publishing notes out of tracked docs.
-- Record the next evaluation, trace, authentication and presentation acceptance criteria.
+- Generate private first-run tokens while preserving explicit configured credentials.
+- Persist and display per-tool arguments, result summaries, scope, latency and evidence IDs.
+- Record the next evaluation and presentation acceptance criteria.
 
 ## 1.7.0 — 2026-10-23
 

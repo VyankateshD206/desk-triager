@@ -39,7 +39,7 @@ under `evals/data/nab/`. See Ahmad et al. (2017), Unsupervised real-time anomaly
 for streaming data, [doi:10.1016/j.neucom.2017.04.070](https://doi.org/10.1016/j.neucom.2017.04.070).
 
 Fit scaler/forest on the first 3,404 points (15%); test the remaining 19,291 points (85%).
-The training prefix is not filtered using anomaly labels. The reference threshold uses
+The training prefix contains 567 labeled-window points and is not filtered using anomaly labels. The reference threshold uses
 training median ± six scaled median absolute deviations. Neither threshold nor contamination
 is tuned on test labels. This is a one-dimensional adaptation to temperature, not a mapping
 of temperature into fictitious trading features. Trading rules have no meaning in these units.
