@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Replace the hero with a compact simulation/status header and enrich the incident queue.
+- Distinguish historical service silence from stale market data and group simultaneous receipt gaps.
+- Add the audit timeline, linked evidence, visible step budget and explicit simulated-action review.
+- Improve chart scaling/units/metric selection, service chips and responsive typography.
+
 - Measure rules, forest and combined detection over 20 independent seeds.
 - Add a pinned chronological NAB series, provenance, license and CI smoke evaluation.
 - Replace npm command wrappers with Make and move career/publishing notes out of tracked docs.

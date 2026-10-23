@@ -6,7 +6,9 @@ A Python support platform that monitors execution telemetry, detects silent serv
 
 **Python · FastAPI · LangGraph · PostgreSQL / pgvector · Prometheus · Loki · Gemini / OpenAI REST**
 
-![Trading-service observatory](docs/desk-console.png)
+![Trading-service observatory](docs/media/operations-dashboard.jpg)
+
+[Incident Review screenshot](docs/media/operations-review.jpg) · [Console behavior](docs/CONSOLE.md)
 
 ## What it does
 
