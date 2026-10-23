@@ -93,3 +93,36 @@ def test_migration_adopts_existing_sql_without_erasing_rows(tmp_path):
         )
         assert "recovery_jobs" in inspect(connection).get_table_names()
     db.engine.dispose()
+
+
+def test_failed_embedding_does_not_publish_partial_version(tmp_path, monkeypatch):
+    from sqlalchemy import select
+
+    from triager.db import Database
+    from triager.models import KnowledgeChunk
+    from triager.retrieval import Knowledge
+
+    db = Database(f"sqlite:///{tmp_path}/atomic.db")
+    db.initialize()
+    calls = []
+
+    def broken(*args):
+        calls.append(1)
+        if len(calls) > 1:
+            raise TimeoutError("embedding unavailable")
+        return [0.0] * 768
+
+    monkeypatch.setattr("triager.retrieval.embed", broken)
+    with pytest.raises(TimeoutError):
+        Knowledge(db).add(
+            document_id="long",
+            version="1",
+            service="market-feed",
+            title="Long",
+            content="x" * 3000,
+            source="test",
+            reviewed=True,
+        )
+    with db.Session() as session:
+        assert session.scalar(select(KnowledgeChunk)) is None
+    db.engine.dispose()

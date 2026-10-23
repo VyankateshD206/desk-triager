@@ -97,24 +97,29 @@ class Knowledge:
             )
             if existing and existing != identifiers:
                 raise ValueError("Document versions are immutable; increment the version")
-        for index, chunk in enumerate(chunks):
-            chunk_id = digest([document_id, version, index, chunk, self.version])
-            with self.db.Session() as session:
-                if session.get(KnowledgeChunk, chunk_id):
-                    continue
-            vector = embed(title + "\n" + chunk, self.provider)
-            with self.db.Session.begin() as session:
-                # Superseded versions remain auditable but are excluded from search.
-                from sqlalchemy import update
+        if existing:
+            return
+        # Compute all embeddings first. A failed API call must not publish a partial version.
+        prepared = [
+            (
+                digest([document_id, version, index, chunk, self.version]),
+                chunk,
+                embed(title + "\n" + chunk, self.provider),
+            )
+            for index, chunk in enumerate(chunks)
+        ]
+        with self.db.Session.begin() as session:
+            from sqlalchemy import update
 
-                session.execute(
-                    update(KnowledgeChunk)
-                    .where(
-                        KnowledgeChunk.document_id == document_id,
-                        KnowledgeChunk.document_version != version,
-                    )
-                    .values(active=False)
+            session.execute(
+                update(KnowledgeChunk)
+                .where(
+                    KnowledgeChunk.document_id == document_id,
+                    KnowledgeChunk.document_version != version,
                 )
+                .values(active=False)
+            )
+            for chunk_id, chunk, vector in prepared:
                 session.add(
                     KnowledgeChunk(
                         id=chunk_id,
