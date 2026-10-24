@@ -19,7 +19,6 @@ services:
       DATABASE_URL: postgresql://desk:local-demo-password@postgres:5432/desk
       SIMULATOR_ENABLED: 'false'
       AI_PROVIDER: offline
-      DESK_TOKEN: local-access-token
       TICK_GAP_SECONDS: '15'
       GRAPH_CHECKPOINT_PATH: /data/graph.sqlite3
       LOKI_URL: http://loki:3100
@@ -43,7 +42,6 @@ services:
     environment:
       TRIAGER_URL: http://triager:8000
       LOKI_URL: http://loki:3100
-      DESK_TOKEN: local-access-token
       DEMO_TOKEN: local-demo-token
     ports:
       - '127.0.0.1:18001:8001'

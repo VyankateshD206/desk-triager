@@ -156,12 +156,11 @@ def test_restart_preserves_incidents_and_event_dedup(desk):
     restarted.db.engine.dispose()
 
 
-def test_api_auth_and_validation(tmp_path):
+def test_api_access_and_validation(tmp_path):
     app = create_app(
         Settings(
             database_url=f"sqlite:///{tmp_path}/api.db",
             simulator=False,
-            token="test-secret",
             ai_provider="offline",
         )
     )
@@ -174,8 +173,7 @@ def test_api_auth_and_validation(tmp_path):
             ) as client,
         ):
             assert (await client.get("/")).status_code == 200
-            assert (await client.get("/api/snapshot")).status_code == 401
-            headers = {"X-Desk-Token": "test-secret"}
+            headers = {}
             assert (await client.get("/api/snapshot", headers=headers)).status_code == 200
             assert (
                 await client.post("/api/telemetry", headers=headers, json={"service": "x"})

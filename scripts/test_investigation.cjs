@@ -10,7 +10,7 @@ assert.equal(view.configuredProvider('openai'),'OpenAI');
 assert.equal(view.configuredProvider('gemini'),'Gemini');
 assert.match(view.configuredProvider('offline'),/no LLM/);
 assert.equal(view.configuredProvider(null),'Unknown');
-assert.match(view.activeFaults(null),/Connect/);
+assert.match(view.activeFaults(null),/Waiting for the server/);
 assert.match(view.activeFaults({mode:'external'}),/External telemetry/);
 assert.match(view.activeFaults({mode:'simulated desk',faults:{}}),/No active.*Retained incidents/);
 assert.match(view.activeFaults({mode:'simulated desk',faults:{'market-feed':'tick_gap'}}),/market-feed: tick gap/);

@@ -264,3 +264,24 @@ recovery with factual labels and visible primary actions. This is UI QA, not a d
 accuracy benchmark or a full assistive-technology audit. Remaining limitations include long
 expanded source payloads, stored-history limits, missing per-node/tool correlation and a
 stacked mobile decision area. No backend or recovery behavior changed.
+
+
+## Automatic local access
+
+The desk access token and its UI field are removed. The console polls the API on first
+load without credentials; Settings offers Refresh connection and infrastructure details.
+Prior phase notes about token entry describe the old behavior. Legacy environment/token
+files are left untouched, and database/model configuration is unchanged. API rate limits,
+explicit human decisions, required rejection feedback, native approval interrupts, bound
+proposals, idempotent requests and fresh-telemetry verification remain in place.
+
+Validation includes token-free startup with legacy token variables, API schema without a
+desk-token parameter, malformed approval rejection, existing recovery regression checks
+and a browser simulator/review smoke test on an isolated offline database.
+
+Token-removal validation: 135 Python tests pass (the four retired token-bootstrap tests
+were replaced by token-free API access/schema/validation coverage). Frontend suites, lint,
+wheel/package checks and recorder syntax validation pass. An isolated browser run connected
+without credentials, injected an HTTP 429 fault, rejected an empty decision reason, accepted
+an explicit simulated approval and reached resolved after fresh telemetry. Refresh connection
+works without a token field. Local .env/database/provider configuration was not modified.

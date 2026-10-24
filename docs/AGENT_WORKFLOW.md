@@ -44,7 +44,7 @@ overwriting an old conversation.
 `TriageAgent.resume(run_id)` resumes a failed or interrupted read-only investigation.
 Completed security-versioned runs return their stored result. Runs created before the
 v1.4.0 redaction boundary require a fresh diagnosis. Original deadlines remain in force after
-restart. There is no public resume endpoint yet; existing authenticated triage endpoints
+restart. There is no public resume endpoint yet; existing triage endpoints
 start fresh investigations.
 
 For a local SQLite database, the default checkpoint file is `<database>.graph.sqlite3`.

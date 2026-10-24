@@ -1,7 +1,7 @@
 # Durable approval and recovery
 
 Recovery uses a dedicated deterministic LangGraph workflow linked to the diagnosis run.
-It pauses at `interrupt()` with a persisted, fingerprinted proposal. The authenticated
+It pauses at `interrupt()` with a persisted, fingerprinted proposal. The explicit human
 approval or rejection endpoint resumes that interrupt with `Command(resume=...)`.
 No model can call these endpoints through the investigation graph.
 
@@ -38,7 +38,7 @@ Original receipt-time, watermark, and late-sample protections remain in force.
 
 The console shows queued/failed states, supports rejection feedback, and retains an
 idempotency key per proposal in session storage for request retries. The actor is an
-attribution label; the desk token authenticates the caller. Application ingestion and
+attribution label, not verified identity. No desk access token is required. Application ingestion and
 simulation remain single-process even though SQL jobs use atomic claims.
 
 Regression tests cover native interrupts, restart/resume, concurrent identical requests,

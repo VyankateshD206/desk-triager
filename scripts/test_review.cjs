@@ -33,8 +33,8 @@ function select(overrides={}){
 }
 const text=node=>(node.textContent || '')+(node.children || []).map(text).join(' ');
 async function main(){
-  evaluate('showError(new Error("Valid X-Desk-Token required"))');
-  assert.match(element('#error').textContent,/Connect in Settings.*missing or invalid/);
+  evaluate('showError(new Error("Failed to fetch"))');
+  assert.match(element('#error').textContent,/Cannot reach the desk server/);
   evaluate('renderInvestigation(null)');
   assert.match(text(element('#investigation-trace')),/No completed investigation/);
   assert.equal(element('#copy-run-id').hidden,true);

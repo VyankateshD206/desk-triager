@@ -32,11 +32,11 @@ service, run ID, node timings and usage estimates. Evidence and exception text a
 from span attributes. SQL audit/checkpoint data still contains redacted diagnostic evidence;
 restrict access and define retention for your deployment. The collector is operator-provided.
 
-The authenticated API has per-client-IP in-process limits: 600 requests/minute generally
+The local API has per-client-IP in-process limits: 600 requests/minute generally
 and six manual triage requests/minute. HTTP 429 includes Retry-After. Forwarded headers
 are not trusted. These limits, simulator ownership and worker lifecycle assume one process;
-scale-out needs coordinated limits and ingestion ownership. Approval is an authenticated
-operator attribution label, not a multi-user identity system.
+scale-out needs coordinated limits and ingestion ownership. The approver name is an
+operator attribution label, not an authenticated multi-user identity.
 
 ## Per-tool audit records
 

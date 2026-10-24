@@ -65,7 +65,6 @@ async function api(path, body, extraHeaders = {}) {
     method: body === undefined ? "GET" : "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Desk-Token": $("#token").value,
       ...extraHeaders,
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -80,9 +79,7 @@ async function api(path, body, extraHeaders = {}) {
   return value;
 }
 function showError(error) {
-  $("#error").textContent = error.message === "Valid X-Desk-Token required"
-    ? "Connect in Settings using the desk access token printed by the server. The token is missing or invalid."
-    : ["Failed to fetch", "NetworkError when attempting to fetch resource."].includes(error.message)
+  $("#error").textContent = ["Failed to fetch", "NetworkError when attempting to fetch resource."].includes(error.message)
       ? "Cannot reach the desk server. Check that it is running, then reconnect in Settings."
       : error.message;
   $("#error").classList.remove("hidden");
@@ -472,7 +469,7 @@ async function refresh() {
     render(s);
   } catch (e) {
     showError(e);
-    $("#incident-count").textContent = state ? "Connection lost · showing last received incident history" : "Connect in Settings to load incident history";
+    $("#incident-count").textContent = state ? "Connection lost · showing last received incident history" : "Waiting for server connection to load incident history";
     if (!state) $("#infrastructure").textContent = "Connection required to read server configuration.";
     $("#sample-age").textContent = state?.last_ingest ? "Last received sample " + ageText(state.last_ingest) : "No samples received";
     $("#service-context").textContent = "Last received health · connection unavailable";
@@ -486,7 +483,7 @@ async function refresh() {
     $("#scenario-state").textContent = "Connection unavailable. Active faults cannot be confirmed; check Settings.";
     $("#scenario-hint").textContent = "Run scenario is disabled until the connection is restored.";
     $("#chart-context").textContent = state ? "Connection lost · showing last received telemetry" : "Telemetry unavailable · check Settings";
-    if (!state) $("#chart-state").textContent = "Connect in Settings to load telemetry";
+    if (!state) $("#chart-state").textContent = "Waiting for server connection to load telemetry";
   }
 }
 function renderTimeline(incident) {
@@ -724,15 +721,7 @@ $("#detail").addEventListener("close", () => {
 });
 $("#actor").addEventListener("input",clearReviewErrors);
 $("#feedback-reason").addEventListener("input",clearReviewErrors);
-const savedToken = sessionStorage.getItem("desk-token");
-$("#token").value = savedToken || "";
-if (!savedToken) document.querySelector(".settings").open = true;
-const connect = () => {
-  sessionStorage.setItem("desk-token", $("#token").value);
-  refresh();
-};
-$("#token").onchange = connect;
-$("#connect").onclick = connect;
+$("#connect").onclick = refresh;
 $("#fault").onchange = () => {
   $("#scenario-description").textContent =
     scenarios[$("#fault").value.split("|")[0]];

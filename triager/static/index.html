@@ -16,14 +16,7 @@
         <details class="settings">
           <summary>Settings</summary>
           <div class="settings-content">
-            <label for="token">Desk access token</label
-            ><input
-              id="token"
-              type="password"
-              placeholder="Paste the token printed by the server"
-              autocomplete="off"
-            />
-            <button id="connect">Connect</button>
+            <button id="connect">Refresh connection</button>
             <p id="infrastructure">Connecting…</p>
             <a href="/docs">API reference ↗</a>
           </div>
@@ -130,7 +123,7 @@
               </option></select
             ><button id="inject" disabled>Run scenario</button>
           </div>
-          <p id="scenario-state" class="subtle">Connect in Settings to check active faults.</p>
+          <p id="scenario-state" class="subtle">Waiting for the server to report active faults.</p>
           <p id="scenario-description">
             Market ticks stop updating. The detector flags stale data while the
             service still appears to be running.

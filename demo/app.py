@@ -168,7 +168,6 @@ class Lab:
                             "telemetry:" + e["service"],
                             triager + "/api/telemetry",
                             json=e,
-                            headers={"X-Desk-Token": os.getenv("DESK_TOKEN", "local-access-token")},
                         )
                         for e in events
                     ],

@@ -18,7 +18,7 @@ It does not identify arbitrary names, phone numbers, every token format, encoded
 or all sensitive business information. It does not remove prompt-injection instructions
 from evidence: those remain data inside the structured untrusted-evidence envelope.
 
-Raw telemetry in application SQL and authenticated raw-data views is outside this redaction
+Raw telemetry in application SQL and raw-data views is outside this redaction
 boundary. Existing database records and checkpoint files are not retroactively rewritten.
 New diagnoses use redacted evidence; pre-security graph runs refuse resume and require a
 fresh diagnosis. Manage legacy data retention separately; this release does not delete it.
@@ -63,8 +63,8 @@ Unknown actions, action/kind mismatches, target mismatches, extra policy flags, 
 execution are blocked. Risk scores are fixed engineering rankings, not probabilities.
 The proposal API exposes the policy decision. Approval rechecks policy inside the SQL
 transaction, and the audit records the decision used for execution. Approval requests reject
-extra fields. The actor field is an attribution label; the desk token authenticates the
-caller. Production identity and role separation remain future work.
+extra fields. The actor field is an attribution label, not verified identity. The local
+application has no access-token gate. Production identity and role separation remain future work.
 
 Graph tools remain read only. Even if a compromised model requests shell execution, SQL,
 deployment, recovery, or a different service, those requests cannot reach an executable
@@ -108,12 +108,13 @@ fallbacks are excluded from the denominator and counted separately. A missing de
 is unknown, not zero attack success. These probes test a narrow diagnostic-integrity objective;
 they do not measure authorization bypass, exfiltration, or general model safety.
 
-## Local first-run authentication
+## Local application access
 
-With no explicit `DESK_TOKEN`, API startup generates a 256-bit random token in `.desk-token`,
-created with mode 0600, and prints it once to the local terminal. Later startups reuse it and
-print its file location. `DESK_TOKEN_FILE` selects another existing parent directory. Invalid,
-symlinked or group/world-readable POSIX token files fail closed. Explicit deployment tokens
-remain unchanged and are never printed. The console starts with an empty token field. The
-bootstrap token is registered for evidence redaction and its file is ignored by Git. Terminal
-output is sensitive; use a configured secret in deployments with shared log collection.
+The console and application API connect without a desk access token. Startup no longer
+creates or prints token files; legacy DESK_TOKEN / DESK_TOKEN_FILE values are ignored.
+Existing local environment and token files are not rewritten or deleted. Commands bind
+the local app to 127.0.0.1. The API has no identity layer; the approver name is attribution.
+Policy, native graph interrupts, proposal binding, idempotency, rejection validation,
+rate limits and fresh-telemetry recovery verification remain enforced. A shared deployment
+would need its own access control. Model API keys and the separate demo-service control
+token are unaffected.

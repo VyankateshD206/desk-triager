@@ -109,5 +109,5 @@ def action_policy(proposal, *, incident_service, incident_kind, simulator):
     return PolicyDecision(
         disposition="requires_approval",
         risk_score=risk,
-        reason="Fixed simulation handler requires authenticated human approval",
+        reason="Fixed simulation handler requires explicit human approval",
     )

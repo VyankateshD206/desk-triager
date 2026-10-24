@@ -7,7 +7,7 @@
     return provider === 'offline' ? 'Offline rules · no LLM' : provider === 'gemini' ? 'Gemini' : provider === 'openai' ? 'OpenAI' : 'Unknown';
   }
   function activeFaults(state) {
-    if (!state) return 'Connect in Settings to check active faults.';
+    if (!state) return 'Waiting for the server to report active faults.';
     if (state.mode !== 'simulated desk') return 'External telemetry · simulator controls unavailable.';
     const faults=Object.entries(state.faults || {});
     return faults.length ? 'Active simulator faults: ' + faults.map(([service,kind])=>`${service}: ${String(kind).replaceAll('_',' ')}`).join(' · ') : 'No active simulator faults. Retained incidents may still need review.';

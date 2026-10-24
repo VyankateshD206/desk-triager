@@ -1,5 +1,4 @@
 import asyncio
-import hmac
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -9,12 +8,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 from . import __version__
-from .auth import local_token
 from .config import Settings
 from .limits import RateLimits
 from .models import SERVICES, Telemetry
 from .runtime import Desk
-from .security import register_secret
 from .telemetry import configure_tracing
 from .workers import recover_pending, simulate, supervise, triage_pending, watch
 
@@ -43,13 +40,6 @@ def create_app(settings=None):
 
     @asynccontextmanager
     async def lifespan(app):
-        if settings.token is None:
-            settings.token, created = local_token(settings.token_file)
-            register_secret(settings.token)
-            if created:
-                print("Local desk access token: " + settings.token, flush=True)
-            else:
-                print("Using the private token in " + settings.token_file, flush=True)
         tracer_provider = configure_tracing()
         desk = await asyncio.to_thread(Desk, settings)
         app.state.desk = desk
@@ -79,10 +69,8 @@ def create_app(settings=None):
     limits = RateLimits()
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
-    def authorize(request: Request, x_desk_token: str = Header(default="")):
+    def check_rate_limit(request: Request):
         limits.check(request.client.host if request.client else "local", request.url.path)
-        if not settings.token or not hmac.compare_digest(x_desk_token, settings.token):
-            raise HTTPException(401, "Valid X-Desk-Token required")
 
     @app.get("/")
     def home():
@@ -102,15 +90,15 @@ def create_app(settings=None):
             raise HTTPException(503, {"workers": desk.errors})
         return {"status": "ok", "mode": "simulation" if settings.simulator else "external"}
 
-    @app.get("/api/snapshot", dependencies=[Depends(authorize)])
+    @app.get("/api/snapshot", dependencies=[Depends(check_rate_limit)])
     def snapshot():
         return app.state.desk.snapshot()
 
-    @app.post("/api/telemetry", dependencies=[Depends(authorize)])
+    @app.post("/api/telemetry", dependencies=[Depends(check_rate_limit)])
     def telemetry(event: Telemetry):
         return app.state.desk.ingest(event)
 
-    @app.post("/api/faults", dependencies=[Depends(authorize)])
+    @app.post("/api/faults", dependencies=[Depends(check_rate_limit)])
     def inject(body: Injection):
         if body.service not in SERVICES:
             raise HTTPException(422, "Unknown service")
@@ -120,21 +108,21 @@ def create_app(settings=None):
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from None
 
-    @app.get("/api/incidents/{incident_id}", dependencies=[Depends(authorize)])
+    @app.get("/api/incidents/{incident_id}", dependencies=[Depends(check_rate_limit)])
     def proposal(incident_id: str):
         try:
             return app.state.desk.proposal(incident_id)
         except KeyError:
             raise HTTPException(404, "Incident not found") from None
 
-    @app.post("/api/incidents/{incident_id}/triage", dependencies=[Depends(authorize)])
+    @app.post("/api/incidents/{incident_id}/triage", dependencies=[Depends(check_rate_limit)])
     def triage(incident_id: str):
         try:
             return app.state.desk.triage(incident_id)
         except KeyError:
             raise HTTPException(404, "Incident not found") from None
 
-    @app.post("/api/incidents/{incident_id}/approve", dependencies=[Depends(authorize)])
+    @app.post("/api/incidents/{incident_id}/approve", dependencies=[Depends(check_rate_limit)])
     def approve(
         incident_id: str,
         body: Approval,
@@ -149,7 +137,7 @@ def create_app(settings=None):
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from None
 
-    @app.post("/api/incidents/{incident_id}/reject", dependencies=[Depends(authorize)])
+    @app.post("/api/incidents/{incident_id}/reject", dependencies=[Depends(check_rate_limit)])
     def reject(
         incident_id: str,
         body: Rejection,
