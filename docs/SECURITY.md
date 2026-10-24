@@ -86,7 +86,7 @@ deployment, recovery, or a different service, those requests cannot reach an exe
 handler through the graph. This boundary existed as an allowlist before this release;
 the new policy adds typed scope and incident-kind checks rather than replacing it with a
 keyword blocklist. Version 1.5.0 adds native approval interrupts, exact proposal binding, and a durable
-execution outbox; see [recovery guarantees](RECOVERY.md).
+execution outbox; see [recovery guarantees](ARCHITECTURE.md#recovery).
 
 ## Reproduce the security evaluation
 
