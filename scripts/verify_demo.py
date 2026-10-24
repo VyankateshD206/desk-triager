@@ -29,7 +29,6 @@ def main():
     settings = Settings(ai_provider="offline")
     sources = ObservabilityTools(settings).tools("execution-gateway")
     db = Database(settings.database_url)
-    headers = {"X-Desk-Token": settings.token}
     try:
         with httpx.Client(timeout=5) as client:
             demo = settings.demo_service_url
@@ -139,9 +138,9 @@ def main():
                         lambda: next(
                             (
                                 i
-                                for i in client.get(
-                                    "http://triager:8000/api/snapshot", headers=headers
-                                ).json()["incidents"]
+                                for i in client.get("http://triager:8000/api/snapshot").json()[
+                                    "incidents"
+                                ]
                                 if i["service"] == "execution-gateway"
                                 and i["kind"] == expected_kind
                             ),
@@ -151,7 +150,6 @@ def main():
                     )
                     response = client.post(
                         "http://triager:8000/api/incidents/" + incident["id"] + "/triage",
-                        headers=headers,
                     )
                     response.raise_for_status()
                     if response.json().get("workflow") != "langgraph-v1":

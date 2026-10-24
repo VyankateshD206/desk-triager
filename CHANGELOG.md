@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+- Add offline label and partially blinded diagnosis-review packets, strict review/result binding, and paired graph/RAG reporting with family-cluster uncertainty, actual retrieval usage and explicit fallback/cost coverage; leave human judgments and billable runs opt-in.
+
+- Add validated incident-specific runbook queries with fixed service/vector/top-3 scope, benchmark parity and explicit retrieval provenance; retain bounded read-only tool execution.
+
+- Verify strict ledger monetary strings with Decimal for known sources/fields, preserving exact pointers, evidence binding and conservative fallback for invalid claims.
+
+- Open incident reviews immediately with loading/error/retry states, cancel pending requests on close, and ignore stale responses; keep decisions disabled until the recorded proposal loads.
+
+- Revalidate console assets and refresh their URLs so cached token-era JavaScript cannot leave the updated dashboard stuck connecting.
+
+- Remove the desk access-token gate and connect automatically; retain rate limiting and explicit, proposal-bound recovery approval.
+
+- Clarify first-visit monitoring, configured versus recorded providers, active simulator faults and retained history; fix missing-investigation rendering and disconnected loading labels (Phase 6B).
+
+- Refine investigation order, persistent review section links, readable technical panels and copyable run references (Phase 6A).
+
+- Visualize recorded agent operations and add a provenance-aware evidence explorer with secondary model usage (Phase 5).
+
+- Redesign incident review with visible diagnosis/evidence, separate technical panels and a clear human decision area (Phase 4).
+
+- Add client-side incident filters, explicit recovery states and responsive incident cards (Phase 3).
+
+- Redesign the main operations dashboard with explicit metric/service states and a time-scaled chart (Phase 2).
+
+- Add shared console design tokens, readable typography and consistent dark component states (Phase 1).
+
 - Replace the hero with a compact simulation/status header and enrich the incident queue.
 - Distinguish historical service silence from stale market data and group simultaneous receipt gaps.
 - Add the audit timeline, linked evidence, visible step budget and explicit simulated-action review.

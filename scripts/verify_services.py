@@ -34,9 +34,7 @@ def verify(base_url="http://127.0.0.1:8000"):
         if not encrypted:
             raise VerificationError("Database connection must use TLS")
         print("PASS Neon PostgreSQL: SELECT 1; TLS=true", flush=True)
-        with httpx.Client(
-            base_url=base_url, headers={"X-Desk-Token": settings.token}, timeout=30
-        ) as client:
+        with httpx.Client(base_url=base_url, timeout=30) as client:
 
             def request(method, path, **kwargs):
                 response = client.request(method, path, **kwargs)

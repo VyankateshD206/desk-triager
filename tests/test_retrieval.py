@@ -1,6 +1,7 @@
 import pytest
 from sqlalchemy import inspect, text
 
+from evals.retrieval import QUERY_AWARE_QUERIES
 from triager.db import Database
 from triager.retrieval import Knowledge
 
@@ -126,3 +127,124 @@ def test_failed_embedding_does_not_publish_partial_version(tmp_path, monkeypatch
     with db.Session() as session:
         assert session.scalar(select(KnowledgeChunk)) is None
     db.engine.dispose()
+
+
+@pytest.mark.parametrize(
+    "query", ["RAG", "HTTP 429", "  HTTP 429 Retry-After throttling  ", "a" * 160]
+)
+def test_search_query_contract_normalizes_strings(query):
+    from triager.contracts import SearchRunbooksArgs
+
+    assert SearchRunbooksArgs(query=query).query == query.strip()
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        {},
+        {"query": ""},
+        {"query": "  "},
+        {"query": "ab"},
+        {"query": "x" * 161},
+        {"query": 429},
+        {"query": True},
+        {"query": None},
+        {"query": ["rate limit"]},
+        {"query": {"$ne": None}},
+        {"query": b"HTTP 429"},
+        {"query": "HTTP 429", "service": "market-feed"},
+        {"query": "HTTP 429", "limit": 100},
+        {"query": "HTTP 429", "method": "keyword"},
+        {"query": "HTTP 429", "database_url": "untrusted"},
+        {"query": "HTTP\n429"},
+        {"query": "HTTP\r429"},
+        {"query": "HTTP\t429"},
+        {"query": "\nHTTP 429"},
+        {"query": "HTTP 429\x00"},
+        {"query": "HTTP 429\x7f"},
+        {"query": "HTTP\u0085429"},
+        {"query": "HTTP\u2028429"},
+        {"query": "HTTP\u202e429"},
+    ],
+)
+def test_search_query_contract_rejects_invalid_arguments(arguments):
+    from pydantic import ValidationError
+
+    from triager.contracts import SearchRunbooksArgs
+
+    with pytest.raises(ValidationError):
+        SearchRunbooksArgs.model_validate(arguments)
+
+
+@pytest.mark.parametrize("service,query,expected", QUERY_AWARE_QUERIES)
+def test_incident_specific_queries_retrieve_expected_top_three(knowledge, service, query, expected):
+    hits = knowledge.search(service=service, query=query, method="vector", limit=3)
+    assert expected in [h["document_id"] for h in hits]
+    assert len(hits) <= 3
+    assert all(h["version"] and h["source"] and h["embedding_version"] for h in hits)
+
+
+def test_unrelated_query_scores_are_reported_not_treated_as_probabilities(knowledge):
+    from evals.retrieval import UNRELATED_QUERIES
+
+    for service, query in UNRELATED_QUERIES:
+        hits = knowledge.search(service, query, method="vector", limit=3)
+        # Lexical collisions/overlap may produce nonzero hits; do not impose a confidence cutoff.
+        assert all(0 < h["score"] <= 1.000001 for h in hits)
+        assert all(h["document_id"] == "runbook:feed" for h in hits if service == "market-feed")
+        assert all(
+            h["document_id"] == "runbook:ledger" for h in hits if service == "portfolio-ledger"
+        )
+
+
+def test_production_and_fixture_use_the_same_query_and_trusted_search_options(
+    knowledge, tmp_path, monkeypatch
+):
+    from dataclasses import replace
+
+    from pydantic import ValidationError
+
+    from evals.benchmark import FixtureAgent
+    from triager.agent import TriageAgent
+    from triager.config import Settings
+
+    settings = Settings(ai_provider="offline", embedding_provider="hash", retrieval_enabled=True)
+    inputs = {"service": "execution-gateway", "tools": {}, "evidence": []}
+    fixture = FixtureAgent(settings, inputs, str(tmp_path / "fixture.graph"), knowledge)
+    production = TriageAgent(knowledge.db, settings)
+    production.inspect = lambda _: pytest.fail(
+        "Retrieval must use the supplied query, not recent logs"
+    )
+    original = Knowledge.search
+    searches = []
+
+    def search(self, **kwargs):
+        searches.append(kwargs)
+        return original(self, **kwargs)
+
+    monkeypatch.setattr(Knowledge, "search", search)
+    results = []
+    for agent in (production, fixture):
+        tool = agent.tools("execution-gateway")["search_runbooks"]
+        results.append(tool(query="  HTTP 429 retry-after throttling  "))
+        with pytest.raises(ValidationError):
+            tool(query=429)
+        with pytest.raises(TypeError):
+            tool(query="HTTP 429", service="market-feed")
+    assert results[0] == results[1]
+    assert (
+        searches
+        == [
+            {
+                "service": "execution-gateway",
+                "query": "HTTP 429 retry-after throttling",
+                "method": "vector",
+                "limit": 3,
+            }
+        ]
+        * 2
+    )
+    with pytest.raises(ValueError, match="scope"):
+        fixture.tools("market-feed")
+    fixture.settings = replace(settings, retrieval_enabled=False)
+    assert "search_runbooks" not in fixture.tools("execution-gateway")

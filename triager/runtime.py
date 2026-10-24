@@ -331,9 +331,9 @@ class Desk:
             result["execution"] = self.recovery.response(job) if job else None
         result["script"] = (
             "# Fixed recovery client; the server checks the incident's allowlisted action.\n"
-            "import os, uuid, httpx\n"
+            "import uuid, httpx\n"
             f"response = httpx.post('http://127.0.0.1:8000/api/incidents/{incident_id}/approve',\n"
-            "    headers={'X-Desk-Token': os.environ['DESK_TOKEN'], 'Idempotency-Key': str(uuid.uuid4())},\n"
+            "    headers={'Idempotency-Key': str(uuid.uuid4())},\n"
             f"    json={{'action': '{result['action']}', 'actor': 'trader', "
             f"'proposal_id': '{result['approval']['id'] if result['approval'] else ''}'}})\n"
             "response.raise_for_status()\nprint(response.json())\n"

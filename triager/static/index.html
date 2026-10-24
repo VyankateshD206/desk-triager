@@ -3,32 +3,26 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Desk — Trading service observatory</title>
-    <link rel="stylesheet" href="/static/style.css" />
-    <script defer src="/static/app.js"></script>
+    <title>Desk Triager — Operations overview</title>
+    <link rel="stylesheet" href="/static/style.css?v=review-loading-1" />
+    <script defer src="/static/investigation.js?v=review-loading-1"></script>
+    <script defer src="/static/app.js?v=review-loading-1"></script>
   </head>
   <body>
     <main>
       <header>
-        <a class="brand" href="/">desk<span>.</span></a
-        ><div class="status-strip"><span class="live" id="session">Connecting</span><span id="sample-age">No samples yet</span><strong class="pill" id="global-mode">SIMULATED</strong></div>
+        <div class="brand-block"><a class="brand" href="/">Desk Triager<span>.</span></a><p>Trading telemetry &amp; incident operations</p></div>
+        <div class="status-strip"><span class="live" id="session" role="status">Connecting</span><span id="sample-age">No samples yet</span><strong class="pill" id="global-mode">CONNECTING</strong><span id="analysis-mode" tabindex="0" data-help="Configured analysis for new investigations. Each incident records the provider actually used, including any fallback." aria-describedby="help-tooltip">Analysis: connecting</span></div>
         <details class="settings">
           <summary>Settings</summary>
           <div class="settings-content">
-            <label for="token">Desk access token</label
-            ><input
-              id="token"
-              type="password"
-              placeholder="Paste the token printed by the server"
-              autocomplete="off"
-            />
-            <button id="connect">Connect</button>
+            <button id="connect">Refresh connection</button>
             <p id="infrastructure">Connecting…</p>
-            <a href="/docs">API reference ↗</a>
           </div>
         </details>
       </header>
       <div class="error hidden" id="error" role="alert"></div>
+      <div class="dashboard-heading"><h1>Operations overview</h1><p>Monitors market data, order execution and ledger balances. Incidents flag detected signals for investigation and human-reviewed recovery.</p></div>
       <section class="metrics" aria-label="Key desk metrics">
         <article
           class="metric"
@@ -39,9 +33,9 @@
           <div class="label">
             Open incidents <span class="info" aria-hidden="true">?</span>
           </div>
-          <div class="number" id="open">—</div>
+          <div class="metric-value"><div class="number" id="open">—</div><span class="metric-state" id="open-state">Waiting</span></div>
           <span class="metric-note" id="queue-status"
-            >Waiting for telemetry</span
+            >Unresolved across all services</span
           >
         </article>
         <article
@@ -53,9 +47,9 @@
           <div class="label">
             Fill latency <span class="info" aria-hidden="true">?</span>
           </div>
-          <div class="number" id="latency">—</div>
+          <div class="metric-value"><div class="number" id="latency">—</div><span class="metric-state" id="latency-state">Waiting</span></div>
           <span class="metric-note" id="latency-note"
-            >Latest gateway sample</span
+            >Latest gateway sample · alert above 350 ms</span
           >
         </article>
         <article
@@ -67,24 +61,24 @@
           <div class="label">
             NAV difference <span class="info" aria-hidden="true">?</span>
           </div>
-          <div class="number" id="difference">—</div>
+          <div class="metric-value"><div class="number" id="difference">—</div><span class="metric-state" id="nav-state">Waiting</span></div>
           <span class="metric-note" id="balance-note"
-            >Local ledger vs. exchange</span
+            >Local ledger minus exchange · USD</span
           >
         </article>
       </section>
       <section class="workspace">
         <article class="panel pulse">
           <div class="panel-heading">
-            <h2>Execution pulse</h2>
+            <div><h2>Execution pulse</h2><p class="subtle" id="chart-context">Waiting for telemetry</p></div>
             <label class="sr-only" for="chart-metric">Chart metric</label>
             <select id="chart-metric" aria-label="Chart metric"><option value="fill_latency_ms">Fill latency · ms</option><option value="heartbeat_jitter_ms">Jitter · ms</option><option value="slippage_bps">Slippage · bps</option><option value="tick_age_ms">Tick age · ms</option></select>
-            <span class="subtle">Hover to explore</span>
+
           </div>
-          <div class="chart">
+          <div class="chart"><div id="chart-state" class="chart-state" role="status">Connecting to telemetry…</div>
             <svg
               id="chart"
-              viewBox="0 0 800 170"
+              viewBox="0 0 800 248"
               preserveAspectRatio="xMidYMid meet"
               role="img"
               aria-label="Recent fill latency; hover to inspect individual samples"
@@ -100,15 +94,15 @@
               data-help="Time of the oldest gateway sample currently plotted. Times use your browser timezone."
               aria-describedby="help-tooltip"
               >Waiting for samples</span
-><span>Now</span>
+><span id="chart-threshold">Select a metric to inspect</span>
           </div>
         </article>
         <article class="panel scenario">
           <div class="panel-heading">
-            <h2>Try a scenario</h2>
+            <div><h2>Scenario control</h2><p class="subtle">Choose a fault, then run it in the simulator. No real trades.</p></div>
             <span class="pill">Simulated</span>
           </div>
-          <div class="scenario-controls">
+          <div class="scenario-controls"><label for="fault">Failure scenario</label>
             <select id="fault" aria-label="Failure scenario">
               <option value="tick_gap|market-feed">Stale market feed</option>
               <option value="silence|market-feed">
@@ -126,8 +120,9 @@
               <option value="ml_degradation|execution-gateway">
                 Subtle feature drift
               </option></select
-            ><button id="inject">Run scenario</button>
+            ><button id="inject" disabled>Run scenario</button>
           </div>
+          <p id="scenario-state" class="subtle">Waiting for the server to report active faults.</p>
           <p id="scenario-description">
             Market ticks stop updating. The detector flags stale data while the
             service still appears to be running.
@@ -138,44 +133,50 @@
             <li id="step-recover">Recover</li>
           </ol>
           <p class="scenario-hint" id="scenario-hint" role="status">
-            Choose a failure to see how the desk responds.
+            Run scenario is available after connecting to a simulated desk.
           </p>
         </article>
       </section>
       <section class="service-strip" aria-label="Service health">
-        <span class="subtle">Services</span
-        ><span
+        <div class="service-heading"><h2>Service health</h2><p id="service-context" class="subtle">Telemetry freshness &amp; open signals</p></div><span
           id="service-market-feed"
-          class="service"
+          class="service waiting"
           tabindex="0"
           aria-describedby="help-tooltip"
-        ></span
+        ><span class="service-name">market-feed</span><span class="service-status">Waiting for telemetry</span></span
         ><span
           id="service-execution-gateway"
-          class="service"
+          class="service waiting"
           tabindex="0"
           aria-describedby="help-tooltip"
-        ></span
+        ><span class="service-name">execution-gateway</span><span class="service-status">Waiting for telemetry</span></span
         ><span
           id="service-portfolio-ledger"
-          class="service"
+          class="service waiting"
           tabindex="0"
           aria-describedby="help-tooltip"
-        ></span>
+        ><span class="service-name">portfolio-ledger</span><span class="service-status">Waiting for telemetry</span></span>
       </section>
-      <section class="incidents">
+      <section class="incidents" aria-labelledby="incidents-heading">
         <div class="section-heading">
-          <h2>Incidents</h2>
-          <label class="history-toggle"
-            ><input type="checkbox" id="show-history" /> Show resolved</label
-          >
+          <div><h2 id="incidents-heading">Incidents</h2><p class="subtle">Review a detected signal to inspect the diagnosis, tool calls and cited evidence before deciding on recovery.</p><p class="subtle" id="incident-count" role="status">Loading incident history…</p></div>
         </div>
+        <div class="incident-filters" aria-label="Incident filters">
+          <label for="show-history">Status<select id="show-history" aria-label="Incident status"><option value="open">Open</option><option value="all">All</option><option value="resolved">Resolved</option></select></label>
+          <label for="severity-filter">Severity<select id="severity-filter" aria-label="Incident severity"><option value="all">All severities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="unknown">Unknown</option></select></label>
+          <label class="service-filter-control" for="service-filter">Service<select id="service-filter" aria-label="Incident service"><option value="all">All services</option></select></label>
+          <label class="incident-mobile-sort" for="incident-sort">Sort<select id="incident-sort" aria-label="Incident sort"><option value="opened_at:-1">Newest first</option><option value="opened_at:1">Oldest first</option><option value="severity:1">Highest severity</option><option value="severity:-1">Lowest severity</option></select></label>
+          <button id="reset-incidents" class="quiet" disabled>Reset filters</button>
+        </div>
+        <p class="incident-filter-note">Open includes needs review, queued, verifying and failed incidents. Filters apply to loaded history.</p>
         <p id="history-note" class="subtle"></p>
-        <div class="table-wrap">
-          <table>
+        <p class="incident-scroll-note" id="incident-scroll-note">Scroll horizontally for all fields. Review actions stay visible on the right.</p>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Incident list" aria-describedby="incident-scroll-note">
+          <table role="table">
+            <caption class="sr-only">Incident history with severity, signal, affected service, detection time, status and review actions</caption>
             <thead>
               <tr>
-                <th><button class="sort" data-sort="severity">Severity ↕</button></th><th>Signal / services</th><th><button class="sort" data-sort="opened_at">Detected ↕</button></th><th>Analysis</th><th>Status</th><th><span class="sr-only">Action</span></th>
+                <th scope="col"><button class="sort" data-sort="severity">Severity ↕</button></th><th scope="col">Incident / signal</th><th scope="col">Affected service</th><th scope="col" aria-sort="descending"><button class="sort" data-sort="opened_at">Detected ↕</button></th><th scope="col">Status</th><th scope="col" class="incident-action">Action</th>
               </tr>
             </thead>
             <tbody id="incident-rows"></tbody>
@@ -219,59 +220,67 @@
         >
       </footer>
     </main>
-    <dialog id="detail">
-      <div class="modal-head">
-        <span class="subtle">Incident review</span
-        ><button class="quiet" id="close" aria-label="Close incident">
-          Close ×
-        </button>
+    <dialog id="detail" aria-labelledby="detail-title" aria-describedby="review-description">
+      <div class="review-header">
+        <div class="modal-head"><div><span class="subtle">Incident investigation</span><h2 id="detail-title" tabindex="-1"></h2></div><button class="quiet" id="close" aria-label="Close incident">Close ×</button></div>
+        <p id="review-description" class="subtle">Read the diagnosis, check the evidence, then decide on recovery. Approval queues a fixed simulated action; fresh telemetry must confirm the outcome.</p>
+        <div class="review-metadata"><span id="detail-service"></span><span id="detail-severity" class="severity"></span><span class="badge" id="detail-status"></span><span>Detected <time id="detail-detected"></time></span></div>
       </div>
-      <h2 id="detail-title"></h2>
-      <p id="detail-service"></p>
-      <span class="badge" id="detail-status"></span>
-      <ol id="incident-timeline" class="timeline" aria-label="Incident timeline"></ol>
-      <div class="review-grid"><div class="review-main">
-      <h3>What happened</h3>
-      <p id="diagnosis"></p>
-      <section class="assessment">
-        <div class="section-heading">
-          <h3>Investigation</h3>
-          <button class="text-button" id="triage">Refresh diagnosis ↗</button>
+      <div id="review-request-state" class="review-request-state" role="status" hidden><p id="review-load-message"></p><button id="retry-review" class="quiet" type="button" hidden>Retry loading</button></div>
+      <nav class="investigation-nav" aria-label="Investigation views"><a class="investigation-jump" href="#diagnosis-heading">Summary</a><a class="investigation-jump" href="#agent-workflow-heading">Workflow</a><a class="investigation-jump" href="#evidence-library">Evidence</a><a class="investigation-jump" href="#tool-details">Tools</a><a class="investigation-jump" href="#recovery-heading">Recovery decision</a></nav>
+      <div class="review-grid" id="review-workspace">
+        <div class="review-main">
+          <section class="review-section" aria-labelledby="symptom-heading"><h3 id="symptom-heading">What happened</h3><p id="diagnosis"></p></section>
+          <section class="review-section assessment" aria-labelledby="diagnosis-heading">
+            <div class="section-heading"><h3 id="diagnosis-heading">Diagnosis summary</h3><button class="text-button" id="triage">Refresh diagnosis ↗</button></div>
+            <p id="diagnosis-profile" class="subtle"></p><p id="report">Collecting evidence…</p>
+          </section>
+          <section class="review-section" aria-labelledby="evidence-heading"><h3 id="evidence-heading">Evidence &amp; uncertainty</h3><div id="investigation-trace"></div></section>
         </div>
-        <p id="report">Collecting evidence…</p>
-        <details open>
-          <summary>Evidence, confidence & investigation trace</summary>
-          <div id="investigation-trace"></div>
-        </details>
-      </section>
-      <details>
-        <summary>Technical evidence & recovery script</summary>
-        <p class="subtle">
-          This script calls the fixed recovery handler. No model-generated code
-          is executed.
-        </p>
-        <pre id="script"></pre>
-        <pre id="evidence"></pre>
-      </details>
-      </div><aside class="review-approval">
-      <h3>Recommended action</h3>
-      <p id="action"></p>
-      <p id="approval-scope" class="approval-scope"></p>
-      <label class="actor" for="actor"
-        >Approving trader
-        <input id="actor" value="desk-operator" maxlength="80"
-      /></label>
-      <p class="small-note">
-        Recovery affects the simulator. A fresh healthy sample must confirm
-        success.
-      </p>
-      <button id="approve">Approve simulated recovery</button>
-      <label class="actor" for="feedback-reason">Decision reason (required to reject)
-        <input id="feedback-reason" maxlength="2000" placeholder="Why approve or revise this proposal?" />
-      </label>
-      <button id="reject" class="text-button">Reject proposal</button>
-      <p id="modal-message" role="status"></p>
-      </aside></div>
+        <aside class="review-approval" aria-labelledby="recovery-heading">
+          <div class="section-heading"><h3 id="recovery-heading">Recovery decision</h3><span class="pill">SIMULATED</span></div>
+          <h4>Recommended action</h4><p id="action"></p>
+          <p id="approval-scope" class="approval-scope"></p>
+          <p id="review-policy" class="subtle" tabindex="0" aria-describedby="help-tooltip"></p>
+          <h4 id="approval-requirement">Human approval required</h4>
+          <p class="subtle">Recovery changes simulator state. A named human decision is required by policy.</p>
+          <p class="small-note">Approval queues a fixed action; it does not guarantee success. Consecutive fresh healthy telemetry verifies recovery afterward.</p>
+          <label class="actor" for="actor">Approver<input id="actor" value="desk-operator" maxlength="80" required aria-describedby="actor-error" /></label>
+          <p id="actor-error" class="review-field-error" role="alert" hidden></p>
+          <label class="actor" for="feedback-reason">Decision reason<textarea id="feedback-reason" rows="3" maxlength="2000" placeholder="Explain your decision" aria-describedby="decision-reason-help decision-error"></textarea></label>
+          <p id="decision-reason-help" class="subtle">Required to reject. Optional when approving.</p>
+          <p id="decision-error" class="review-field-error" role="alert" hidden></p>
+          <div class="review-decision-actions"><button id="approve">Approve simulated recovery</button><button id="reject" class="quiet">Reject proposal</button></div>
+          <div id="recovery-state" class="review-recovery-state" role="status"></div>
+          <p id="modal-error" class="review-field-error" role="alert" hidden></p>
+          <p id="modal-message" role="status"></p>
+        </aside>
+        <div class="review-secondary">
+          <section class="review-section agent-workspace" aria-labelledby="agent-workflow-heading">
+            <h3 id="agent-workflow-heading">Agent investigation</h3>
+            <p class="agent-process-guide">Detect → Investigate → Validate → Human review → Recover → Verify</p>
+            <p class="subtle">The LangGraph workflow investigates with read-only tools. The steps below are recorded operations; the guide above also shows the later human decision and recovery stages.</p>
+            <div class="agent-run"><p id="agent-run-summary" class="subtle"></p><button id="copy-run-id" class="quiet" type="button" hidden>Copy run ID</button><span id="run-copy-status" class="subtle" role="status"></span></div>
+            <ol id="agent-timeline" class="agent-steps" aria-label="Recorded investigation nodes"></ol>
+            <p class="subtle">Nodes follow recorded graph order. Tool timestamps are listed separately; exact node-to-tool timing is not recorded.</p>
+          </section>
+          <section class="review-section" aria-labelledby="progress-heading"><h3 id="progress-heading">Recovery progress</h3><ol id="incident-timeline" class="timeline" aria-label="Incident timeline"></ol></section>
+          <section class="review-technical" aria-labelledby="technical-heading">
+            <h3 id="technical-heading">Investigation details</h3>
+            <details id="evidence-library"><summary>Evidence explorer <span id="evidence-count"></span></summary>
+              <div class="evidence-filters">
+                <label for="evidence-kind">Source type<select id="evidence-kind" aria-label="Evidence source type"><option value="all">All sources</option><option value="collected">Collected data</option><option value="retrieval">Runbook searches</option><option value="other">Other sources</option></select></label>
+                <label for="evidence-relation">Finding reference<select id="evidence-relation" aria-label="Evidence finding reference"><option value="all">All records</option><option value="cited">Cited by findings</option><option value="uncited">Not cited by findings</option></select></label>
+              </div>
+              <p id="evidence-filter-count" class="subtle" role="status"></p><p id="evidence-filter-empty" class="subtle" hidden>No source records match these filters.</p><div id="evidence-items"></div></details>
+            <details id="tool-details"><summary>Recorded tool calls</summary><div id="tool-trace"></div></details>
+            <details><summary>Full diagnosis report</summary><pre id="full-report"></pre></details>
+            <details id="usage-details"><summary>Model usage &amp; estimated cost</summary><div id="model-usage"></div></details>
+            <details><summary>Incident telemetry &amp; raw logs</summary><p class="subtle">Stored incident evidence. Source records above contain the investigation's sanitized query results.</p><pre id="evidence"></pre></details>
+            <details><summary>Fixed recovery script</summary><p class="subtle">This client calls the existing policy-controlled handler. No model-generated code is executed.</p><pre id="script"></pre></details>
+          </section>
+        </div>
+      </div>
     </dialog>
     <div id="help-tooltip" role="tooltip" hidden></div>
   </body>

@@ -19,7 +19,13 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from triager.agent import TriageAgent
 from triager.baseline import rules_baseline
 from triager.config import Settings
-from triager.contracts import Diagnosis, Evidence, IncidentInput, parse_diagnosis
+from triager.contracts import (
+    Diagnosis,
+    Evidence,
+    IncidentInput,
+    SearchRunbooksArgs,
+    parse_diagnosis,
+)
 from triager.db import Database
 from triager.retrieval import Knowledge
 from triager.security import redact_text
@@ -56,8 +62,11 @@ class FixtureAgent(TriageAgent):
             raise ValueError("Fixture scope mismatch")
         result = {name: (lambda data=data: data) for name, data in self.inputs["tools"].items()}
         if self.settings.retrieval_enabled:
-            result["search_runbooks"] = lambda: self.knowledge.search(
-                service, "\n".join(item["content"] for item in self.inputs["evidence"])
+            result["search_runbooks"] = lambda query: self.knowledge.search(
+                service=service,
+                query=SearchRunbooksArgs(query=query).query,
+                method="vector",
+                limit=3,
             )
         return result
 
@@ -71,6 +80,31 @@ def evidence_models(items):
     )
 
 
+def comparison_settings(settings, knowledge):
+    """Allowlisted experimental controls; the retrieval treatment flag is intentionally omitted."""
+    return {
+        "provider": settings.ai_provider,
+        "gemini_model": settings.gemini_model,
+        "openai_model": settings.openai_model,
+        "fallback_provider": settings.fallback_provider,
+        "max_rounds": settings.agent_max_rounds,
+        "max_tool_calls": settings.agent_max_tools,
+        "timeout_seconds": settings.agent_timeout_seconds,
+        "critic_enabled": settings.critic_enabled,
+        "critic_provider": settings.critic_provider,
+        "retrieval_embedding": knowledge.version,
+        "retrieval_method": "vector",
+        "retrieval_limit": 3,
+        "knowledge_sha256": hashlib.sha256(
+            Path(__file__)
+            .resolve()
+            .parents[1]
+            .joinpath("triager/knowledge/runbooks.json")
+            .read_bytes()
+        ).hexdigest(),
+    }
+
+
 def run_case(inputs, mode, settings, directory, knowledge):
     # Only inputs enter the predictor. Labels, source URLs, and family IDs stay in the scorer.
     agent = FixtureAgent(
@@ -82,7 +116,16 @@ def run_case(inputs, mode, settings, directory, knowledge):
     started = time.perf_counter()
     collected = agent.collect_context(inputs["service"])
     items = list(collected["evidence_items"])
-    metadata = {"model_calls": [], "fallback_reason": None, "tool_trace": [], "node_trace": []}
+    metadata = {
+        "model_calls": [],
+        "fallback_reason": None,
+        "tool_trace": [],
+        "node_trace": [],
+        "tool_events": [],
+        "rounds": None,
+        "tool_calls": None,
+        "provider": "offline" if mode == "rules" else None,
+    }
     if mode == "rules":
         report = rules_baseline(
             IncidentInput(service=inputs["service"], evidence=evidence_models(items))
@@ -114,6 +157,7 @@ def run_case(inputs, mode, settings, directory, knowledge):
         }
         try:
             content = agent.model_turn(state)
+            metadata["provider"] = content.get("_provider")
             if content.get("_usage"):
                 metadata["model_calls"].append(content["_usage"])
             report = parse_diagnosis(
@@ -147,6 +191,19 @@ def run_case(inputs, mode, settings, directory, knowledge):
         report = Diagnosis.model_validate(result["diagnosis"])
         items = result["evidence_items"]
         metadata = {key: result.get(key) for key in metadata}
+    retrieval_events = [
+        e for e in (metadata.get("tool_events") or []) if e["tool"] == "search_runbooks"
+    ]
+    retrieved_documents = []
+    for item in items:
+        if item["source"] == "tool:search_runbooks":
+            documents = json.loads(item["content"])
+            if isinstance(documents, list):
+                retrieved_documents.extend(
+                    d["document_id"]
+                    for d in documents
+                    if isinstance(d, dict) and isinstance(d.get("document_id"), str)
+                )
     cost = estimate_cost(metadata["model_calls"])
     if mode != "rules" and (not metadata["model_calls"] or metadata["fallback_reason"]):
         cost = None
@@ -157,6 +214,10 @@ def run_case(inputs, mode, settings, directory, knowledge):
             **metadata,
             "latency_ms": (time.perf_counter() - started) * 1000,
             "cost_estimate_usd": cost,
+            "retrieval_requested": len(retrieval_events),
+            "retrieval_executed": any(e["status"] == "ok" for e in retrieval_events),
+            "retrieved_document_ids": sorted(set(retrieved_documents)),
+            "comparison_settings": comparison_settings(settings, knowledge),
         },
     )
 
@@ -242,6 +303,9 @@ def evaluate(cases, modes, settings, *, progress=None, workers=1):
                 mode: summarize([r for r in rows if r["mode"] == mode]) for mode in modes
             },
             "rows": rows,
+            "human_validated_labels": sum(
+                (c.get("label_review") or {}).get("status") == "approved" for c in cases
+            ),
         }
     rows = []
     with tempfile.TemporaryDirectory(prefix="desk-benchmark-") as name:
@@ -269,6 +333,15 @@ def evaluate(cases, modes, settings, *, progress=None, workers=1):
                         "expected": case["expected"],
                         "prediction": report.model_dump(mode="json"),
                         "annotation_status": case["annotation_status"],
+                        "label_review": case.get("label_review"),
+                        "evidence": [
+                            {
+                                **item.model_dump(mode="json"),
+                                "evidence_id": item.evidence_id,
+                                "content_hash": item.content_hash,
+                            }
+                            for item in evidence
+                        ],
                         "severity_correct": report.severity == case["expected"]["severity"],
                         "category_correct": report.category == case["expected"]["category"],
                         "root_cause_proxy_hit": bool(terms)
@@ -287,7 +360,9 @@ def evaluate(cases, modes, settings, *, progress=None, workers=1):
     return {
         "summaries": {mode: summarize([r for r in rows if r["mode"] == mode]) for mode in modes},
         "rows": rows,
-        "human_validated_labels": 0,
+        "human_validated_labels": sum(
+            (c.get("label_review") or {}).get("status") == "approved" for c in cases
+        ),
         "root_cause_scoring": "regex proxy; requires judge and manual review for causal accuracy",
     }
 
@@ -298,6 +373,14 @@ def main():
     parser.add_argument("--modes", default="rules")
     parser.add_argument("--split", choices=["all", "dev", "test"], default="all")
     parser.add_argument("--limit", type=int)
+    parser.add_argument(
+        "--label-reviews", type=Path, help="Completed label packet; never sent to the predictor"
+    )
+    parser.add_argument(
+        "--require-reviewed-labels",
+        action="store_true",
+        help="Refuse selected cases without completed label review",
+    )
     parser.add_argument("--workers", type=int, choices=range(1, 5), default=1)
     parser.add_argument(
         "--request-interval",
@@ -329,9 +412,17 @@ def main():
     if any(mode != "rules" for mode in modes) and (not args.live or args.provider == "offline"):
         parser.error("Model comparisons require --live and a model provider")
     corpus = json.loads(CORPUS.read_text())
+    if args.label_reviews:
+        from evals.review_packets import apply_label_reviews
+
+        corpus = apply_label_reviews(corpus, json.loads(args.label_reviews.read_text()))
     cases = [c for c in corpus["cases"] if args.split == "all" or c["split"] == args.split]
     if args.limit:
         cases = cases[: args.limit]
+    if args.require_reviewed_labels and any(
+        (c.get("label_review") or {}).get("status") != "approved" for c in cases
+    ):
+        parser.error("Selected cases need completed independent label review")
     settings = Settings(
         ai_provider=args.provider, fallback_provider="offline", retrieval_enabled=False
     )
@@ -346,7 +437,31 @@ def main():
         {
             "benchmark_version": corpus["version"],
             "provider": args.provider,
-            "model": settings.openai_model if args.provider == "openai" else settings.gemini_model,
+            "model": None
+            if args.provider == "offline"
+            else settings.openai_model
+            if args.provider == "openai"
+            else settings.gemini_model,
+            "label_review_sha256": hashlib.sha256(args.label_reviews.read_bytes()).hexdigest()
+            if args.label_reviews
+            else None,
+            "run_settings": {
+                "max_rounds": settings.agent_max_rounds,
+                "max_tool_calls": settings.agent_max_tools,
+                "timeout_seconds": settings.agent_timeout_seconds,
+                "critic_enabled": settings.critic_enabled,
+                "critic_provider": settings.critic_provider,
+                "retrieval_embedding": "hash-word12-768-v1",
+                "retrieval_method": "vector",
+                "retrieval_limit": 3,
+                "knowledge_sha256": hashlib.sha256(
+                    Path(__file__)
+                    .resolve()
+                    .parents[1]
+                    .joinpath("triager/knowledge/runbooks.json")
+                    .read_bytes()
+                ).hexdigest(),
+            },
             "corpus_sha256": hashlib.sha256(CORPUS.read_bytes()).hexdigest(),
         }
     )

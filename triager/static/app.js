@@ -60,15 +60,15 @@ const money = (value) =>
   });
 const help = (value, text) =>
   `<span tabindex="0" data-help="${escape(text)}" aria-describedby="help-tooltip">${escape(value)}</span>`;
-async function api(path, body, extraHeaders = {}) {
+async function api(path, body, extraHeaders = {}, options = {}) {
   const response = await fetch(path, {
     method: body === undefined ? "GET" : "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Desk-Token": $("#token").value,
       ...extraHeaders,
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    ...(options.signal ? {signal: options.signal} : {}),
   });
   const value = await response.json();
   if (!response.ok)
@@ -80,14 +80,21 @@ async function api(path, body, extraHeaders = {}) {
   return value;
 }
 function showError(error) {
-  $("#error").textContent = error.message;
+  $("#error").textContent = ["Failed to fetch", "NetworkError when attempting to fetch resource."].includes(error.message)
+      ? "Cannot reach the desk server. Check that it is running, then reconnect in Settings."
+      : error.message;
   $("#error").classList.remove("hidden");
 }
 function updateGuide() {
+  $("#scenario-state").textContent = window.DeskInvestigation.activeFaults(state);
   ["detect", "review", "recover"].forEach((step) => {$("#step-" + step).classList.remove("active"); $("#step-"+step).removeAttribute("aria-current");});
+  if (state && state.mode !== "simulated desk") {
+    $("#scenario-hint").textContent = "Simulation controls are disabled for external telemetry.";
+    return;
+  }
   if (!activeScenario) {
     $("#scenario-hint").textContent =
-      state && Object.keys(state.faults || {}).length ? "Active simulated faults: " + Object.entries(state.faults).map(([service,kind])=>`${service}: ${names[kind] || kind}`).join(" · ") : "No active scenario. Incident history is retained across sessions.";
+      state && Object.keys(state.faults || {}).length ? "Review detected incidents below. Changing the selection does not stop an active fault." : "Select a fault and choose Run scenario, or review a retained incident below.";
     return;
   }
   $("#step-detect").classList.add("active");
@@ -120,7 +127,7 @@ function updateGuide() {
     $("#step-review").removeAttribute("aria-current");
     $("#step-recover").setAttribute("aria-current", "step");
     $("#scenario-hint").textContent =
-      "Recovered. A fresh healthy sample confirmed success.";
+      "Recovery verified by fresh healthy telemetry. The incident remains in history.";
   } else if (incident.status === "queued" || incident.status === "verifying") {
     $("#step-recover").classList.add("active");
     $("#step-review").removeAttribute("aria-current");
@@ -133,7 +140,7 @@ function updateGuide() {
     $("#scenario-hint").textContent =
       incident.action === "inspect_only"
         ? "Drift detected. Open the incident to inspect the evidence."
-        : "Incident detected. Open Review below to approve recovery.";
+        : "Incident detected. Open Review below to check the evidence and decide on recovery.";
   }
 }
 const metricSpec = {
@@ -147,26 +154,78 @@ const ageText = (at) => {
   return seconds < 60 ? `${seconds}s ago` : seconds < 3600 ? `${Math.floor(seconds / 60)}m ago` : seconds < 86400 ? `${Math.floor(seconds / 3600)}h ago` : `${Math.floor(seconds / 86400)}d ago`;
 };
 function chartSamples() {
-  return (state?.events || []).filter(e => e.service === metricSpec[$("#chart-metric").value].service);
+  const spec = metricSpec[$("#chart-metric").value];
+  return (state?.events || []).filter(e => e.service === spec.service &&
+    Number.isFinite(e[$("#chart-metric").value]) && Number.isFinite(Date.parse(e.timestamp)))
+    .sort((a,b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
 }
+let chartLayout = null;
 function renderChart() {
   const metric = $("#chart-metric").value, spec = metricSpec[metric], events = chartSamples();
-  const svg = $("#chart"), width = Math.max(240, svg.clientWidth), left = 44, right = width - 12;
-  const rawMax = Math.max(spec.unit === "bps" ? 2 : 20, ...events.map(e => e[metric])) * 1.2;
-  const step = spec.unit === "bps" ? 2 : rawMax < 200 ? 40 : rawMax < 1000 ? 200 : 2000;
-  const max = Math.ceil(rawMax/step)*step;
-  const y = v => 160 - (v / max) * 125;
-  svg.setAttribute("viewBox", `0 0 ${width} 190`);
-  svg.setAttribute("aria-label", `${spec.label} in ${spec.unit}; ${events.length} samples; auto-scaled from zero`);
-  svg.dataset.help = `${spec.label} in ${spec.unit}. Auto-scaled from zero. ${spec.threshold ? `Alert threshold ${spec.threshold} ${spec.unit}; an upward arrow means the threshold is outside the visible range.` : "No fixed numeric alert rule for this metric."}`;
-  const points = events.map((e,i) => `${left + i * (right-left) / Math.max(1,events.length-1)},${y(e[metric])}`).join(" ");
-  const ticks = [0,.25,.5,.75,1].map(f => `<line x1="${left}" y1="${y(max*f)}" x2="${right}" y2="${y(max*f)}" stroke="#30383b"/><text x="0" y="${y(max*f)+4}" fill="#aeb8bc" font-size="12">${max < 10 ? (max*f).toFixed(1) : Math.round(max*f)}</text>`).join("");
-  const thresholdY = spec.threshold ? Math.max(25, y(spec.threshold)) : 0;
-  const threshold = spec.threshold ? `<line x1="${left}" y1="${thresholdY}" x2="${right}" y2="${thresholdY}" stroke="#efbd8c" stroke-dasharray="4 5"/><text x="${right}" y="${thresholdY-8}" text-anchor="end" fill="#efbd8c" font-size="12">${spec.threshold} ${spec.unit} alert${spec.threshold > max ? " ↑ off scale" : ""}</text>` : "";
-  svg.innerHTML = `<text x="0" y="16" fill="#aeb8bc" font-size="12">${spec.unit}</text>${ticks}${threshold}<polyline points="${points}" fill="none" stroke="#b9dfc4" stroke-width="2"/>`;
-  $("#chart-start").textContent = events.length ? clock(events[0].timestamp) : "Waiting for samples";
+  const svg = $("#chart"), width = Math.max(240, svg.clientWidth), height = 224;
+  const left = 58, right = width - 16, top = 30, bottom = height - 40;
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  $("#chart-state").hidden = events.length > 0;
+  $("#chart-state").textContent = state ? "No samples for this service yet" : "Connecting to telemetry…";
+  $("#chart-context").textContent = `${spec.service} · ${events.length} accepted sample${events.length === 1 ? "" : "s"}`;
+  svg.setAttribute("aria-label", `${spec.label} in ${spec.unit}; ${events.length} samples`);
+  svg.dataset.help = events.length ? `${spec.label} in ${spec.unit}. Hover or tap for exact values. Use Left and Right arrow keys to inspect samples.` : "No telemetry samples available for the selected service.";
+  $("#chart-start").textContent = events.length ? `From ${new Date(events[0].timestamp).toLocaleString()}` : "Waiting for telemetry";
+  if (!events.length) {
+    svg.innerHTML = ""; chartLayout = null;
+    $("#chart-threshold").textContent = spec.threshold ? `Alert above ${spec.threshold} ${spec.unit}` : "No fixed alert threshold";
+    return;
+  }
+  const values = events.map(e => e[metric]);
+  const rawMax = Math.max(spec.unit === "bps" ? 1 : 10, ...values) * 1.15;
+  const rawMin = Math.min(0, ...values) * 1.15;
+  const roughStep = (rawMax - rawMin) / 4;
+  const power = 10 ** Math.floor(Math.log10(roughStep));
+  const step = [1, 2, 2.5, 5, 10].map(n => n * power).find(n => n >= roughStep);
+  const min = Math.floor(rawMin / step) * step, max = Math.ceil(rawMax / step) * step;
+  const first = Date.parse(events[0].timestamp), last = Date.parse(events.at(-1).timestamp);
+  const x = at => first === last ? (left+right)/2 : left + (Date.parse(at)-first)/(last-first)*(right-left);
+  const y = value => bottom - (value-min)/(max-min)*(bottom-top);
+  const fmt = value => Number(value.toPrecision(5)).toLocaleString(undefined,{maximumFractionDigits:4, notation: Math.abs(value)>=10000 ? "compact" : "standard"});
+  const ticks = [];
+  for (let value = min; value <= max + step/100; value += step) {
+    ticks.push(`<line x1="${left}" y1="${y(value)}" x2="${right}" y2="${y(value)}" class="chart-grid"/><text x="${left-10}" y="${y(value)+4}" text-anchor="end" class="chart-label">${fmt(value)}</text>`);
+  }
+  const timeTicks = first === last ? [first] : width < 420 ? [first,last] : [first,(first+last)/2,last];
+  const times = timeTicks.map((at,i) => `<text x="${first === last ? (left+right)/2 : left+(at-first)/(last-first)*(right-left)}" y="${bottom+25}" text-anchor="${first === last ? "middle" : i===0 ? "start" : i===timeTicks.length-1 ? "end" : "middle"}" class="chart-label">${clock(at)}</text>`).join("");
+  const thresholdVisible = spec.threshold != null && spec.threshold >= min && spec.threshold <= max;
+  const threshold = thresholdVisible ? `<line x1="${left}" y1="${y(spec.threshold)}" x2="${right}" y2="${y(spec.threshold)}" class="chart-limit"/>` : "";
+  $("#chart-threshold").textContent = spec.threshold ? `Alert > ${spec.threshold} ${spec.unit}${thresholdVisible ? " · dashed line" : " · above visible range"}` : "No fixed alert threshold";
+  const points = events.map(e => `${x(e.timestamp)},${y(e[metric])}`).join(" ");
+  svg.innerHTML = `<text x="${left}" y="17" class="chart-label">${spec.unit}</text>${ticks.join("")}${times}${threshold}<polyline points="${points}" class="chart-series"/>${events.length===1 ? `<circle cx="${x(events[0].timestamp)}" cy="${y(events[0][metric])}" r="3" class="chart-dot"/>` : ""}<g id="chart-cursor" hidden><line y1="${top}" y2="${bottom}" class="chart-crosshair"/><circle r="4" class="chart-dot"/></g>`;
+  chartLayout = {events, left, right, first, last, x, y, metric, spec, index: events.length-1};
+  // A live refresh must never leave a tooltip describing a point that has moved.
+  if (helpAnchor === svg) hideHelp();
+}
+function inspectChart(index, pointer) {
+  if (!chartLayout) return;
+  const c = chartLayout, sample = c.events[index]; c.index = index;
+  const cursor = $("#chart-cursor"), x = c.x(sample.timestamp);
+  cursor.removeAttribute("hidden");
+  cursor.querySelector("line").setAttribute("x1",x);
+  cursor.querySelector("line").setAttribute("x2",x);
+  cursor.querySelector("circle").setAttribute("cx",x);
+  cursor.querySelector("circle").setAttribute("cy",c.y(sample[c.metric]));
+  const time = new Date(sample.timestamp).toISOString();
+  showHelp($("#chart"), `${c.spec.service}\n${time}\n${c.spec.label}: ${sample[c.metric]} ${c.spec.unit}`, pointer?.clientX, pointer?.clientY);
+}
+function inspectChartPointer(event) {
+  if (!chartLayout) return;
+  const c = chartLayout, rect = $("#chart").getBoundingClientRect();
+  const at = c.first + Math.max(0,Math.min(1,(event.clientX-rect.left-c.left)/(c.right-c.left)))*(c.last-c.first);
+  const index = c.events.reduce((best,e,i) => Math.abs(Date.parse(e.timestamp)-at) < Math.abs(Date.parse(c.events[best].timestamp)-at) ? i : best,0);
+  inspectChart(index,event);
 }
 
+function setMetricState(name, label, status) {
+  const badge = $("#"+name+"-state");
+  badge.textContent = label; badge.className = "metric-state " + status;
+}
 function render(s) {
   state = s;
 
@@ -175,8 +234,9 @@ function render(s) {
     ? "var(--orange)"
     : "var(--text)";
   $("#queue-status").textContent = s.open_incident_count
-    ? "Review needed"
+    ? "Unresolved across all services"
     : "No unresolved incidents";
+  setMetricState("open", s.open_incident_count ? "Needs review" : "Clear", s.open_incident_count ? "warning" : "success");
   const gateway = s.events.filter((e) => e.service === "execution-gateway"),
     latest = gateway.at(-1);
   $("#latency").innerHTML = latest
@@ -186,7 +246,9 @@ function render(s) {
     ? "No gateway samples"
     : s.service_age_seconds["execution-gateway"] > s.tick_gap_seconds
       ? "Last known sample · feed stale"
-      : "Latest gateway sample";
+      : "Latest gateway sample · alert above 350 ms";
+  const gatewayStale = s.service_age_seconds["execution-gateway"] == null || s.service_age_seconds["execution-gateway"] > s.tick_gap_seconds;
+  setMetricState("latency", !latest ? "No samples" : gatewayStale ? "Stale sample" : latest.fill_latency_ms > 350 ? "Above threshold" : "Within threshold", !latest ? "waiting" : gatewayStale || latest.fill_latency_ms > 350 ? "warning" : "success");
   const difference = s.balances.reduce(
     (sum, b) => sum + Number(b.difference),
     0,
@@ -202,34 +264,37 @@ function render(s) {
     ? "No ledger accounts"
     : mismatch
       ? "Reconciliation needed"
-      : "Ledger matches exchange";
-  const degraded = Object.keys(s.errors).length;
+      : "Local ledger minus exchange · USD";
+  setMetricState("nav", !s.balances.length ? "No accounts" : mismatch ? "Reconcile" : "Aligned", !s.balances.length ? "waiting" : mismatch ? "warning" : "success");
+  const degraded = Object.keys(s.errors).length || ["market-feed", "execution-gateway", "portfolio-ledger"].some(service => s.service_age_seconds[service] == null || s.service_age_seconds[service] > s.tick_gap_seconds);
   $("#session").textContent = degraded
     ? "Needs attention"
-    : s.mode === "simulated desk"
-      ? "Monitoring"
-      : "Monitoring";
+    : s.last_ingest ? "Monitoring" : "Waiting for telemetry";
+  $("#service-context").textContent = "Telemetry freshness & open signals";
+  $("#analysis-mode").textContent = "Configured analysis: " + window.DeskInvestigation.configuredProvider(s.ai_provider);
   $("#global-mode").textContent = s.mode === "simulated desk" ? "SIMULATED" : "EXTERNAL TELEMETRY";
   $("#sample-age").textContent = s.last_ingest ? "Last sample " + ageText(s.last_ingest) : "No samples yet";
-  $("#session").style.color = degraded ? "var(--orange)" : "var(--green)";
+  $("#session").style.color = degraded ? "var(--orange)" : s.last_ingest ? "var(--green)" : "var(--muted)";
   $("#updated").textContent = s.last_ingest
     ? "Updated " + clock(s.last_ingest)
     : "Waiting for telemetry";
   $("#infrastructure").textContent =
-    `${s.database === "postgresql" ? "PostgreSQL" : "Local SQLite"} · ${s.ai_provider === "gemini" ? "Gemini REST" : "Offline triage"} · Direct Python ingestion`;
-  if (degraded)
+    `${s.database === "postgresql" ? "PostgreSQL" : "Local SQLite"} · ${window.DeskInvestigation.configuredProvider(s.ai_provider)} · Direct Python ingestion`;
+  if (Object.keys(s.errors).length)
     showError(
       Error("A background worker needs attention: " + JSON.stringify(s.errors)),
     );
-  for (const [service, age] of Object.entries(s.service_age_seconds)) {
+  for (const service of ["market-feed", "execution-gateway", "portfolio-ledger"]) {
+    const age = s.service_age_seconds[service];
     const node = $("#service-" + service),
       count = s.open_incidents_by_service[service] || 0,
-      stale = age > s.tick_gap_seconds;
-    const status = count ? "Review" : stale ? "Stale" : "Healthy";
-    node.className = "service" + (count || stale ? " attention" : "");
-    node.textContent = service;
+      stale = age > s.tick_gap_seconds,
+      hasSample = s.events.some(e => e.service === service);
+    const status = count ? "Review" : !hasSample || age == null ? "Waiting" : stale ? "Stale" : "Healthy";
+    node.className = "service" + (count || stale ? " attention" : !hasSample || age == null ? " waiting" : "");
+    node.innerHTML = `<span class="service-name">${escape(service)}</span><span class="service-status">${status === "Review" ? "Needs review" : status}</span><span class="service-meta">${hasSample && age != null ? `Last sample ${age.toFixed(1)}s ago` : "No recent samples"} · ${count} open</span>`;
     node.setAttribute("aria-label", `${service}: ${status}`);
-    node.dataset.help = `${service}: ${status.toLowerCase()}. Last accepted sample arrived ${age.toFixed(1)} seconds ago. Silence beyond ${s.tick_gap_seconds} seconds triggers a feed-gap incident. ${count} unresolved incident(s). A service can receive telemetry while its values are anomalous.`;
+    node.dataset.help = `${service}: ${status.toLowerCase()}. ${hasSample && age != null ? `Last accepted sample arrived ${age.toFixed(1)} seconds ago.` : "No recent telemetry samples available."} Silence beyond ${s.tick_gap_seconds} seconds triggers a feed-gap incident. ${count} unresolved incident(s). A service can receive telemetry while its values are anomalous.`;
   }
   renderIncidents();
   renderChart();
@@ -250,7 +315,8 @@ function render(s) {
         }).catch(showError);
       }
       if (current.report && !busy && current.report !== selected.report) {
-        $("#report").textContent = current.report;
+        $("#report").textContent = "The diagnosis changed. Reopen this incident to review the latest evidence and proposal.";
+        $("#full-report").textContent = current.report;
         if (selected.approval) selected.approval.status = "superseded";
         $("#modal-message").textContent = "Diagnosis changed. Reopen this incident to review the updated proposal.";
       }
@@ -260,36 +326,88 @@ function render(s) {
 }
 let incidentSort = {key: "opened_at", direction: -1};
 const openCorrelations = new Set();
+function filterIncidents(incidents, filters, sort) {
+  const severity = {critical:0, high:1, medium:2, low:3, unknown:4};
+  return incidents.filter(i =>
+    (filters.status === "all" || (filters.status === "resolved" ? i.status === "resolved" : i.status !== "resolved")) &&
+    (filters.severity === "all" || (i.severity || "unknown") === filters.severity) &&
+    (filters.service === "all" || i.service === filters.service)
+  ).sort((a,b) => {
+    if (sort.key !== "severity") return sort.direction * a.opened_at.localeCompare(b.opened_at);
+    const left = severity[a.severity] ?? 4, right = severity[b.severity] ?? 4;
+    if (left === 4 || right === 4) return left === right ? 0 : left === 4 ? 1 : -1;
+    return sort.direction * (left-right);
+  });
+}
+function incidentAction(incident) {
+  return ["open", "failed"].includes(incident.status) ? "Review" : "View details";
+}
 function incidentRow(i) {
-  const source = i.analysis_source ? (i.analysis_source === "offline" ? "Offline analysis" : i.analysis_source === "gemini" ? "Gemini" : i.analysis_source) : "Pending";
-  return `<tr class="incident-row" tabindex="0" data-id="${escape(i.id)}" aria-label="Review ${escape(i.signal || names[i.kind] || i.kind)} on ${escape(i.service)}">
-  <td><span class="severity ${escape(i.severity || "unknown")}">${escape(i.severity || "unknown")}</span></td>
-  <td>${escape(i.signal || names[i.kind] || i.kind)}<small>${escape(i.service)}</small></td>
-  <td><time datetime="${escape(i.opened_at)}" title="${escape(new Date(i.opened_at).toLocaleString())}">${clock(i.opened_at)}</time><small>${ageText(i.opened_at)}</small></td>
-  <td><div class="analysis-summary" title="${escape(i.summary)}">${escape(i.summary)}</div><span class="source-badge">${escape(source)}</span> ${i.abstained ? '<span class="source-badge">Insufficient evidence</span>' : ""}${i.fallback_reason ? ' <span class="source-badge">Fallback</span>' : ""}</td>
-  <td><span class="badge ${escape(i.status)}">${escape(statusLabels[i.status] || i.status)}</span></td>
-  <td><button class="inspect" data-id="${escape(i.id)}">${i.status === "open" ? "Review" : "View"}</button></td></tr>`;
+  const source = i.analysis_source ? (i.analysis_source === "offline" ? "Offline analysis" : i.analysis_source === "gemini" ? "Gemini" : i.analysis_source) : "Analysis pending";
+  const signal = i.signal || names[i.kind] || i.kind;
+  const exactTime = new Date(i.opened_at).toLocaleString();
+  const action = incidentAction(i);
+  const statusHints = {open:"Awaiting incident review", queued:"Recovery queued; not executed yet", verifying:"Handler ran; healthy telemetry must confirm recovery", resolved:"Recovery confirmed by fresh telemetry", failed:"Recovery failed or needs further attention"};
+  return `<tr role="row" class="incident-row" tabindex="0" data-id="${escape(i.id)}" aria-label="${action} ${escape(signal)} on ${escape(i.service)}">
+  <td role="cell" class="severity-cell"><span class="severity ${escape(i.severity || "unknown")}">${escape(i.severity || "unknown")}</span></td>
+  <td role="cell" class="signal-cell"><strong class="incident-name">${escape(signal)}</strong><div class="analysis-summary" title="${escape(i.summary || "Awaiting diagnosis")}">${escape(i.summary || "Awaiting diagnosis")}</div><span class="source-badge">${escape(source)}</span> ${i.abstained ? '<span class="source-badge">Insufficient evidence</span>' : ""}${i.fallback_reason ? ' <span class="source-badge">Fallback</span>' : ""}</td>
+  <td role="cell" class="service-cell"><span class="mobile-cell-label">Service · </span><span>${escape(i.service)}</span></td>
+  <td role="cell" class="detected-cell"><span class="mobile-cell-label">Detected </span><time tabindex="0" datetime="${escape(i.opened_at)}" data-help="${escape(exactTime + " (browser local time) · " + i.opened_at)}" aria-describedby="help-tooltip" title="${escape(exactTime)}">${ageText(i.opened_at)}</time><small>${escape(new Date(i.opened_at).toLocaleDateString(undefined,{month:"short",day:"numeric"}))} · ${clock(i.opened_at)}</small></td>
+  <td role="cell" class="status-cell"><span class="badge ${escape(i.status)}" tabindex="0" data-help="${escape(statusHints[i.status] || i.status)}" aria-describedby="help-tooltip">${escape(statusLabels[i.status] || i.status)}</span></td>
+  <td role="cell" class="incident-action"><button class="inspect ${action === "Review" ? "review-action" : ""}" data-id="${escape(i.id)}" aria-label="${action} ${escape(signal)} on ${escape(i.service)}">${action}</button></td></tr>`;
+}
+function incidentEmptyState(filters, loadedCount, openCount) {
+  const narrowed = filters.severity !== "all" || filters.service !== "all";
+  if (narrowed) return ["No incidents match these filters", "Choose another severity or service, or reset the filters to see open incidents."];
+  if (filters.status === "resolved") return ["No resolved incidents in loaded history", "Resolved incidents will appear here after recovery has been verified."];
+  if (filters.status === "all") return ["No incidents in loaded history", "Detected signals will appear here with their service, status and review action."];
+  if (openCount > 0) return ["No open incidents in loaded history", `${openCount} unresolved incident(s) reported across the desk. Filters apply only to the ${loadedCount} incidents in this snapshot.`];
+  return ["No incidents require attention", "There are no unresolved incidents across the desk. New signals will appear here for review."];
+}
+function resetIncidentFilters() {
+  $("#show-history").value = "open";
+  $("#severity-filter").value = "all";
+  $("#service-filter").value = "all";
+  renderIncidents();
 }
 function renderIncidents() {
   if (!state) return;
-  const severity = {critical:0, high:1, medium:2, low:3, unknown:4};
-  const rows = state.incidents.filter(i => $("#show-history").checked || i.status !== "resolved").sort((a,b) => incidentSort.direction * (incidentSort.key === "severity" ? (severity[a.severity] ?? 4) - (severity[b.severity] ?? 4) : a.opened_at.localeCompare(b.opened_at)));
+  const serviceSelect = $("#service-filter");
+  const services = [...new Set([...Object.keys(state.service_age_seconds || {}), ...state.incidents.map(i=>i.service), ...(serviceSelect.value !== "all" ? [serviceSelect.value] : [])])].sort();
+  const options = '<option value="all">All services</option>' + services.map(service=>`<option value="${escape(service)}">${escape(service)}</option>`).join("");
+  if (serviceSelect.dataset.options !== options) {
+    const value = serviceSelect.value;
+    serviceSelect.innerHTML = options; serviceSelect.value = value || "all";
+    serviceSelect.dataset.options = options;
+  }
+  $("#incident-sort").value = incidentSort.key + ":" + incidentSort.direction;
+  const filters = {status: $("#show-history").value, severity: $("#severity-filter").value, service: serviceSelect.value};
+  const rows = filterIncidents(state.incidents, filters, incidentSort);
+  $("#incident-count").textContent = `${rows.length} of ${state.incidents.length} loaded incidents`;
+  $("#reset-incidents").disabled = filters.status === "open" && filters.severity === "all" && filters.service === "all";
   const earlier = rows.filter(i => i.opened_at < state.started_at).length;
-  $("#history-note").textContent = earlier ? `${earlier} shown incident(s) retained from earlier sessions. No history is deleted when the server restarts.` : "";
+  $("#history-note").textContent = earlier ? `${earlier} shown incident(s) retained from earlier sessions.` : "";
   const focused = document.activeElement;
   const focusId = focused?.closest("[data-id]")?.dataset.id;
   const focusWasButton = focused?.tagName === "BUTTON";
+  const focusWasTime = focused?.tagName === "TIME";
+  const focusWasBadge = focused?.classList?.contains("badge");
   const shown = new Set();
   $("#incident-rows").innerHTML = rows.map(i => {
-    if (!i.correlation) return incidentRow(i);
-    const group = i.correlation;
-    if (shown.has(group.id)) return "";
-    shown.add(group.id);
-    return `<tr class="correlation"><td colspan="6"><details data-correlation="${escape(group.id)}" ${openCorrelations.has(group.id) ? "open" : ""}><summary>Telemetry interruption · ${group.impacted_services.length} impacted services</summary><p>${escape(group.basis)}. Historical incidents remain until reviewed; approval is per service.</p><ul>${rows.filter(r=>r.correlation?.id===group.id).map(r=>`<li>${escape(r.service)} · ${escape(statusLabels[r.status])} <button class="inspect" data-id="${escape(r.id)}">Review service</button></li>`).join("")}</ul></details><small>${group.impacted_services.map(escape).join(" · ")} · Detected ${ageText(i.opened_at)}</small></td></tr>`;
-  }).join("") || `<tr><td class="empty" colspan="6"><strong>No open incidents ✓</strong>Last checked ${clock(new Date().toISOString())}</td></tr>`;
+    let context = "";
+    if (i.correlation && !shown.has(i.correlation.id)) {
+      const group = i.correlation;
+      shown.add(group.id);
+      context = `<tr class="correlation"><td colspan="6"><details data-correlation="${escape(group.id)}" ${openCorrelations.has(group.id) ? "open" : ""}><summary>Related telemetry interruption · ${group.impacted_services.length} impacted services</summary><p>${escape(group.basis)}. Common cause is unconfirmed; review and approval remain per service. Filters may show only part of this group.</p><small>${group.impacted_services.map(escape).join(" · ")}</small></details></td></tr>`;
+    }
+    return context + incidentRow(i);
+  }).join("") || (() => {
+    const [title, description] = incidentEmptyState(filters, state.incidents.length, state.open_incident_count);
+    return `<tr class="empty-row" role="row"><td role="cell" class="empty" colspan="6"><strong>${escape(title)}</strong><p>${escape(description)}</p><small>Last checked ${clock(new Date().toISOString())} · Browser local time</small></td></tr>`;
+  })();
   if (focusId) {
     const row=[...$("#incident-rows").querySelectorAll("tr[data-id]")].find(r=>r.dataset.id===focusId);
-    (focusWasButton ? row?.querySelector("button") : row)?.focus({preventScroll:true});
+    (focusWasButton ? row?.querySelector("button") : focusWasTime ? row?.querySelector("time") : focusWasBadge ? row?.querySelector(".badge") : row)?.focus({preventScroll:true});
   }
 }
 
@@ -315,9 +433,17 @@ function renderSupporting(s) {
     '<p class="subtle">Detection and recovery activity will appear here.</p>';
 }
 function updateApproval() {
-  if (selected.status === "resolved") $("#modal-message").textContent = "Recovery verified by fresh healthy telemetry. The incident is resolved.";
-  else if (selected.status === "verifying") $("#modal-message").textContent = "The fixed handler ran. Checking consecutive fresh healthy samples…";
-  else if (selected.status === "failed") $("#modal-message").textContent = "Recovery needs attention. Check the worker result and verification history.";
+  const [title,description,tone] = recoveryPresentation(selected);
+  const presentation = JSON.stringify([title,description,tone]);
+  if ($("#recovery-state").dataset.presentation !== presentation) {
+    $("#recovery-state").className = "review-recovery-state " + tone;
+    $("#recovery-state").replaceChildren();
+    const statusTitle = document.createElement("strong"); statusTitle.textContent = title;
+    const statusText = document.createElement("p"); statusText.textContent = description;
+    $("#recovery-state").append(statusTitle,statusText);
+    $("#recovery-state").dataset.presentation = presentation;
+  }
+  $("#approval-requirement").textContent = selected.status === "open" && selected.approval?.status === "pending" ? selected.action === "inspect_only" ? "Human review required" : "Human approval required" : ["approved", "rejected"].includes(selected.approval?.status) ? "Decision recorded" : "Proposal review";
   $("#detail-status").textContent = statusLabels[selected.status] || selected.status;
   $("#detail-status").className = "badge " + selected.status;
   $("#approve").disabled =
@@ -344,7 +470,21 @@ async function refresh() {
     render(s);
   } catch (e) {
     showError(e);
+    $("#incident-count").textContent = state ? "Connection lost · showing last received incident history" : "Waiting for server connection to load incident history";
+    if (!state) $("#infrastructure").textContent = "Connection required to read server configuration.";
+    $("#sample-age").textContent = state?.last_ingest ? "Last received sample " + ageText(state.last_ingest) : "No samples received";
+    $("#service-context").textContent = "Last received health · connection unavailable";
     $("#session").textContent = "Disconnected";
+    $("#session").style.color = "var(--error)";
+    $("#inject").disabled = true;
+    if (!state) {
+      $("#global-mode").textContent = "ENV UNKNOWN";
+      $("#analysis-mode").textContent = "Analysis: not connected";
+    } else $("#analysis-mode").textContent = "Last configured analysis: " + window.DeskInvestigation.configuredProvider(state.ai_provider);
+    $("#scenario-state").textContent = "Connection unavailable. Active faults cannot be confirmed; check Settings.";
+    $("#scenario-hint").textContent = "Run scenario is disabled until the connection is restored.";
+    $("#chart-context").textContent = state ? "Connection lost · showing last received telemetry" : "Telemetry unavailable · check Settings";
+    if (!state) $("#chart-state").textContent = "Waiting for server connection to load telemetry";
   }
 }
 function renderTimeline(incident) {
@@ -355,104 +495,275 @@ function renderTimeline(incident) {
   }).join("");
 }
 
-function renderInvestigation(data) {
-  const host = $("#investigation-trace");
-  host.replaceChildren();
-  const line = (text) => {
-    const p = document.createElement("p");
-    p.textContent = text;
-    host.append(p);
-  };
-  if (!data) { line("No completed investigation yet."); return; }
-  const diagnosis = data.diagnosis || {};
-  line(`${data.provider || "unknown"} · ${diagnosis.abstained ? "Insufficient evidence" : `Confidence ${Math.round((diagnosis.confidence || 0) * 100)}% (uncalibrated)`}`);
-  line(`Causal support: ${data.verification?.semantic_support || "not independently assessed"}`);
-  for (const hypothesis of diagnosis.hypotheses || []) {
-    const claim=document.createElement("p");
-    claim.append(document.createTextNode(hypothesis.cause + " "));
-    for (const id of hypothesis.evidence_ids || []) {
-      const link=document.createElement("a"); link.className="evidence-link";
-      link.href="#evidence-"+id; link.textContent="[source "+id.slice(0,8)+"…] "; claim.append(link);
-    }
-    host.append(claim);
-  }
-  if (data.fallback_reason) line(`Provider fallback: ${data.fallback_reason}`);
-  line(`Budget: ${data.rounds ?? "—"}/${data.budget?.rounds ?? "—"} reasoning rounds · ${data.tool_calls ?? "—"}/${data.budget?.tools ?? "—"} tool calls`);
-  for (const issue of data.verification?.issues || []) line(`Unsupported claim flagged: ${issue}`);
-  for (const tool of data.tool_events || []) {
-    const details=document.createElement("details"); details.className="tool-record";
-    const summary=document.createElement("summary");
-    summary.textContent=`${tool.tool} ${JSON.stringify(tool.arguments)} · ${tool.status} · ${Math.round(tool.latency_ms)} ms`;
-    const pre=document.createElement("pre"); pre.textContent=tool.result_summary + (tool.summary_truncated?" … (truncated)":"");
-    details.append(summary,pre);
-    const links = document.createElement("p");
-    for (const id of tool.evidence_ids || []) {
-      const link = document.createElement("a"); link.className="evidence-link";
-      link.href="#evidence-"+id; link.textContent="Evidence "+id.slice(0,8)+"… "; links.append(link);
-    }
-    details.append(links); host.append(details);
-  }
-  const calls = data.model_calls || [];
-  line(`Tokens: ${calls.reduce((n, c) => n + (c.input_tokens || 0), 0)} input / ${calls.reduce((n, c) => n + (c.output_tokens || 0), 0)} output. Estimated cost: ${data.estimated_cost_usd == null ? "unavailable" : "$" + data.estimated_cost_usd.toFixed(5)}`);
-  for (const node of data.node_trace || []) line(`${node.node}: ${Math.round(node.latency_ms)} ms`);
-  const library=document.createElement("details");
-  const libraryTitle=document.createElement("summary"); libraryTitle.textContent=`Evidence library · ${(data.evidence_items || []).length} sources`;
-  library.append(libraryTitle); host.append(library);
-  for (const item of data.evidence_items || []) {
-    const details = document.createElement("details");
-    const summary = document.createElement("summary");
-    summary.textContent = `${item.source} · ${item.evidence_id.slice(0, 12)}…`;
-    details.id = "evidence-" + item.evidence_id;
-    summary.title = item.evidence_id;
-    const pre = document.createElement("pre");
-    pre.textContent = item.content;
-    details.append(summary, pre);
-    library.append(details);
-  }
-}
-async function inspect(id) {
-  try {
-    selected = await api("/api/incidents/" + id);
-    renderInvestigation(selected.investigation);
-    $("#detail-title").textContent = names[selected.kind] || selected.kind;
-    $("#detail-service").textContent = selected.service;
+function renderReviewMetadata() {
     $("#diagnosis").textContent = selected.diagnosis;
     $("#action").textContent = actions[selected.action] || selected.action;
     const balance = selected.approval?.payload?.balance;
     const balanceChange = balance ? ` Local NAV $${money(balance.local)} → simulated exchange NAV $${money(balance.exchange)}.` : "";
-    $("#approval-scope").textContent = `SIMULATED ONLY · ${selected.service}: ${actions[selected.action] || selected.action} This queues the fixed handler for this service; consecutive fresh healthy samples must confirm recovery. No real exchange action is sent.${balanceChange}`;
+    $("#approval-scope").textContent = `SIMULATED ONLY · ${selected.service}. Fixed handler; no real exchange action.${balanceChange}`;
+
+  $("#detail-title").textContent = selected.signal || names[selected.kind] || selected.kind;
+  $("#detail-service").textContent = selected.service;
+  const severity = selected.investigation?.diagnosis?.severity || selected.severity || "unknown";
+  $("#detail-severity").textContent = severity;
+  $("#detail-severity").className = "severity " + severity;
+  $("#detail-detected").textContent = new Date(selected.opened_at).toLocaleString();
+  $("#detail-detected").dateTime = selected.opened_at;
+  $("#review-policy").textContent = selected.policy ? `Policy ${selected.policy.policy_version || "—"} · ${selected.policy.disposition.replaceAll("_", " ")}` : "Server policy validation required";
+  $("#review-policy").title = selected.policy?.reason || "The server validates the action, incident scope and bound proposal before queuing recovery.";
+  $("#review-policy").dataset.help = $("#review-policy").title;
+}
+function renderDiagnosisSummary(incident) {
+  const diagnosis = incident.investigation?.diagnosis;
+  $("#diagnosis-profile").textContent = `${window.DeskInvestigation.providerLabel(incident.investigation)} · Predicted ${diagnosis?.severity ?? "not recorded"} / ${diagnosis?.category ?? "not recorded"}`;
+  $("#full-report").textContent = incident.report || "No completed diagnosis report available.";
+  $("#report").textContent = diagnosis?.abstained ? "The investigation abstained because the available evidence is insufficient. Review the missing information below." : diagnosis?.hypotheses?.length ? diagnosis.hypotheses.map(h=>h.cause).join("\n\n") : incident.report || "The investigation is collecting evidence. Refresh the diagnosis when more telemetry is available.";
+}
+function renderAgentTimeline(data) {
+  const host = $("#agent-timeline"); host.replaceChildren();
+  const nodes = window.DeskInvestigation.trace(data);
+  $("#agent-run-summary").textContent = nodes.length ? `${nodes.length} recorded graph operations · ${data.workflow || "workflow version not recorded"}${data.run_id ? " · Run " + window.DeskInvestigation.shortRunId(data.run_id) : ""}` : "No node trace recorded for this investigation. No execution stages are inferred.";
+  const copy = $("#copy-run-id");
+  copy.hidden = !data?.run_id; copy.dataset.runId = data?.run_id || "";
+  copy.title = data?.run_id || "";
+  $("#agent-run-summary").title = data?.run_id || "";
+  $("#run-copy-status").textContent = "";
+  for (const node of nodes) {
+    const li=document.createElement("li"), details=document.createElement("details"), summary=document.createElement("summary");
+    const name=document.createElement("span"); name.className="agent-node-name"; name.textContent=node.name;
+    const meta=document.createElement("span"); meta.className="agent-node-meta"; meta.textContent=`${node.status} · ${node.duration}`;
+    summary.append(name,meta); details.append(summary);
+    const explanation=document.createElement("p"); explanation.textContent=node.explanation; details.append(explanation);
+    const metrics=document.createElement("pre"); metrics.textContent=JSON.stringify({node:node.node,...node.metrics},null,2); details.append(metrics);
+    if (["collect_context","tools","verify"].includes(node.node)) {
+      const link=document.createElement("a"); link.className="investigation-jump";
+      link.href=node.node === "verify" ? "#investigation-trace" : "#tool-details";
+      link.textContent=node.node === "verify" ? "Review evidence and uncertainty" : "Inspect recorded tool calls";
+      details.append(link);
+    }
+    const marker=document.createElement("span"); marker.className="agent-step-marker"; marker.setAttribute("aria-hidden","true"); marker.textContent=String(node.index+1); li.append(marker);
+    li.dataset.assessment = node.node === "critic" && node.status !== "Assessment recorded" ? "none" : "recorded";
+    li.append(details); host.append(li);
+  }
+}
+function filterEvidence() {
+  const kind=$("#evidence-kind").value, relation=$("#evidence-relation").value;
+  const records=[...document.querySelectorAll("#evidence-items > details")];
+  let shown=0;
+  for (const record of records) {
+    record.hidden = (kind !== "all" && kind !== record.dataset.kind) || (relation === "cited" && record.dataset.cited !== "yes") || (relation === "uncited" && record.dataset.cited !== "no");
+    if (!record.hidden) shown++;
+  }
+  const count=`${shown} of ${records.length} recorded sources`;
+  if ($("#evidence-filter-count").textContent !== count) $("#evidence-filter-count").textContent=count;
+  $("#evidence-filter-empty").hidden=shown>0;
+}
+function renderInvestigation(data) {
+  const host = $("#investigation-trace"), tools = $("#tool-trace"), usage = $("#model-usage"), library = $("#evidence-items");
+  [host,tools,usage,library].forEach(node => node.replaceChildren());
+  const line = (parent,text,className) => {
+    const p = document.createElement("p"); p.textContent = text;
+    if (className) p.className = className;
+    parent.append(p); return p;
+  };
+  const items = data?.evidence_items || [];
+  renderAgentTimeline(data);
+  $("#evidence-kind").value = "all"; $("#evidence-relation").value = "all";
+  $("#evidence-count").textContent = `· ${items.length} sources`;
+  if (!data) {
+    line(host,"No completed investigation yet. Review the observed symptom above while evidence is collected.");
+    [tools,usage,library].forEach(node=>line(node,"No records available yet."));
+    filterEvidence();
+    return;
+  }
+  const diagnosis = data.diagnosis || {};
+  const provider = window.DeskInvestigation.providerLabel(data);
+  const confidence = Number.isFinite(diagnosis.confidence) ? `${data.provider === "offline" ? "Rule confidence" : "Reported confidence"} ${Math.round(diagnosis.confidence*100)}% · uncalibrated, not measured accuracy` : "Confidence not reported";
+  line(host,`${provider} · ${diagnosis.abstained ? "Insufficient evidence" : confidence}`,"review-analysis-source");
+  const support = data.verification?.semantic_support;
+  line(host, support === "model_critic_assessed" ? "Causal support assessed by a model critic; this is not a correctness guarantee." : support === "critic_unavailable" ? "The causal critic was unavailable. Causal support remains unverified." : "Causal support has not been independently assessed.","review-uncertainty");
+  const evidenceLink = (parent,id) => {
+    const index = items.findIndex(item=>item.evidence_id===id);
+    if (index<0) {const note=document.createElement("span"); note.textContent=`Unavailable source: ${id}`; note.className="review-uncertainty"; parent.append(note); return;}
+    const link = document.createElement("a"); link.className = "evidence-link";
+    link.href = "#evidence-"+id; link.textContent = `Source ${index+1}`; link.title = items[index].source + " · " + id;
+    parent.append(link,document.createTextNode(" "));
+  };
+  for (const [index,hypothesis] of (diagnosis.hypotheses || []).entries()) {
+    const claim = document.createElement("div"); claim.className = "review-claim";
+    line(claim,`Evidence for finding ${index+1}`,"review-evidence-caption");
+    const links = document.createElement("p");
+    for (const id of hypothesis.evidence_ids || []) evidenceLink(links,id);
+    claim.append(links);
+    for (const quote of hypothesis.supporting_quotes || []) {
+      const block = document.createElement("blockquote"); block.textContent = quote.quote;
+      if (quote.quote.length > 120) {
+        const expanded = document.createElement("details"), title = document.createElement("summary");
+        title.textContent = `Supporting quote · ${quote.quote.length} characters`; expanded.append(title,block); claim.append(expanded);
+      } else claim.append(block);
+    }
+    host.append(claim);
+  }
+  for (const missing of diagnosis.missing_information || []) line(host,`Missing information: ${missing}`,"review-uncertainty");
+  for (const issue of data.verification?.issues || []) line(host,`Unsupported claim flagged: ${issue}`,"review-uncertainty");
+  if (data.fallback_reason) line(host,`This diagnosis used a fallback result. ${data.provider === "offline" ? "Offline rules produced this result." : "The recorded provider above produced this result."} Fallback reason: ${data.fallback_reason}${data.fallback_http_status ? " · HTTP " + data.fallback_http_status : ""}`,"review-uncertainty");
+  line(tools,`Budget used: ${data.rounds ?? "—"}/${data.budget?.rounds ?? "—"} reasoning rounds · ${data.tool_calls ?? "—"}/${data.budget?.tools ?? "—"} tool calls`);
+  if (!(data.tool_events || []).length) line(tools,(data.tool_trace || []).length ? "Detailed tool-event records are not available." : "No tool invocations recorded.");
+  for (const tool of data.tool_events || []) {
+    const details = document.createElement("details"); details.className = "tool-record"; details.dataset.status = tool.status || "unknown";
+    const summary = document.createElement("summary"); summary.textContent = `${tool.tool} · ${tool.status || "Outcome not recorded"} · ${window.DeskInvestigation.duration(tool.latency_ms)}`;
+    const pre = document.createElement("pre"); pre.textContent = `Arguments\n${tool.arguments == null ? "Not recorded" : JSON.stringify(tool.arguments,null,2)}\n\nResult summary\n${tool.result_summary ?? "Not recorded"}${tool.summary_truncated ? " … (truncated)" : ""}`;
+    details.append(summary);
+    line(details,window.DeskInvestigation.toolSource(tool));
+    if (tool.at) line(details,`Recorded ${new Date(tool.at).toLocaleString()} · ${tool.at}`,"subtle");
+    if (tool.scope?.service) line(details,`Scope: ${tool.scope.service}`);
+    details.append(pre);
+    const links = document.createElement("p");
+    for (const id of tool.evidence_ids || []) evidenceLink(links,id);
+    details.append(links); tools.append(details);
+  }
+  if (!(data.tool_events || []).length && (data.tool_trace || []).length) {
+    for (const name of data.tool_trace) line(tools,`${name} · Recorded name only; source, duration and outcome are not available.`);
+  }
+  const calls = data.model_calls || [];
+  if (!calls.length) line(usage,"No model-call usage records available for this investigation.");
+  else {
+    const tokens = key => calls.every(c=>Number.isFinite(c[key])) ? calls.reduce((n,c)=>n+c[key],0).toLocaleString() : "not fully reported";
+    line(usage,`Tokens: ${tokens("input_tokens")} input / ${tokens("output_tokens")} output.`);
+  }
+  line(usage,`Estimated cost: ${data.estimated_cost_usd == null ? "unavailable" : "$"+data.estimated_cost_usd.toFixed(5)}`);
+  for (const call of calls) {
+    const pre = document.createElement("pre"); pre.textContent = JSON.stringify(window.DeskInvestigation.usage(call),null,2); usage.append(pre);
+  }
+  if (!items.length) line(library,"No source records available.");
+  for (const [index,item] of items.entries()) {
+    const details = document.createElement("details"); details.id = "evidence-"+item.evidence_id;
+    const type = window.DeskInvestigation.evidenceType(item), related = window.DeskInvestigation.relatedFindings(item,data);
+    details.dataset.kind = type.kind; details.dataset.cited = related.length ? "yes" : "no";
+    const summary = document.createElement("summary"); summary.textContent = `Source ${index+1} · ${type.label}`;
+    const pre = document.createElement("pre"); pre.textContent = item.content;
+    details.append(summary);
+    line(details,`Source: ${item.source}`);
+    line(details,`Evidence ID: ${item.evidence_id}`,"review-evidence-id");
+    if (item.observed_at) line(details,`Observed ${new Date(item.observed_at).toLocaleString()} · ${item.observed_at}`,"subtle");
+    if (related.length) for (const {hypothesis,index: findingIndex} of related) line(details,`Finding ${findingIndex+1}: ${hypothesis.cause}`);
+    else line(details,"Not cited by the final findings; collection or retrieval does not prove relevance.","subtle");
+    for (const doc of type.documents) {
+      const record = document.createElement("details"), title = document.createElement("summary"); title.textContent = doc.title || doc.document_id;
+      record.append(title);
+      line(record,`Reference: ${doc.source || "not recorded"} · Document ${doc.document_id} · Version ${doc.version ?? "not recorded"}`);
+      if (Number.isFinite(doc.score)) line(record,`Recorded retrieval similarity: ${doc.score} (not diagnosis accuracy)`,"subtle");
+      if (doc.embedding_version) line(record,`Embedding version: ${doc.embedding_version}`,"subtle");
+      const excerpt = document.createElement("pre"); excerpt.textContent = doc.content; record.append(excerpt); details.append(record);
+    }
+    details.append(pre); library.append(details);
+  }
+  filterEvidence();
+}
+function recoveryPresentation(incident) {
+  const states = {
+    queued: ["Recovery queued", "The worker has not confirmed execution. Queuing is not a successful recovery.", "pending"],
+    verifying: ["Verifying recovery", "The fixed handler ran. Consecutive fresh healthy telemetry must still confirm recovery.", "pending"],
+    resolved: ["Recovery verified", "Fresh healthy telemetry confirmed recovery. This incident is resolved.", "success"],
+    failed: ["Recovery needs attention", "Recovery has not been confirmed. Review the worker result and verification history.", "error"],
+  };
+  if (states[incident.status]) return states[incident.status];
+  if (incident.approval?.status === "rejected") return ["Proposal rejected", "Feedback was recorded. Refresh the diagnosis to review a new proposal.", "pending"];
+  if (incident.action === "inspect_only") return ["Inspection only", "No automated recovery is available for this signal. Review the evidence and record your decision.", "pending"];
+  if (incident.policy?.disposition === "blocked") return ["Recovery unavailable", incident.policy.reason, "error"];
+  if (incident.approval?.status !== "pending") return ["Proposal unavailable", "Reopen this incident or refresh its diagnosis to review the current bound proposal.", "pending"];
+  return ["Awaiting human approval", "No recovery has been queued for this proposal.", "pending"];
+}
+function clearReviewErrors() {
+  ["actor-error","decision-error","modal-error"].forEach(id=>{$("#"+id).textContent=""; $("#"+id).hidden=true;});
+  $("#actor").removeAttribute("aria-invalid"); $("#feedback-reason").removeAttribute("aria-invalid");
+}
+function showReviewError(message) {
+  $("#modal-error").textContent = message; $("#modal-error").hidden = false;
+}
+
+let reviewReturnTarget = null;
+let reviewRequest = 0, reviewController = null, reviewIncidentId = null;
+function showReviewLoading(message, failed = false) {
+  $("#review-request-state").hidden = false;
+  $("#review-request-state").setAttribute("role", failed ? "alert" : "status");
+  $("#review-load-message").textContent = message;
+  $("#retry-review").hidden = !failed;
+  $("#review-workspace").hidden = true;
+  $("#detail .investigation-nav").hidden = true;
+  $("#detail .review-metadata").hidden = true;
+  ["#approve", "#reject", "#triage"].forEach(selector=>$(selector).disabled=true);
+}
+function cancelReviewLoad() {
+  reviewRequest++;
+  reviewController?.abort();
+  reviewController = null;
+}
+async function inspect(id) {
+  const dialog = $("#detail");
+  if (!dialog.open) reviewReturnTarget = {id, button: document.activeElement?.tagName === "BUTTON"};
+  cancelReviewLoad();
+  const request = reviewRequest;
+  const controller = new AbortController(); reviewController = controller;
+  reviewIncidentId = id;
+  selected = null;
+  const incident = state?.incidents?.find(item=>item.id===id);
+  $("#detail-title").textContent = incident?.signal || names[incident?.kind] || "Incident review";
+  showReviewLoading("Loading the saved diagnosis, evidence and recovery proposal… You can close this review while it loads.");
+  if (!dialog.open) dialog.showModal();
+  dialog.scrollTop = 0;
+  $("#detail-title").focus({preventScroll:true});
+  const timeout = setTimeout(()=>controller.abort(), 20000);
+  try {
+    const fresh = await api("/api/incidents/" + id, undefined, {}, {signal:controller.signal});
+    if (request !== reviewRequest || !dialog.open) return;
+    selected = fresh;
+    renderInvestigation(selected.investigation);
+    renderReviewMetadata();
     renderTimeline(selected);
     $("#script").textContent = selected.script;
     $("#evidence").textContent = JSON.stringify(selected.evidence, null, 2);
-    $("#report").textContent =
-      selected.report ||
-      "The triage worker is collecting logs and checking ledger balances. You can also refresh the diagnosis.";
+    renderDiagnosisSummary(selected);
     $("#modal-message").textContent = "";
     $("#feedback-reason").value = "";
+    clearReviewErrors();
+    document.querySelectorAll(".review-technical > details").forEach(details=>details.open=false);
     updateApproval();
-    $("#detail").showModal();
+    $("#review-request-state").hidden = true;
+    $("#review-workspace").hidden = false;
+    $("#detail .investigation-nav").hidden = false;
+    $("#detail .review-metadata").hidden = false;
+    $("#triage").disabled = false;
   } catch (e) {
-    showError(e);
+    if (request !== reviewRequest || !dialog.open) return;
+    selected = null;
+    showReviewLoading(e.name === "AbortError" ? "Loading took too long. Check your connection and retry." : "Could not load this incident. " + e.message, true);
+  } finally {
+    clearTimeout(timeout);
+    if (request === reviewRequest) reviewController = null;
   }
 }
+$("#retry-review").onclick = () => {if (reviewIncidentId) inspect(reviewIncidentId);};
 $("#incident-rows").addEventListener("click", (e) => {
+  if (e.target.closest("[data-help]")) return;
   const button = e.target.closest("[data-id]");
   if (button) inspect(button.dataset.id);
 });
-$("#show-history").onchange = renderIncidents;
-$("#close").onclick = () => {
-  $("#detail").close();
+["#show-history", "#severity-filter", "#service-filter"].forEach(selector => $(selector).onchange = renderIncidents);
+$("#reset-incidents").onclick = resetIncidentFilters;
+$("#close").onclick = () => {cancelReviewLoad(); $("#detail").close();};
+$("#detail").addEventListener("cancel", cancelReviewLoad);
+$("#detail").addEventListener("close", () => {
+  cancelReviewLoad();
   hideHelp();
-};
-const savedToken = sessionStorage.getItem("desk-token");
-$("#token").value = savedToken || "";
-if (!savedToken) document.querySelector(".settings").open = true;
-const connect = () => {
-  sessionStorage.setItem("desk-token", $("#token").value);
-  refresh();
-};
-$("#token").onchange = connect;
-$("#connect").onclick = connect;
+  if (!reviewReturnTarget) return;
+  const row = [...document.querySelectorAll("#incident-rows tr[data-id]")].find(node=>node.dataset.id===reviewReturnTarget.id);
+  (reviewReturnTarget.button ? row?.querySelector("button") : row)?.focus({preventScroll:true});
+  if (!row) $("#show-history").focus({preventScroll:true});
+});
+$("#actor").addEventListener("input",clearReviewErrors);
+$("#feedback-reason").addEventListener("input",clearReviewErrors);
+$("#connect").onclick = refresh;
 $("#fault").onchange = () => {
   $("#scenario-description").textContent =
     scenarios[$("#fault").value.split("|")[0]];
@@ -465,6 +776,8 @@ $("#inject").onclick = async () => {
   const [kind, service] = $("#fault").value.split("|");
   starting = true;
   $("#inject").disabled = true;
+  $("#inject").textContent = "Starting…";
+  $("#scenario-hint").textContent = "Sending fault to the simulator…";
   try {
     await api("/api/faults", { kind, service });
     activeScenario = { kind, service, since: Date.now() };
@@ -473,26 +786,36 @@ $("#inject").onclick = async () => {
     await refresh();
   } catch (e) {
     showError(e);
+    $("#scenario-hint").textContent = "Scenario could not start. Check the error above and retry.";
   } finally {
     starting = false;
+    $("#inject").textContent = "Run scenario";
     $("#inject").disabled = state?.mode !== "simulated desk";
   }
 };
 $("#triage").onclick = async () => {
+  const incidentId = selected.id;
   $("#triage").disabled = true;
   busy = true;
   $("#report").textContent =
     "Inspecting service logs and reconciling balances…";
   updateApproval();
   try {
-    const result = await api("/api/incidents/" + selected.id + "/triage", {});
-    selected = await api("/api/incidents/" + selected.id);
+    await api("/api/incidents/" + incidentId + "/triage", {});
+    const fresh = await api("/api/incidents/" + incidentId);
+    if (selected?.id !== incidentId || !$("#detail").open) return;
+    selected = fresh;
     $("#script").textContent = selected.script;
-    $("#report").textContent =
-      `${result.provider} diagnosis${result.fallback_reason ? " (provider fallback)" : ""}\n\n${result.report}`;
+    renderDiagnosisSummary(selected);
     renderInvestigation(selected.investigation);
+    renderReviewMetadata();
+    renderTimeline(selected);
+    $("#modal-message").textContent = "Diagnosis refreshed. Review the updated evidence and proposal before deciding.";
+    clearReviewErrors();
   } catch (e) {
-    $("#report").textContent = e.message;
+    if (selected?.id === incidentId && $("#detail").open) {
+      renderDiagnosisSummary(selected); showReviewError(e.message);
+    } else showError(e);
   } finally {
     busy = false;
     $("#triage").disabled = false;
@@ -500,26 +823,42 @@ $("#triage").onclick = async () => {
   }
 };
 async function submitDecision(approved) {
+  if (busy) return;
+  clearReviewErrors();
+  if (!$("#actor").value.trim()) {
+    $("#actor-error").textContent = "Enter the approver's name."; $("#actor-error").hidden = false;
+    $("#actor").setAttribute("aria-invalid","true"); $("#actor").focus(); return;
+  }
+  if (!approved && !$("#feedback-reason").value.trim()) {
+    $("#decision-error").textContent = "Enter a reason before rejecting this proposal."; $("#decision-error").hidden = false;
+    $("#feedback-reason").setAttribute("aria-invalid","true"); $("#feedback-reason").focus(); return;
+  }
+  const incidentId = selected.id, proposal = selected.approval, action = selected.action;
+  $("#modal-message").textContent = approved ? "Submitting approval…" : "Submitting rejection…";
   busy = true;
   updateApproval();
   try {
-    if (!selected.approval) throw Error("Reopen the incident to review its proposal.");
-    const keyName = "desk-decision:" + selected.approval.id;
+    if (!proposal) throw Error("Reopen the incident to review its proposal.");
+    const keyName = "desk-decision:" + proposal.id;
     let key = sessionStorage.getItem(keyName);
     if (!key) { key = crypto.randomUUID(); sessionStorage.setItem(keyName, key); }
-    const body = {action: selected.action, actor: $("#actor").value,
-      proposal_id: selected.approval.id};
+    const body = {action, actor: $("#actor").value,
+      proposal_id: proposal.id};
     body.reason = $("#feedback-reason").value;
-    await api("/api/incidents/" + selected.id + (approved ? "/approve" : "/reject"), body,
+    await api("/api/incidents/" + incidentId + (approved ? "/approve" : "/reject"), body,
       {"Idempotency-Key": key});
-    selected = await api("/api/incidents/" + selected.id);
+    const fresh = await api("/api/incidents/" + incidentId);
+    if (selected?.id !== incidentId || !$("#detail").open) { await refresh(); return; }
+    selected = fresh;
     renderTimeline(selected);
     $("#modal-message").textContent = approved
-      ? "Recovery queued. The worker will apply it, then check consecutive fresh healthy samples."
+      ? "Approval accepted. Recovery was queued; the current verification status is shown above."
       : "Rejection recorded. Refresh the diagnosis before proposing another recovery.";
     await refresh();
   } catch (e) {
-    $("#modal-message").textContent = e.message;
+    if (selected?.id === incidentId && $("#detail").open) {
+      $("#modal-message").textContent = ""; showReviewError(e.message);
+    } else showError(e);
   } finally {
     busy = false;
     updateApproval();
@@ -532,6 +871,7 @@ let helpAnchor = null;
 function hideHelp() {
   helpAnchor = null;
   $("#help-tooltip").hidden = true;
+  $("#chart-cursor")?.setAttribute("hidden", "");
 }
 function showHelp(anchor, text, x, y) {
   const tooltip = $("#help-tooltip"),
@@ -580,28 +920,67 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") hideHelp();
 });
 window.addEventListener("scroll", hideHelp, true);
-$("#chart").addEventListener("pointermove", (event) => {
-  const events = chartSamples(); if (!events.length) return;
-  const rect = $("#chart").getBoundingClientRect();
-  const fraction = (event.clientX - rect.left - 44) / Math.max(1,rect.width-56);
-  const sample = events[Math.max(0, Math.min(events.length-1, Math.round(fraction*(events.length-1))))];
-  const metric = $("#chart-metric").value, spec = metricSpec[metric];
-  showHelp($("#chart"), `${clock(sample.timestamp)} · ${spec.label} ${sample[metric].toFixed(1)} ${spec.unit}`, event.clientX,event.clientY);
+$("#chart").addEventListener("pointermove", inspectChartPointer);
+$("#chart").addEventListener("click", inspectChartPointer);
+$("#chart").addEventListener("keydown", event => {
+  if (!chartLayout || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  const c = chartLayout;
+  inspectChart(event.key === "Home" ? 0 : event.key === "End" ? c.events.length-1 : Math.max(0,Math.min(c.events.length-1,c.index + (event.key === "ArrowLeft" ? -1 : 1))));
 });
 $("#chart-metric").onchange = renderChart;
 window.addEventListener("resize", renderChart);
+function setIncidentSort(key, direction) {
+  incidentSort = {key, direction};
+  document.querySelectorAll("[data-sort]").forEach(button => {
+    const th = button.closest("th");
+    th.removeAttribute("aria-sort");
+    if (button.dataset.sort === key) th.setAttribute("aria-sort", direction === 1 ? "ascending" : "descending");
+  });
+  renderIncidents();
+}
 document.querySelectorAll("[data-sort]").forEach(button => button.onclick = () => {
-  incidentSort = {key:button.dataset.sort, direction:incidentSort.key === button.dataset.sort ? -incidentSort.direction : button.dataset.sort === "severity" ? 1 : -1};
-  document.querySelectorAll("[data-sort]").forEach(b=>b.closest("th").removeAttribute("aria-sort"));
-  button.closest("th").setAttribute("aria-sort",incidentSort.direction===1?"ascending":"descending"); renderIncidents();
+  const key = button.dataset.sort;
+  setIncidentSort(key, incidentSort.key === key ? -incidentSort.direction : key === "severity" ? 1 : -1);
 });
+$("#incident-sort").onchange = () => {
+  const [key,direction] = $("#incident-sort").value.split(":");
+  setIncidentSort(key,Number(direction));
+};
 $("#incident-rows").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("tr[data-id]")) {e.preventDefault(); inspect(e.target.dataset.id);} });
 $("#incident-rows").addEventListener("toggle", e => { const id=e.target.dataset.correlation; if(id) {if(e.target.open) openCorrelations.add(id); else openCorrelations.delete(id);} }, true);
-$("#investigation-trace").addEventListener("click", e => {
-  const link=e.target.closest(".evidence-link"); if(!link) return;
-  e.preventDefault(); const target=document.getElementById(link.hash.slice(1));
-  if(target) {target.open=true; const library=target.parentElement; if(library.tagName==="DETAILS") library.open=true; target.scrollIntoView({block:"nearest"});}
+$("#detail").addEventListener("click", e => {
+  const link = e.target.closest(".evidence-link, .investigation-jump"); if (!link) return;
+  e.preventDefault();
+  const target = document.getElementById(link.hash.slice(1));
+  if (!target) return;
+  $("#evidence-kind").value = "all"; $("#evidence-relation").value = "all"; filterEvidence();
+  for (let ancestor=target; ancestor && ancestor!==$("#detail"); ancestor=ancestor.parentElement) {
+    if (ancestor.tagName === "DETAILS") ancestor.open=true;
+  }
+  target.scrollIntoView({block:link.classList.contains("investigation-jump") ? "start" : "nearest"});
+  const focusTarget = target.tagName === "DETAILS" ? target.querySelector("summary") : target;
+  if (!focusTarget.hasAttribute("tabindex") && focusTarget.tagName !== "SUMMARY") focusTarget.setAttribute("tabindex","-1");
+  focusTarget.focus({preventScroll:true});
 });
+async function copyRunId() {
+  const button = $("#copy-run-id"), runId = button.dataset.runId;
+  if (!runId) return;
+  try {
+    await navigator.clipboard.writeText(runId);
+    if (button.dataset.runId === runId) $("#run-copy-status").textContent = "Run ID copied";
+  } catch {
+    if (button.dataset.runId === runId) $("#run-copy-status").textContent = `Copy unavailable. Run ID: ${runId}`;
+  }
+}
+$("#copy-run-id").onclick = copyRunId;
+["#evidence-kind", "#evidence-relation"].forEach(selector=>$(selector).onchange=filterEvidence);
+if (typeof ResizeObserver !== "undefined") {
+  const reviewNav = $("#detail .investigation-nav");
+  new ResizeObserver(() => {
+    $("#detail").style.setProperty("--review-nav-offset", `${reviewNav.offsetHeight + 32}px`);
+  }).observe(reviewNav);
+}
 const savedScenario = sessionStorage.getItem("desk-scenario-selection");
 if ([...$("#fault").options].some((option) => option.value === savedScenario))
   $("#fault").value = savedScenario;

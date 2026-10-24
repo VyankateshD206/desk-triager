@@ -12,8 +12,7 @@ From the repository root, with Docker Engine running and Docker Compose installe
 docker compose -f infra/compose.yaml up -d --build --wait
 ```
 
-Open the console at [localhost:18000](http://localhost:18000) and use
-`local-access-token`. The demo control service is on port 18001, Prometheus on 19090,
+Open the console at [localhost:18000](http://localhost:18000); it connects automatically. The demo control service is on port 18001, Prometheus on 19090,
 and Loki on 13100. The default stack uses offline triage and needs no cloud credentials.
 It does not read your host `.env` into the containers. The Docker build context allowlist
 excludes local configuration, database files, and Git history.
@@ -108,7 +107,7 @@ accuracy or a real exchange action.
 
 To reproduce against an isolated local instance, install Playwright as an optional development
 tool (`npm install --no-save playwright` and `npx playwright install chromium`), then run
-`DEMO_TOKEN=YOUR_ISOLATED_TOKEN DEMO_URL=http://127.0.0.1:18080 node scripts/record_demo.mjs`. Output defaults to
+`DEMO_URL=http://127.0.0.1:18080 node scripts/record_demo.mjs`. Output defaults to
 `/tmp/desk-demo`. The script injects one rate-limit fault and approves its fixed simulator
-recovery. Supply the token for an explicitly configured local demo and a disposable database. It checks browser
+recovery. Use an isolated local demo and a disposable database. It checks browser
 errors, the approval acknowledgment and the final recovered progress state.

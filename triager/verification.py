@@ -7,8 +7,15 @@ from decimal import Decimal
 
 from .contracts import Diagnosis, Evidence, unsupported_citations
 
+MONETARY_SOURCES = frozenset({"ledger:snapshot", "tool:reconcile_balances"})
+MONETARY_FIELDS = frozenset({"local_nav", "exchange_nav", "difference"})
+DECIMAL_STRING = re.compile(r"-?[0-9]+(?:\.[0-9]+)?")
 
-def numeric_value(content, pointer):
+
+def numeric_value(content, pointer, source=None):
+    """Resolve an exact pointer; only known ledger monetary fields permit decimal strings."""
+    if not isinstance(pointer, str) or not pointer.startswith("/"):
+        raise ValueError("Invalid JSON pointer")
     value = json.loads(content)
     for raw in pointer.split("/")[1:]:
         if re.search(r"~(?![01])", raw):
@@ -17,9 +24,20 @@ def numeric_value(content, pointer):
         if isinstance(value, list) and not re.fullmatch(r"0|[1-9][0-9]*", token):
             raise ValueError("Invalid JSON pointer array index")
         value = value[int(token)] if isinstance(value, list) else value[token]
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+    if isinstance(value, bool):
         raise ValueError("Reference is not a finite number")
-    return Decimal(str(value))
+    if isinstance(value, int):
+        return Decimal(value)
+    if isinstance(value, float) and math.isfinite(value):
+        return Decimal(str(value))
+    if (
+        source in MONETARY_SOURCES
+        and token in MONETARY_FIELDS
+        and isinstance(value, str)
+        and DECIMAL_STRING.fullmatch(value)
+    ):
+        return Decimal(value)
+    raise ValueError("Reference is not a finite number or an allowed ledger decimal")
 
 
 def verify_support(report: Diagnosis, evidence: tuple[Evidence, ...]) -> tuple[str, ...]:
@@ -43,7 +61,9 @@ def verify_support(report: Diagnosis, evidence: tuple[Evidence, ...]) -> tuple[s
                 issues.append("UncitedSupport")
                 continue
             try:
-                if numeric_value(item.content, claim.pointer) != Decimal(str(claim.value)):
+                if numeric_value(item.content, claim.pointer, source=item.source) != Decimal(
+                    str(claim.value)
+                ):
                     issues.append("NumericMismatch")
                 else:
                     covered.add(claim.evidence_id)

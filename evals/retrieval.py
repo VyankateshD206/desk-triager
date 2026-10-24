@@ -17,33 +17,58 @@ QUERIES = [
 ]
 
 
+QUERY_AWARE_QUERIES = [
+    ("execution-gateway", "HTTP 429 retry-after throttling", "runbook:throttle"),
+    ("market-feed", "WebSocket feed connection lost", "runbook:feed"),
+    ("execution-gateway", "SQL query duration backlog", "runbook:slow-sql"),
+    ("execution-gateway", "Retained memory buffers growing", "runbook:memory"),
+    ("execution-gateway", "Routing regression after deployment", "runbook:deploy"),
+    ("portfolio-ledger", "Local NAV differs from exchange", "runbook:ledger"),
+    ("execution-gateway", "Slippage and heartbeat drift", "runbook:drift"),
+]
+UNRELATED_QUERIES = [
+    ("execution-gateway", "Banana bread recipe with cinnamon"),
+    ("market-feed", "Lunar crater cartography telescope"),
+    ("portfolio-ledger", "Ceramic pottery kiln glazing"),
+]
+
+
+def measure(store, queries, method):
+    rows = []
+    for service, query, expected in queries:
+        hits = store.search(service=service, query=query, method=method, limit=3)
+        rank = next((i for i, h in enumerate(hits, 1) if h["document_id"] == expected), 0)
+        rows.append(
+            {"service": service, "query": query, "expected": expected, "rank": rank, "hits": hits}
+        )
+    return {
+        "queries": len(rows),
+        "recall_at_3": sum(bool(r["rank"]) for r in rows) / len(rows),
+        "mrr": sum(1 / r["rank"] if r["rank"] else 0 for r in rows) / len(rows),
+        "rows": rows,
+    }
+
+
 def main():
-    results = {}
+    results, targeted, unrelated = {}, {}, {}
     with tempfile.TemporaryDirectory() as directory:
         db = Database(f"sqlite:///{directory}/knowledge.db")
         db.initialize()
         try:
-            store = Knowledge(db)
+            store = Knowledge(db, "hash")  # Explicitly offline, regardless of application settings.
             store.seed()
             for method in ("keyword", "vector"):
-                ranks = []
-                for service, query, expected in QUERIES:
-                    hits = store.search(service, query, method=method)
-                    ranks.append(
-                        next(
-                            (
-                                index
-                                for index, hit in enumerate(hits, 1)
-                                if hit["document_id"] == expected
-                            ),
-                            0,
-                        )
-                    )
-                results[method] = {
-                    "queries": len(ranks),
-                    "recall_at_3": sum(bool(r) for r in ranks) / len(ranks),
-                    "mrr": sum(1 / r if r else 0 for r in ranks) / len(ranks),
-                }
+                baseline = measure(store, QUERIES, method)
+                results[method] = {k: v for k, v in baseline.items() if k != "rows"}
+                targeted[method] = measure(store, QUERY_AWARE_QUERIES, method)
+                unrelated[method] = [
+                    {
+                        "service": service,
+                        "query": query,
+                        "hits": store.search(service=service, query=query, method=method, limit=3),
+                    }
+                    for service, query in UNRELATED_QUERIES
+                ]
         finally:
             db.engine.dispose()
     print(
@@ -53,6 +78,9 @@ def main():
                 "embedding": "hash-word12-768-v1",
                 "root_cause_gain": None,
                 "results": results,
+                "query_aware_results": targeted,
+                "unrelated_queries": unrelated,
+                "score_note": "Scores are uncalibrated similarity, not relevance probabilities. Nonzero hits may be unrelated.",
             },
             indent=2,
         )

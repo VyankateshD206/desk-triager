@@ -6,10 +6,11 @@ Evidence identity proves provenance, not that a hypothesis is true.
 import hashlib
 import json
 import re
+import unicodedata
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator, model_validator
 
 Category = Literal[
     "tick_gap",
@@ -56,6 +57,34 @@ class Evidence(Contract):
 class IncidentInput(Contract):
     service: str
     evidence: tuple[Evidence, ...]
+
+
+class SearchRunbooksArgs(Contract):
+    query: StrictStr = Field(min_length=3, max_length=160)
+
+    @field_validator("query", mode="before")
+    @classmethod
+    def normalize_query(cls, value):
+        if not isinstance(value, str):
+            raise ValueError("Query must be a string")
+        if any(unicodedata.category(c) in {"Cc", "Cf", "Cs", "Zl", "Zp"} for c in value):
+            raise ValueError("Query must not contain newlines or control characters")
+        return value.strip()
+
+    @classmethod
+    def tool_schema(cls):
+        # The provider declaration is intentionally limited to Gemini-compatible fields.
+        # Length, control-character and extra-property checks remain enforced locally.
+        return {
+            "type": "OBJECT",
+            "properties": {
+                "query": {
+                    "type": "STRING",
+                    "description": "Short incident-specific runbook search query",
+                }
+            },
+            "required": ["query"],
+        }
 
 
 class EvidenceQuote(Contract):

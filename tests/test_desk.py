@@ -156,12 +156,11 @@ def test_restart_preserves_incidents_and_event_dedup(desk):
     restarted.db.engine.dispose()
 
 
-def test_api_auth_and_validation(tmp_path):
+def test_api_access_and_validation(tmp_path):
     app = create_app(
         Settings(
             database_url=f"sqlite:///{tmp_path}/api.db",
             simulator=False,
-            token="test-secret",
             ai_provider="offline",
         )
     )
@@ -174,8 +173,7 @@ def test_api_auth_and_validation(tmp_path):
             ) as client,
         ):
             assert (await client.get("/")).status_code == 200
-            assert (await client.get("/api/snapshot")).status_code == 401
-            headers = {"X-Desk-Token": "test-secret"}
+            headers = {}
             assert (await client.get("/api/snapshot", headers=headers)).status_code == 200
             assert (
                 await client.post("/api/telemetry", headers=headers, json={"service": "x"})
@@ -390,3 +388,63 @@ def test_snapshot_has_latest_analysis_and_review_has_timeline(desk):
     review = desk.proposal(id)
     assert [a["action"] for a in review["timeline"]] == ["opened", "diagnosed"]
     assert review["investigation"]["budget"]["tools"] == desk.settings.agent_max_tools
+
+
+@pytest.mark.parametrize("value,provider", [(1250, "gemini"), (1251, "offline")])
+def test_nav_numeric_diagnosis_never_approves_or_recovers(desk, value, provider):
+    import json
+
+    from sqlalchemy import func, select
+
+    from triager.models import Audit, RecoveryJob, RecoveryProposal
+
+    desk.inject("nav_mismatch", "portfolio-ledger")
+    for sample in desk.generate():
+        desk.ingest(sample)
+    incident = next(i for i in desk.snapshot()["incidents"] if i["kind"] == "nav_mismatch")
+    desk.settings.ai_provider = "gemini"
+    desk.settings.critic_enabled = False
+
+    def model(state):
+        item = next(e for e in state["evidence_items"] if e["source"] == "ledger:snapshot")
+        return {
+            "role": "model",
+            "parts": [
+                {
+                    "text": json.dumps(
+                        {
+                            "severity": "high",
+                            "category": "nav_mismatch",
+                            "confidence": 0.8,
+                            "hypotheses": [
+                                {
+                                    "cause": "Recorded NAV discrepancy needs human investigation",
+                                    "evidence_ids": [item["evidence_id"]],
+                                    "numeric_claims": [
+                                        {
+                                            "evidence_id": item["evidence_id"],
+                                            "pointer": "/0/difference",
+                                            "value": value,
+                                        }
+                                    ],
+                                }
+                            ],
+                        }
+                    )
+                }
+            ],
+        }
+
+    desk.agent.model_turn = model
+    result = desk.triage(incident["id"])
+    assert result["provider"] == provider
+    assert ("fallback_reason" in result) == (provider == "offline")
+    with desk.db.Session() as db:
+        assert db.scalar(select(func.count()).select_from(RecoveryJob)) == 0
+        assert set(db.scalars(select(RecoveryProposal.status))) <= {"pending", "superseded"}
+        assert "approval_queued" not in set(db.scalars(select(Audit.action)))
+    assert desk.db.reconcile()[0]["difference"] == "1250.00"
+    assert (
+        next(i for i in desk.snapshot()["incidents"] if i["id"] == incident["id"])["status"]
+        == "open"
+    )
