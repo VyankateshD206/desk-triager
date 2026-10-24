@@ -6,9 +6,10 @@ import json
 from pathlib import Path
 
 from evals.benchmark import summarize
+from evals.paired import analyze_paired
 
 
-def analyze(report):
+def analyze(report, reviews=None, bootstrap_samples=1000):
     modes = list(report["summaries"])
     rows = report["rows"]
     usable_ids = {
@@ -25,6 +26,7 @@ def analyze(report):
     }
     return {
         "matched_case_ids": sorted(matched),
+        "paired_rag": analyze_paired(report, reviews, samples=bootstrap_samples),
         "human_validated_labels": report["human_validated_labels"],
         "comparisons": {
             name: {
@@ -35,9 +37,10 @@ def analyze(report):
             for name, group in groups.items()
         },
         "caveats": [
-            "Agent-authored labels await independent human review",
+            "Unreviewed labels remain provisional; completed reviewer fields are operator attestations, not authenticated independence",
             "Root-cause term matching is a regex proxy",
             "Matched successful subset may be selected by provider reliability",
+            "Legacy successful-provider groups filter fallback only; paired matched-model groups additionally require recorded matching model/configuration metadata",
             "No statistical significance or broad generalization claim",
         ],
     }
@@ -47,12 +50,32 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("report", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--reviews", type=Path, help="Completed mode-blinded diagnosis packet")
+    parser.add_argument("--review-key", type=Path, help="Separate packet-to-result binding key")
+    parser.add_argument("--bootstrap-samples", type=int, default=1000)
     args = parser.parse_args()
+    if bool(args.reviews) != bool(args.review_key):
+        parser.error("Supply both --reviews and --review-key")
+    if not 1 <= args.bootstrap_samples <= 10000:
+        parser.error("Bootstrap samples must be 1..10000")
     raw = args.report.read_bytes()
-    result = analyze(json.loads(raw))
+    report = json.loads(raw)
+    reviews = None
+    if args.reviews:
+        from evals.review_packets import load_diagnosis_reviews
+
+        reviews = load_diagnosis_reviews(
+            report, json.loads(args.reviews.read_text()), json.loads(args.review_key.read_text())
+        )
+    result = analyze(report, reviews, args.bootstrap_samples)
     result["report_sha256"] = hashlib.sha256(raw).hexdigest()
     args.output.write_text(json.dumps(result, indent=2) + "\n")
-    print(f"Compared {len(result['matched_case_ids'])} matched successful cases")
+    pairs = result["paired_rag"]
+    print(
+        f"Compared {pairs['complete_pairs']} graph/RAG pairs; "
+        f"{pairs['comparisons']['all']['matched_model_successes']['cases']} matching-model pairs; "
+        f"{result['human_validated_labels']} label review attestations"
+    )
 
 
 if __name__ == "__main__":

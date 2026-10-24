@@ -59,3 +59,8 @@ single-prompt baseline, graph/retrieval ablation, optional Gemini judge, manual 
 and measurement caveats are documented in [BENCHMARK.md](BENCHMARK.md). See the README
 results section for measured release outcomes. Provider failures and offline fallback are
 reported explicitly; they must not be credited as live-model success.
+
+For the reviewed-label, mode-blinded paired RAG comparison, follow
+[the paired diagnosis workflow](BENCHMARK.md#paired-diagnosis-evaluation). Offline packet
+generation makes no provider calls. Pending reviews are not counted as human accuracy,
+and retrieval-query relevance alone is not evidence of better incident diagnosis.

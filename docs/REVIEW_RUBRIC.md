@@ -1,5 +1,11 @@
 # Human review rubric
 
+For a diagnosis-quality comparison, use the two-stage, hash-bound workflow in
+[BENCHMARK.md](BENCHMARK.md#paired-diagnosis-evaluation): review labels before predictions,
+then review shuffled predictions with mode/provider metadata hidden. Keep the mapping key
+away from reviewers. Evidence can still reveal retrieval, so describe this as partial blinding.
+The legacy sample exporter below remains useful for exploratory spot checks.
+
 Use `python -m evals.review REPORT --count 12 --output /tmp/review.json` to select a seeded
 sample. Increase the sample or review all public cases before making research claims.
 Do not count an AI-generated critique or this document as completed human review.
@@ -28,3 +34,16 @@ Keep incident families in one split and keep reviewed eval answers out of the re
 index. Store review artifacts separately from prompts. Report sample size, disagreements,
 coverage and error/fallback rates alongside accuracy. Avoid treating an answer on an empty
 case as evidence of causal diagnosis skill.
+
+In the new diagnosis packet, score each of the following independently:
+
+- `root_cause_correct`: a specific supported mechanism matches the reviewed causal reference;
+  when the reference requires abstention, an explicit evidence-limited conclusion is appropriate.
+- `evidence_grounded`: material claims, including their relevance to the proposed cause, are
+  supported by the supplied evidence. A matching quotation alone is insufficient.
+- `appropriate_abstention`: answering or abstaining is justified by the available evidence.
+
+Use `false` for an unsupported confident cause, even if a keyword matches. Explain ambiguity
+and disagreement in notes; leave the entire review pending until resolved. Approval requires
+all three boolean judgments, reviewer attribution, a timezone-aware timestamp and notes.
+These fields record an operator attestation; they do not authenticate a human or independence.

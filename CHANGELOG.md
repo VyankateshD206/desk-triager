@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add offline label and partially blinded diagnosis-review packets, strict review/result binding, and paired graph/RAG reporting with family-cluster uncertainty, actual retrieval usage and explicit fallback/cost coverage; leave human judgments and billable runs opt-in.
+
+- Add validated incident-specific runbook queries with fixed service/vector/top-3 scope, benchmark parity and explicit retrieval provenance; retain bounded read-only tool execution.
+
 - Verify strict ledger monetary strings with Decimal for known sources/fields, preserving exact pointers, evidence binding and conservative fallback for invalid claims.
 
 - Open incident reviews immediately with loading/error/retry states, cancel pending requests on close, and ignore stale responses; keep decisions disabled until the recorded proposal loads.
