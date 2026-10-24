@@ -311,3 +311,83 @@ def test_tool_events_capture_scope_results_and_rejected_arguments(agent):
     assert events[3]["latency_ms"] >= 0
     assert events[3]["evidence_ids"]
     assert "private-tool-secret" not in json.dumps(events)
+
+
+@pytest.mark.parametrize(
+    "pointer,value,issue",
+    [
+        ("/0/difference", 1250, None),
+        ("/0/difference", 1251, "NumericMismatch"),
+        ("/0/missing", 1250, "InvalidNumericReference"),
+    ],
+)
+def test_gemini_nav_numeric_evidence_through_real_graph(agent, pointer, value, issue):
+    from decimal import Decimal
+
+    from sqlalchemy import func, select
+
+    from triager.contracts import Diagnosis, Evidence
+    from triager.models import Balance, RecoveryJob, RecoveryProposal
+    from triager.verification import verify_support
+
+    agent.settings.critic_enabled = False
+    agent.inspect = lambda service: []
+    with agent.db.Session.begin() as db:
+        db.get(Balance, "desk-primary").exchange_nav = Decimal("998750.00")
+    captured = {}
+
+    def model(state):
+        item = next(e for e in state["evidence_items"] if e["source"] == "ledger:snapshot")
+        captured.update(item)
+        return {
+            "role": "model",
+            "parts": [
+                {
+                    "text": json.dumps(
+                        {
+                            "severity": "high",
+                            "category": "nav_mismatch",
+                            "confidence": 0.8,
+                            "hypotheses": [
+                                {
+                                    "cause": "Ledger and exchange NAV differ; cause remains unconfirmed",
+                                    "evidence_ids": [item["evidence_id"]],
+                                    "numeric_claims": [
+                                        {
+                                            "evidence_id": item["evidence_id"],
+                                            "pointer": pointer,
+                                            "value": value,
+                                        }
+                                    ],
+                                }
+                            ],
+                        }
+                    )
+                }
+            ],
+        }
+
+    # Bypass every provider adapter: this is a deterministic mock, never a live request.
+    agent.model_turn = model
+    result = agent.diagnose({"service": "portfolio-ledger"})
+    stored = next(e for e in result["evidence_items"] if e["source"] == "ledger:snapshot")
+    assert stored == captured
+    item = Evidence.model_validate(
+        {k: v for k, v in stored.items() if k not in {"evidence_id", "content_hash"}}
+    )
+    assert stored["evidence_id"] == item.evidence_id
+    assert stored["content_hash"] == item.content_hash
+    if issue is None:
+        assert result["provider"] == "gemini"
+        assert result["diagnosis"]["category"] == "nav_mismatch"
+        assert result["diagnosis"]["severity"] == "high"
+        assert "fallback_reason" not in result
+        assert result["verification"]["issues"] == []
+        assert verify_support(Diagnosis.model_validate(result["diagnosis"]), (item,)) == ()
+    else:
+        assert result["provider"] == "offline"
+        assert issue in result["verification"]["issues"]
+        assert result["fallback_reason"] == result["verification"]["issues"][0]
+    with agent.db.Session() as db:
+        assert db.scalar(select(func.count()).select_from(RecoveryJob)) == 0
+        assert db.scalar(select(func.count()).select_from(RecoveryProposal)) == 0

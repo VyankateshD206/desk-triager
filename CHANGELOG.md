@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Verify strict ledger monetary strings with Decimal for known sources/fields, preserving exact pointers, evidence binding and conservative fallback for invalid claims.
+
 - Open incident reviews immediately with loading/error/retry states, cancel pending requests on close, and ignore stale responses; keep decisions disabled until the recorded proposal loads.
 
 - Revalidate console assets and refresh their URLs so cached token-era JavaScript cannot leave the updated dashboard stuck connecting.

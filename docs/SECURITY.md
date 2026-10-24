@@ -32,12 +32,27 @@ claim for every referenced evidence ID. The verifier independently checks:
 
 - Citation membership in collected evidence.
 - Verbatim quote membership in that evidence's redacted content.
-- Numeric JSON pointers and exact values, rejecting missing paths, booleans, and nonnumbers.
+- Exact JSON Pointer traversal, including `~0` / `~1` escaping and strict array indexes.
+- Native JSON integers and finite floats; booleans and nonfinite values are rejected.
+- Decimal strings only from `ledger:snapshot` or `tool:reconcile_balances`, and only when
+  the resolved field is `local_nav`, `exchange_nav` or `difference`. Accepted strings match
+  `-?[0-9]+(?:\.[0-9]+)?`: no whitespace, currency symbols, commas, exponent notation,
+  NaN or Infinity. Ordinary telemetry/log strings remain nonnumeric.
+- Exact `Decimal` comparisons. Ledger strings are parsed directly as `Decimal`, never
+  through float; a wrong amount is `NumericMismatch`, while a missing/malformed pointer
+  or disallowed source/value is `InvalidNumericReference`.
 - Consistency between support references and the hypothesis's citation list.
 
 Unsupported output is replaced with the conservative offline symptom baseline. The report
 and audit retain verification issues and explicitly mark semantic support as `not_assessed`.
 The model may repair schema errors once, within its original investigation budget.
+
+For example, the ledger string `"1250.00"` at `/0/difference` now supports a numeric claim
+of `1250` with the exact generated evidence ID. Previously this valid reference was rejected
+as `InvalidNumericReference`. A claim of `1251` still fails; values are not matched fuzzily.
+The external `NumericClaim.value` schema remains a finite float, so a value that loses digits
+in that schema cannot gain support through approximate comparison. Database money stays in
+its existing string representation. Existing diagnosis records are not rewritten.
 
 An accurate quote can still support an unrelated causal claim. A number written only in
 free-form prose is not covered by structured numeric checks. This release does not claim
