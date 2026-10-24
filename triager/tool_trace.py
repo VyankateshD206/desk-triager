@@ -10,7 +10,7 @@ from .security import sanitize
 def event(name, arguments, service, started, status, result, evidence_ids=()):
     safe = sanitize(result)
     preview = json.dumps(safe, sort_keys=True)
-    return {
+    record = {
         "tool": name,
         "arguments": sanitize(arguments),
         "scope": {"service": service},
@@ -22,3 +22,23 @@ def event(name, arguments, service, started, status, result, evidence_ids=()):
         "evidence_ids": list(evidence_ids),
         "token_usage": "not_applicable_to_read_only_tool",
     }
+
+    if name == "search_runbooks" and status == "ok":
+        try:
+            documents = json.loads(safe["result"]["content"])
+        except (KeyError, TypeError, ValueError):
+            documents = []
+        record["retrieved_documents"] = (
+            [
+                {
+                    key: doc[key]
+                    for key in ("document_id", "version", "chunk_id", "source", "embedding_version")
+                    if isinstance(doc.get(key), str)
+                }
+                for doc in documents
+                if isinstance(doc, dict)
+            ]
+            if isinstance(documents, list)
+            else []
+        )
+    return record

@@ -9,7 +9,7 @@ from langgraph.graph import END, START, StateGraph
 from opentelemetry import trace
 from pydantic import ValidationError
 
-from .contracts import Diagnosis, Evidence, parse_diagnosis
+from .contracts import Diagnosis, Evidence, SearchRunbooksArgs, parse_diagnosis
 from .critic import critique
 from .security import sanitize
 from .telemetry import estimate_cost
@@ -173,6 +173,8 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
             return update
 
     def tools(state):
+        if time.time() >= state["deadline"]:
+            return exhausted("InvestigationBudgetExceeded")
         calls = state["pending_calls"]
         if len(calls) + state["tool_calls"] > agent.settings.agent_max_tools:
             return {
@@ -196,11 +198,16 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
         for call in calls:
             started, status = time.perf_counter(), "ok"
             name = call.get("name", "")
-            if (
-                name not in available
-                or not isinstance(call.get("args", {}), dict)
-                or call.get("args")
-            ):
+            arguments = call.get("args", {})
+            allowed = isinstance(name, str) and name in available and isinstance(arguments, dict)
+            if allowed and name == "search_runbooks":
+                try:
+                    arguments = SearchRunbooksArgs.model_validate(arguments).model_dump()
+                except ValidationError:
+                    allowed = False
+            elif arguments:
+                allowed = False
+            if not allowed:
                 status = "blocked"
                 response = {"error": "Tool or arguments not allowed"}
             elif name in trace:
@@ -208,7 +215,12 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
                 response = {"error": "Already collected; use existing evidence"}
             else:
                 try:
-                    item = agent.evidence_item("tool:" + name, state["service"], available[name]())
+                    result = (
+                        available[name](query=arguments["query"])
+                        if name == "search_runbooks"
+                        else available[name]()
+                    )
+                    item = agent.evidence_item("tool:" + name, state["service"], result)
                     items.append(item)
                     trace.append(name)
                     response = {"result": item}
@@ -218,7 +230,7 @@ def build_graph(agent, checkpointer, *, interrupt_after=None):
             events.append(
                 tool_event(
                     name,
-                    call.get("args", {}),
+                    arguments,
                     state["service"],
                     started,
                     status,

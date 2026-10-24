@@ -391,3 +391,316 @@ def test_gemini_nav_numeric_evidence_through_real_graph(agent, pointer, value, i
     with agent.db.Session() as db:
         assert db.scalar(select(func.count()).select_from(RecoveryJob)) == 0
         assert db.scalar(select(func.count()).select_from(RecoveryProposal)) == 0
+
+
+@pytest.fixture
+def rag_agent(agent):
+    from triager.retrieval import Knowledge
+
+    agent.settings.retrieval_enabled = True
+    agent.settings.embedding_provider = "hash"
+    agent.settings.critic_enabled = False
+    agent.settings.fallback_provider = "offline"
+    Knowledge(agent.db, "hash").seed()
+    return agent
+
+
+def run_rag_http(agent, monkeypatch, calls, provider="gemini", repeat=False, on_plan=None):
+    """Real HTTP adapters + real graph/retrieval; every HTTP response is mocked."""
+    import httpx
+
+    agent.settings.ai_provider = provider
+    monkeypatch.setenv("GEMINI_API_KEY", "synthetic-gemini-key")
+    monkeypatch.setenv("OPENAI_API_KEY", "synthetic-openai-key")
+    real_client = httpx.Client
+    requests = []
+    initial_items = []
+
+    def handler(request):
+        body = json.loads(request.content)
+        requests.append(body)
+        if provider == "gemini":
+            assert request.url.host == "generativelanguage.googleapis.com"
+            declarations = body["tools"][0]["functionDeclarations"]
+            initial_items[:] = json.loads(body["contents"][0]["parts"][0]["text"])[
+                "untrusted_evidence"
+            ]
+            responses = [
+                p["functionResponse"]["response"]
+                for turn in body["contents"]
+                for p in turn["parts"]
+                if "functionResponse" in p
+            ]
+        else:
+            assert request.url == "https://api.openai.com/v1/responses"
+            declarations = body["tools"]
+            initial_items[:] = json.loads(body["input"][0]["content"])["untrusted_evidence"]
+            responses = [
+                json.loads(part["output"])
+                for part in body["input"]
+                if part.get("type") == "function_call_output"
+            ]
+        runbook = next((d for d in declarations if d["name"] == "search_runbooks"), None)
+        if agent.settings.retrieval_enabled:
+            assert runbook is not None
+            schema = runbook["parameters"]
+            assert schema["required"] == ["query"]
+            assert set(schema["properties"]) == {"query"}
+            assert schema["type"] == ("OBJECT" if provider == "gemini" else "object")
+            assert schema["properties"]["query"]["type"] == (
+                "STRING" if provider == "gemini" else "string"
+            )
+        else:
+            assert runbook is None
+        assert all(
+            d["parameters"]["properties"] == {}
+            for d in declarations
+            if d["name"] != "search_runbooks"
+        )
+        index = len(requests) - 1
+        if index < len(calls) or repeat:
+            if on_plan is not None:
+                on_plan()
+            name, arguments = calls[min(index, len(calls) - 1)]
+            part = {"functionCall": {"name": name, "args": arguments}}
+            output = [
+                {
+                    "type": "function_call",
+                    "call_id": f"call_{index}",
+                    "name": name,
+                    "arguments": json.dumps(arguments),
+                }
+            ]
+        else:
+            answer = report({"evidence_items": initial_items})
+            for response in responses:
+                item = response.get("result", {})
+                if item.get("source") == "tool:search_runbooks":
+                    documents = json.loads(item["content"])
+                    if documents:
+                        answer = {
+                            "role": "model",
+                            "parts": [
+                                {
+                                    "text": json.dumps(
+                                        {
+                                            "severity": "medium",
+                                            "category": "rate_limit",
+                                            "confidence": 0.8,
+                                            "hypotheses": [
+                                                {
+                                                    "cause": "Reviewed guidance for the observed throttling; cause not confirmed",
+                                                    "evidence_ids": [item["evidence_id"]],
+                                                    "supporting_quotes": [
+                                                        {
+                                                            "evidence_id": item["evidence_id"],
+                                                            "quote": documents[0]["title"],
+                                                        }
+                                                    ],
+                                                }
+                                            ],
+                                        }
+                                    )
+                                }
+                            ],
+                        }
+                        break
+            part = answer["parts"][0]
+            output = [
+                {
+                    "type": "message",
+                    "role": "assistant",
+                    "content": [{"type": "output_text", "text": part["text"]}],
+                }
+            ]
+        if provider == "gemini":
+            return httpx.Response(
+                200,
+                json={
+                    "candidates": [{"content": {"role": "model", "parts": [part]}}],
+                    "usageMetadata": {"promptTokenCount": 10, "candidatesTokenCount": 5},
+                },
+            )
+        return httpx.Response(
+            200, json={"output": output, "usage": {"input_tokens": 10, "output_tokens": 5}}
+        )
+
+    monkeypatch.setattr(
+        httpx, "Client", lambda **kw: real_client(transport=httpx.MockTransport(handler), **kw)
+    )
+    result = agent.diagnose({"service": "execution-gateway"})
+    return result, requests
+
+
+@pytest.mark.parametrize("provider", ["gemini", "openai"])
+def test_query_aware_retrieval_through_provider_http(rag_agent, monkeypatch, provider):
+    from triager.retrieval import Knowledge
+
+    searches = []
+    original = Knowledge.search
+
+    def search(self, service, query, *, method, limit):
+        searches.append((service, query, method, limit))
+        return original(self, service, query, method=method, limit=limit)
+
+    monkeypatch.setattr(Knowledge, "search", search)
+    result, requests = run_rag_http(
+        rag_agent,
+        monkeypatch,
+        [("search_runbooks", {"query": "  HTTP 429 retry-after throttling  "})],
+        provider,
+    )
+    assert searches == [("execution-gateway", "HTTP 429 retry-after throttling", "vector", 3)]
+    assert result["provider"] == provider
+    assert "fallback_reason" not in result
+    assert result["verification"]["issues"] == []
+    item = next(e for e in result["evidence_items"] if e["source"] == "tool:search_runbooks")
+    documents = json.loads(item["content"])
+    assert documents[0]["document_id"] == "runbook:throttle"
+    assert all(
+        d["version"] and d["source"] and d["chunk_id"] and d["embedding_version"] for d in documents
+    )
+    assert not any(d["document_id"] in {"runbook:feed", "runbook:ledger"} for d in documents)
+    event = result["tool_events"][-1]
+    assert event["arguments"] == {"query": "HTTP 429 retry-after throttling"}
+    assert event["scope"] == {"service": "execution-gateway"}
+    assert event["status"] == "ok" and event["latency_ms"] >= 0
+    assert event["evidence_ids"] == [item["evidence_id"]]
+    assert event["retrieved_documents"] == [
+        {k: d[k] for k in ("document_id", "version", "chunk_id", "source", "embedding_version")}
+        for d in documents
+    ]
+    assert len(requests) == 2
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        {},
+        {"query": ""},
+        {"query": "x" * 161},
+        {"query": "HTTP 429", "service": "market-feed"},
+        {"query": "HTTP 429", "limit": 100},
+        {"query": {"$ne": None}},
+        {"query": "HTTP\n429"},
+        {"query": 429},
+    ],
+)
+def test_invalid_search_arguments_are_blocked_and_counted(rag_agent, monkeypatch, arguments):
+    from triager.retrieval import Knowledge
+
+    monkeypatch.setattr(Knowledge, "search", lambda *a, **kw: pytest.fail("Blocked query executed"))
+    result, _ = run_rag_http(rag_agent, monkeypatch, [("search_runbooks", arguments)])
+    assert result["tool_calls"] == 3
+    assert result["tool_events"][-1]["status"] == "blocked"
+    assert "search_runbooks" not in result["tool_trace"]
+    assert result["provider"] == "gemini"
+
+
+def test_runbook_duplicate_is_not_another_search(rag_agent, monkeypatch):
+    from triager.retrieval import Knowledge
+
+    searches = []
+    original = Knowledge.search
+
+    def search(self, *args, **kw):
+        searches.append(kw["query"])
+        return original(self, *args, **kw)
+
+    monkeypatch.setattr(Knowledge, "search", search)
+    result, _ = run_rag_http(
+        rag_agent,
+        monkeypatch,
+        [
+            ("search_runbooks", {"query": "HTTP 429"}),
+            ("search_runbooks", {"query": "SQL duration"}),
+        ],
+    )
+    assert searches == ["HTTP 429"]
+    assert [e["status"] for e in result["tool_events"][-2:]] == ["ok", "duplicate"]
+    assert result["tool_trace"].count("search_runbooks") == 1
+    assert result["tool_calls"] == 4
+
+
+@pytest.mark.parametrize(
+    "name,arguments",
+    [
+        ("run_shell", {}),
+        ("get_service_metrics", {"query": "HTTP 429"}),
+        ("search_runbooks", {"query": "HTTP 429"}),
+    ],
+)
+def test_other_tools_and_disabled_retrieval_keep_boundaries(
+    rag_agent, monkeypatch, name, arguments
+):
+    if name == "search_runbooks":
+        rag_agent.settings.retrieval_enabled = False
+    result, _ = run_rag_http(rag_agent, monkeypatch, [(name, arguments)])
+    assert result["tool_events"][-1]["status"] == "blocked"
+    assert result["tool_calls"] == 3
+
+
+def test_parameterless_tools_still_work_over_http(rag_agent, monkeypatch):
+    result, _ = run_rag_http(rag_agent, monkeypatch, [("get_service_metrics", {})])
+    assert result["tool_events"][-1]["status"] == "ok"
+    assert result["tool_trace"][-1] == "get_service_metrics"
+
+
+def test_invalid_search_attempts_still_hit_tool_budget(rag_agent, monkeypatch):
+    rag_agent.settings.agent_max_tools = 3
+    result, _ = run_rag_http(rag_agent, monkeypatch, [("search_runbooks", {})], repeat=True)
+    assert result["provider"] == "offline"
+    assert result["fallback_reason"] == "ToolBudgetExceeded"
+    assert result["tool_calls"] == 3
+
+
+def test_retrieval_errors_remain_safe_and_bounded(rag_agent, monkeypatch):
+    from triager.retrieval import Knowledge
+
+    def fail(*args, **kwargs):
+        raise ValueError("private-retrieval-secret")
+
+    monkeypatch.setattr(Knowledge, "search", fail)
+    result, _ = run_rag_http(
+        rag_agent, monkeypatch, [("search_runbooks", {"query": "HTTP 429"})], repeat=True
+    )
+    assert result["provider"] == "offline"
+    assert result["fallback_reason"] == "InvestigationBudgetExceeded"
+    assert result["tool_events"][2]["status"] == "error"
+    assert "private-retrieval-secret" not in json.dumps(result)
+
+
+def test_search_query_secrets_are_redacted_before_retrieval_and_trace(rag_agent, monkeypatch):
+    from triager.retrieval import Knowledge
+
+    seen = []
+    monkeypatch.setattr(Knowledge, "search", lambda self, **kw: seen.append(kw["query"]) or [])
+    result, _ = run_rag_http(
+        rag_agent,
+        monkeypatch,
+        [("search_runbooks", {"query": "  HTTP 429 api_key=private-query-secret  "})],
+    )
+    assert seen == ["HTTP 429 api_key=[REDACTED]"]
+    assert result["tool_events"][-1]["arguments"] == {"query": seen[0]}
+    assert "private-query-secret" not in json.dumps(result)
+
+
+def test_runbook_search_does_not_execute_after_planner_exhausts_deadline(rag_agent, monkeypatch):
+    from triager.retrieval import Knowledge
+
+    clock = [time.time()]
+    monkeypatch.setattr("triager.workflow.time.time", lambda: clock[0])
+    monkeypatch.setattr(
+        Knowledge, "search", lambda *a, **kw: pytest.fail("Expired search executed")
+    )
+
+    def expire():
+        clock[0] += 120
+
+    result, requests = run_rag_http(
+        rag_agent, monkeypatch, [("search_runbooks", {"query": "HTTP 429"})], on_plan=expire
+    )
+    assert result["provider"] == "offline"
+    assert result["fallback_reason"] == "InvestigationBudgetExceeded"
+    assert "search_runbooks" not in result["tool_trace"]
+    assert len(requests) == 1
