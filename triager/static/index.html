@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Desk Triager — Operations overview</title>
-    <link rel="stylesheet" href="/static/style.css?v=37a3611" />
-    <script defer src="/static/investigation.js?v=37a3611"></script>
-    <script defer src="/static/app.js?v=37a3611"></script>
+    <link rel="stylesheet" href="/static/style.css?v=review-loading-1" />
+    <script defer src="/static/investigation.js?v=review-loading-1"></script>
+    <script defer src="/static/app.js?v=review-loading-1"></script>
   </head>
   <body>
     <main>
@@ -226,8 +226,9 @@
         <p id="review-description" class="subtle">Read the diagnosis, check the evidence, then decide on recovery. Approval queues a fixed simulated action; fresh telemetry must confirm the outcome.</p>
         <div class="review-metadata"><span id="detail-service"></span><span id="detail-severity" class="severity"></span><span class="badge" id="detail-status"></span><span>Detected <time id="detail-detected"></time></span></div>
       </div>
+      <div id="review-request-state" class="review-request-state" role="status" hidden><p id="review-load-message"></p><button id="retry-review" class="quiet" type="button" hidden>Retry loading</button></div>
       <nav class="investigation-nav" aria-label="Investigation views"><a class="investigation-jump" href="#diagnosis-heading">Summary</a><a class="investigation-jump" href="#agent-workflow-heading">Workflow</a><a class="investigation-jump" href="#evidence-library">Evidence</a><a class="investigation-jump" href="#tool-details">Tools</a><a class="investigation-jump" href="#recovery-heading">Recovery decision</a></nav>
-      <div class="review-grid">
+      <div class="review-grid" id="review-workspace">
         <div class="review-main">
           <section class="review-section" aria-labelledby="symptom-heading"><h3 id="symptom-heading">What happened</h3><p id="diagnosis"></p></section>
           <section class="review-section assessment" aria-labelledby="diagnosis-heading">

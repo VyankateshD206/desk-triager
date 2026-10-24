@@ -2511,3 +2511,20 @@ body:has(#detail[open]) {
   max-width: 90ch;
   line-height: 1.6;
 }
+
+
+/* Keep review feedback immediate while its recorded proposal is fetched. */
+#detail .review-grid[hidden], #detail .investigation-nav[hidden],
+#detail .review-metadata[hidden], #review-request-state[hidden], #retry-review[hidden] {
+  display: none;
+}
+#detail .review-request-state {
+  padding: var(--space-5);
+  margin: var(--space-5) 0;
+  min-height: 120px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+}
+#detail .review-request-state p { margin: 0 0 var(--space-4); }
+#detail .review-request-state[role="alert"] { border-color: var(--error-border); }

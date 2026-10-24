@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Open incident reviews immediately with loading/error/retry states, cancel pending requests on close, and ignore stale responses; keep decisions disabled until the recorded proposal loads.
+
 - Revalidate console assets and refresh their URLs so cached token-era JavaScript cannot leave the updated dashboard stuck connecting.
 
 - Remove the desk access-token gate and connect automatically; retain rate limiting and explicit, proposal-bound recovery approval.

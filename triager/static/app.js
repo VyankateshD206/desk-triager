@@ -60,7 +60,7 @@ const money = (value) =>
   });
 const help = (value, text) =>
   `<span tabindex="0" data-help="${escape(text)}" aria-describedby="help-tooltip">${escape(value)}</span>`;
-async function api(path, body, extraHeaders = {}) {
+async function api(path, body, extraHeaders = {}, options = {}) {
   const response = await fetch(path, {
     method: body === undefined ? "GET" : "POST",
     headers: {
@@ -68,6 +68,7 @@ async function api(path, body, extraHeaders = {}) {
       ...extraHeaders,
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    ...(options.signal ? {signal: options.signal} : {}),
   });
   const value = await response.json();
   if (!response.ok)
@@ -682,10 +683,41 @@ function showReviewError(message) {
 }
 
 let reviewReturnTarget = null;
+let reviewRequest = 0, reviewController = null, reviewIncidentId = null;
+function showReviewLoading(message, failed = false) {
+  $("#review-request-state").hidden = false;
+  $("#review-request-state").setAttribute("role", failed ? "alert" : "status");
+  $("#review-load-message").textContent = message;
+  $("#retry-review").hidden = !failed;
+  $("#review-workspace").hidden = true;
+  $("#detail .investigation-nav").hidden = true;
+  $("#detail .review-metadata").hidden = true;
+  ["#approve", "#reject", "#triage"].forEach(selector=>$(selector).disabled=true);
+}
+function cancelReviewLoad() {
+  reviewRequest++;
+  reviewController?.abort();
+  reviewController = null;
+}
 async function inspect(id) {
-  reviewReturnTarget = {id, button: document.activeElement?.tagName === "BUTTON"};
+  const dialog = $("#detail");
+  if (!dialog.open) reviewReturnTarget = {id, button: document.activeElement?.tagName === "BUTTON"};
+  cancelReviewLoad();
+  const request = reviewRequest;
+  const controller = new AbortController(); reviewController = controller;
+  reviewIncidentId = id;
+  selected = null;
+  const incident = state?.incidents?.find(item=>item.id===id);
+  $("#detail-title").textContent = incident?.signal || names[incident?.kind] || "Incident review";
+  showReviewLoading("Loading the saved diagnosis, evidence and recovery proposal… You can close this review while it loads.");
+  if (!dialog.open) dialog.showModal();
+  dialog.scrollTop = 0;
+  $("#detail-title").focus({preventScroll:true});
+  const timeout = setTimeout(()=>controller.abort(), 20000);
   try {
-    selected = await api("/api/incidents/" + id);
+    const fresh = await api("/api/incidents/" + id, undefined, {}, {signal:controller.signal});
+    if (request !== reviewRequest || !dialog.open) return;
+    selected = fresh;
     renderInvestigation(selected.investigation);
     renderReviewMetadata();
     renderTimeline(selected);
@@ -697,13 +729,21 @@ async function inspect(id) {
     clearReviewErrors();
     document.querySelectorAll(".review-technical > details").forEach(details=>details.open=false);
     updateApproval();
-    $("#detail").showModal();
-    $("#detail").scrollTop = 0;
-    $("#detail-title").focus({preventScroll:true});
+    $("#review-request-state").hidden = true;
+    $("#review-workspace").hidden = false;
+    $("#detail .investigation-nav").hidden = false;
+    $("#detail .review-metadata").hidden = false;
+    $("#triage").disabled = false;
   } catch (e) {
-    showError(e);
+    if (request !== reviewRequest || !dialog.open) return;
+    selected = null;
+    showReviewLoading(e.name === "AbortError" ? "Loading took too long. Check your connection and retry." : "Could not load this incident. " + e.message, true);
+  } finally {
+    clearTimeout(timeout);
+    if (request === reviewRequest) reviewController = null;
   }
 }
+$("#retry-review").onclick = () => {if (reviewIncidentId) inspect(reviewIncidentId);};
 $("#incident-rows").addEventListener("click", (e) => {
   if (e.target.closest("[data-help]")) return;
   const button = e.target.closest("[data-id]");
@@ -711,8 +751,10 @@ $("#incident-rows").addEventListener("click", (e) => {
 });
 ["#show-history", "#severity-filter", "#service-filter"].forEach(selector => $(selector).onchange = renderIncidents);
 $("#reset-incidents").onclick = resetIncidentFilters;
-$("#close").onclick = () => $("#detail").close();
+$("#close").onclick = () => {cancelReviewLoad(); $("#detail").close();};
+$("#detail").addEventListener("cancel", cancelReviewLoad);
 $("#detail").addEventListener("close", () => {
+  cancelReviewLoad();
   hideHelp();
   if (!reviewReturnTarget) return;
   const row = [...document.querySelectorAll("#incident-rows tr[data-id]")].find(node=>node.dataset.id===reviewReturnTarget.id);

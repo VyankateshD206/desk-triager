@@ -9,12 +9,14 @@ class Element {
   replaceChildren(...children){this.children=children;}
   append(...children){this.children.push(...children);}
   focus(){this.focused=true;}
+  showModal(){this.open=true;}
 }
 const elements = new Map();
 function element(selector){if(!elements.has(selector))elements.set(selector,new Element());return elements.get(selector);}
 const storage = new Map();
 const source = fs.readFileSync('triager/static/app.js','utf8');
-const context = vm.createContext({window:{},document:{querySelector:element,querySelectorAll:selector=>selector==='#evidence-items > details'?element('#evidence-items').children.filter(e=>e.tagName==='DETAILS'):[],createElement:tag=>new Element(tag),createTextNode:text=>({textContent:text})},
+const timers=new Map();let nextTimer=0;
+const context = vm.createContext({AbortController,setTimeout:fn=>{timers.set(++nextTimer,fn);return nextTimer;},clearTimeout:id=>timers.delete(id),window:{},document:{querySelector:element,querySelectorAll:selector=>selector==='#evidence-items > details'?element('#evidence-items').children.filter(e=>e.tagName==='DETAILS'):[],createElement:tag=>new Element(tag),createTextNode:text=>({textContent:text})},
   sessionStorage:{getItem:key=>storage.get(key)||null,setItem:(k,v)=>storage.set(k,v),removeItem:key=>storage.delete(key)},
   crypto:{randomUUID:()=> 'decision-key-1'}});
 vm.runInContext(fs.readFileSync('triager/static/investigation.js','utf8'),context);
@@ -22,6 +24,7 @@ vm.runInContext(source.slice(0,source.indexOf('function setMetricState'))+
   source.slice(source.indexOf('function updateApproval()'),source.indexOf('async function refresh()'))+
   source.slice(source.indexOf('function renderReviewMetadata()'),source.indexOf('let reviewReturnTarget'))+
   source.slice(source.indexOf('async function submitDecision('),source.indexOf('$("#approve").onclick')),context);
+vm.runInContext(source.slice(source.indexOf('let reviewReturnTarget = null;'),source.indexOf('$("#retry-review").onclick')),context);
 vm.runInContext(source.slice(source.indexOf('async function copyRunId()'),source.indexOf('$("#copy-run-id").onclick')),context);
 vm.runInContext('async function refresh(){}; function renderTimeline(){}; api=(...args)=>mockApi(...args);',context);
 const evaluate=code=>vm.runInContext(code,context);
@@ -33,6 +36,44 @@ function select(overrides={}){
 }
 const text=node=>(node.textContent || '')+(node.children || []).map(text).join(' ');
 async function main(){
+  select();element('#detail').open=false;
+  const completed={...context.incident,kind:'rate_limit',opened_at:'2026-10-24T00:00:00Z',investigation:null};
+  let resolveLoad;
+  context.mockApi=()=>new Promise(resolve=>{resolveLoad=resolve;});
+  const loading=evaluate('inspect("incident-A")');
+  assert.equal(element('#detail').open,true,'dialog opens before HTTP completes');
+  assert.equal(element('#review-workspace').hidden,true);
+  assert.match(element('#review-load-message').textContent,/Loading the saved/);
+  assert.equal(element('#approve').disabled,true);
+  resolveLoad(completed);await loading;
+  assert.equal(element('#review-workspace').hidden,false);
+  assert.equal(element('#review-request-state').hidden,true);
+  // Closing cancels the fetch; even a response that ignores cancellation cannot reopen it.
+  let signal;
+  context.mockApi=(...args)=>{signal=args[3].signal;return new Promise(resolve=>{resolveLoad=resolve;});};
+  const closed=evaluate('inspect("incident-A")');
+  evaluate('cancelReviewLoad()');element('#detail').open=false;
+  assert.equal(signal.aborted,true);
+  resolveLoad(completed);await closed;
+  assert.equal(element('#detail').open,false);assert.equal(evaluate('selected'),null);
+  // An older response must not replace the most recently requested incident.
+  const responses=[];
+  context.mockApi=()=>new Promise(resolve=>responses.push(resolve));
+  const older=evaluate('inspect("incident-A")'),newer=evaluate('inspect("incident-B")');
+  responses[1]({...completed,id:'incident-B'});await newer;
+  responses[0](completed);await older;assert.equal(evaluate('selected.id'),'incident-B');
+  // Slow requests time out into a retryable state, with recovery controls unavailable.
+  context.mockApi=(...args)=>new Promise((resolve,reject)=>args[3].signal.addEventListener('abort',()=>reject(Object.assign(new Error('Timed out'),{name:'AbortError'}))));
+  const timed=evaluate('inspect("incident-A")');[...timers.values()].at(-1)();await timed;
+  assert.match(element('#review-load-message').textContent,/took too long/);
+  assert.equal(element('#retry-review').hidden,false);assert.equal(element('#approve').disabled,true);
+  context.mockApi=async()=>{throw new Error('Network unavailable');};
+  await evaluate('inspect("incident-A")');assert.match(element('#review-load-message').textContent,/Network unavailable/);
+  assert.equal(element('#review-request-state').attrs.role,'alert');
+  context.mockApi=async()=>completed;await evaluate('inspect("incident-A")');
+  assert.equal(element('#review-workspace').hidden,false);
+  assert.equal(timers.size,0);
+
   evaluate('showError(new Error("Failed to fetch"))');
   assert.match(element('#error').textContent,/Cannot reach the desk server/);
   evaluate('renderInvestigation(null)');
@@ -107,6 +148,6 @@ async function main(){
   context.mockApi=async(...args)=>{calls.push(args);if(args[1]){context.newIncident={...context.incident,id:'incident-B'};evaluate('selected=newIncident');}return {...context.incident,status:'queued'};};
   await evaluate('submitDecision(true)');
   assert.equal(calls[1][0],'/api/incidents/incident-A');assert.equal(evaluate('selected.id'),'incident-B');
-  console.log('Review checks passed: required reason/approver, bound payload, retry key, duplicate clicks, persistent errors, drafts, recovery states and late responses.');
+  console.log('Review checks passed: immediate loading, cancellation, stale loads, timeout/retry, required reason/approver, bound payload, retry key, duplicate clicks, persistent errors, drafts, recovery states and late responses.');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

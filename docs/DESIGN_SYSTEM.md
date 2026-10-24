@@ -285,3 +285,24 @@ wheel/package checks and recorder syntax validation pass. An isolated browser ru
 without credentials, injected an HTTP 429 fault, rejected an empty decision reason, accepted
 an explicit simulated approval and reached resolved after fresh telemetry. Refresh connection
 works without a token field. Local .env/database/provider configuration was not modified.
+
+
+## Responsive incident loading
+
+The review dialog opens synchronously on selection instead of waiting for the proposal
+request. Its loading notice explains the pending recorded data; old investigation content
+is hidden, and approval/rejection/refresh controls stay disabled. Success reveals the
+loaded workspace. A 20-second request timeout shows a retry action. Escape/Close aborts
+the request, and a request generation guard ignores late or out-of-order responses. Retry
+preserves the original focus-return target. No proposal is cached or approved optimistically.
+
+A local observation measured about 4.14 seconds for a snapshot and 9.06 seconds for one
+incident proposal against the configured PostgreSQL app. This is a single latency probe,
+not a benchmark. The fix changes perceived interaction and failure handling; it does not
+claim to reduce database/network request time or change recovery authorization.
+
+Validation: 135 Python tests, frontend suites, lint and package checks pass. Deferred-request
+frontend tests verify immediate opening, disabled decisions, cancellation, stale response
+exclusion, timeout/error handling and successful retry. Browser checks against the running
+app verified loading before the HTTP response, Escape/focus return, a subsequent incident
+selection and the matching loaded service, without console errors or submitting decisions.
