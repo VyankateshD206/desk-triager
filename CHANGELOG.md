@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Revalidate console assets and refresh their URLs so cached token-era JavaScript cannot leave the updated dashboard stuck connecting.
+
 - Remove the desk access-token gate and connect automatically; retain rate limiting and explicit, proposal-bound recovery approval.
 
 - Clarify first-visit monitoring, configured versus recorded providers, active simulator faults and retained history; fix missing-investigation rendering and disconnected loading labels (Phase 6B).

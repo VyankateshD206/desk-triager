@@ -66,6 +66,14 @@ def create_app(settings=None):
             await asyncio.to_thread(tracer_provider.shutdown)
 
     app = FastAPI(title="Desk | Execution Anomaly Triager", version=__version__, lifespan=lifespan)
+
+    @app.middleware("http")
+    async def revalidate_console_assets(request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path == "/" or request.url.path.startswith("/static/"):
+            response.headers["Cache-Control"] = "no-cache"
+        return response
+
     limits = RateLimits()
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 

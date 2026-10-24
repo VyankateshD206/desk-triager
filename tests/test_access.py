@@ -28,6 +28,11 @@ def test_local_api_connects_without_token_and_keeps_request_validation(
             ) as client:
                 page = await client.get("/")
                 assert page.status_code == 200
+                assert page.headers["cache-control"] == "no-cache"
+                for asset in ("app.js", "investigation.js", "style.css"):
+                    response = await client.get("/static/" + asset + "?v=37a3611")
+                    assert response.status_code == 200
+                    assert response.headers["cache-control"] == "no-cache"
                 assert 'id="token"' not in page.text
                 assert (await client.get("/api/snapshot")).status_code == 200
                 assert (await client.post("/api/telemetry", json={})).status_code == 422
